@@ -1,0 +1,1 @@
+This folder should contain all the code. Generic documentation and similar should be kept outside.
