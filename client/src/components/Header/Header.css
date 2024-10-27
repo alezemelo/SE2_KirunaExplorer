@@ -1,0 +1,42 @@
+/* Header.css */
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.title {
+  flex-grow: 1;
+  color: white;
+}
+
+.search {
+  position: relative;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: background-color 0.2s ease;
+  margin-right: 16px;
+  margin-left: 8px;
+  width: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.search:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.searchIcon {
+  padding: 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputRoot {
+  color: inherit;
+  width: 100%;
+}
+
