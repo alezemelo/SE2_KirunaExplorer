@@ -19,6 +19,25 @@ xxx
 - Additional Constraints:
   - 
 
+### Documents API
+
+#### PATCH `/kiruna_explorer/documents/:id/coordinates`
+
+- Request Parameters: `:id`, the doc id
+- Request Body Content:
+```
+{
+  lat: 100,
+  long: 200
+}
+```
+- Response Status code:
+  - If ok:  `200`
+  - If error: `500`
+- Access Constraints: Only urban planner
+- Additional Constraints:
+Edits the coordinates of a document
+
 ### xxx API
 
 #### GET `/kiruna_explorer/yyy`
@@ -44,3 +63,4 @@ yyy
 - Access Constraints: 
 - Additional Constraints:
   - 
+
