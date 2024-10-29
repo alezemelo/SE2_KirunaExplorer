@@ -1,22 +1,32 @@
 import React from "react";
-import GoogleMapReact, { ChangeEventValue, Maps, MapOptions } from "google-map-react";
-import { Paper, Typography, useMediaQuery } from "@mui/material";
-import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import Rating from "@mui/material/Rating";
+import GoogleMapReact, { ChangeEventValue, MapOptions } from "google-map-react";
+import { useMediaQuery } from "@mui/material";
 import "./Map.css"; // Import the CSS file
 
-const Map = () => {
-  const isMobile = useMediaQuery("(max-width:600px)");
-  const coordinates = { lat: 0, lng: 0 };
+// Define types for Coordinates and MapProps
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
 
-  // Define options as an object or function that returns an object
+interface MapProps {
+  setCoordinates: (coordinates: Coordinates) => void;
+  setBounds: (bounds: { ne: Coordinates; sw: Coordinates } | null) => void;
+  coordinates: Coordinates;
+}
+
+const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates }) => {
+  const isMobile = useMediaQuery("(max-width:600px)");
+
   const mapOptions: MapOptions = {
     fullscreenControl: false,
   };
 
-  // Define the onChange function to handle map changes
-  const handleMapChange = (event: ChangeEventValue) => {
-    console.log("Map change event:", event);
+  // Define handleMapChange function with correct typing
+  const handleMapChange = (e: ChangeEventValue) => {
+    setCoordinates({ lat: e.center.lat, lng: e.center.lng });
+    setBounds({ ne: e.marginBounds.ne, sw: e.marginBounds.sw });
+    
   };
 
   return (
@@ -25,14 +35,14 @@ const Map = () => {
         bootstrapURLKeys={{ key: "AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4" }}
         defaultCenter={coordinates}
         center={coordinates}
-        defaultZoom={14}
+        defaultZoom={12}
         margin={[50, 50, 50, 50]}
-        options={mapOptions} // Pass the map options
-        onChange={handleMapChange} // Correct onChange function type
-      >
-      </GoogleMapReact>
+        options={mapOptions}
+        onChange={handleMapChange}
+      />
     </div>
   );
 };
 
 export default Map;
+

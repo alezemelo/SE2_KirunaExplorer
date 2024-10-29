@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from './components/Header/Header';
 import List from './components/List/List';
 import Map from './components/Map/Map';
 import { CssBaseline, Grid } from '@mui/material';
 import './App.css';
 
+// Define type for Coordinates
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
 function App() {
+  const [coordinates, setCoordinates] = useState<Coordinates>({ lat: 67.85572 , lng: 20.22513 });
+  const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
+
+
+  useEffect(() => {
+    console.log(coordinates, bounds);
+  }, [coordinates, bounds]);
+
   return (
     <>
       <CssBaseline />
@@ -15,7 +29,11 @@ function App() {
           <List />
         </Grid>
         <Grid item xs={12} md={8}>
-          <Map />
+          <Map 
+            setCoordinates={setCoordinates} 
+            setBounds={setBounds} 
+            coordinates={coordinates} 
+          />
         </Grid>
       </Grid>
     </>
@@ -23,5 +41,6 @@ function App() {
 }
 
 export default App;
+
 
 
