@@ -63,4 +63,45 @@ yyy
 - Access Constraints: 
 - Additional Constraints:
   - 
+### Document's Link API
+
+#### GET `/kiruna_explorer/links/:link_id`
+
+get the link of the specified link_id
+
+- Request Parameters: id of the link
+- Request Body Content: None
+- Response Body Content: An object with the following attributes:
+  
+- Access Constraints: None
+- Additional Constraints:
+  
+
+#### GET `/kiruna_explorer/links/:doc_id`
+
+get the links of the document specified by the doc_id
+
+- Request Parameters: id of the document
+- Request Body Content: None
+- Response Body Content: 
+
+- Access Constraints: None
+- Additional Constraints:
+
+#### POST `/kiruna_explorer/links/`
+
+create a link between two documents
+
+- Request Parameters: None
+- Request Body Content: {
+
+}
+- Response Body Content:
+- Access Constraints: Only urban planner
+- Additional Constraints:
+- If the user is not authenticated `403`
+- If the link already exists `409`
+
+
+
 
