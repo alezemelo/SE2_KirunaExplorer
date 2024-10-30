@@ -3,6 +3,8 @@ import express from "express"
 import morgan from "morgan"
 const prefix = "/kiruna_explorer"
 
+import DocumentRoutes from "./rcd/routes/document_routes"
+
 /**
  * Initializes the routes for the application.
  * 
@@ -16,12 +18,13 @@ function initRoutes(app: express.Application) {
     app.use(express.json({ limit: "25mb" }))
     app.use(express.urlencoded({ limit: '25mb', extended: true }))
 
+    const documentRoutes = new DocumentRoutes()
+
     /**
      * Add your routers here, like the documents router was added
      */
 
-    // TODO: IMPLEMENT THIS
-    //app.use(`${prefix}/documents`, documentRoutes.getRouter())
+    app.use(`${prefix}/documents`, documentRoutes.getRouter())
 
     //ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");

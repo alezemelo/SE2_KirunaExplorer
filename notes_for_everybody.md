@@ -29,3 +29,8 @@ if you want to roll back run:
 `npx knex migrate:rollback --knexfile knexfile.ts`
 New migration files should always be committed and pushed to github.
 Remember to run `migrate:latest` alter a pull to get the latest version of the db, in case someone changes something. Also if you make changes to the schema please tell other people.
+
+# Errors
+(Dragos)  
+Refer to the standard error codes specified at the top of API.md.  
+If you feel like it's needed create an Error Object (for db errors like Foreign Constraint Error or Unique Key Error for example there's already specific objects).  
