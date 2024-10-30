@@ -1,33 +1,84 @@
-import React from "react";
-import {Box, Typography, Button, Card, CardMedia, CardContent, CardActions, Chip} from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PhoneIcon from "@mui/icons-material/Phone";
+import React, { useState } from "react";
+import { Box, Typography, Card, CardContent, Button } from "@mui/material";
 
 // Define the type for document
 interface Document {
   title: string;
+  stakeholders: string;
+  scale: string;
+  issuanceDate: string;
+  type: string;
+  connection: string;
+  language: string;
+  pages: string;
+  description: string;
 }
 
 // Specify the prop type in the component
 const DocDetails: React.FC<{ document: Document }> = ({ document }) => {
-  return (
-    <Card elevation={6}>
-        <CardMedia
-          style={{ height: 350 }}
-          image="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.w3schools.com%2Fw3css%2Fw3css_images.asp&psig=AOvVaw3JFZ6J8G6v6T3v5y2Hw3m1&ust=1635607401536000&source=images&cd=vfe&ved=0CAsQjRxqFwoTCNjY3vq1zvMCFQAAAAAdAAAAABAD"
-          title={document.title}
-        />
-        <CardContent>
-          <Typography gutterBottom variant="h5">{document.title}</Typography>
-          <Box display="flex" justifyContent="space-between">
-            <Typography variant="subtitle1">Category</Typography>
-            <Typography variant="subtitle1">Category</Typography>
-          </Box>
-          <Typography variant="subtitle1">Description</Typography>
-        </CardContent>
+  // State to manage description visibility
+  const [showDescription, setShowDescription] = useState(false);
 
+  // Toggle description visibility
+  const toggleDescription = () => setShowDescription((prev) => !prev);
+
+  return (
+    <Card elevation={6} style={{ margin: "20px 0", padding: "20px" }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          <strong>Title: </strong>
+          {document.title}
+        </Typography>
+
+        <Box display="flex" flexDirection="column" gap={1}>
+          <Typography variant="body2">
+            <strong>Stakeholders:</strong> {document.stakeholders}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Scale:</strong> {document.scale}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Issuance date:</strong> {document.issuanceDate}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Type:</strong> {document.type}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Connections:</strong> {document.connection}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Language:</strong> {document.language}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Pages:</strong> {document.pages}
+          </Typography>
+        </Box>
+
+        {/* Toggleable Description */}
+        {showDescription && (
+          <Typography variant="body2" style={{ marginTop: "10px" }}>
+            <strong>Description:</strong> {document.description}
+          </Typography>
+        )}
+
+        {/* Toggle Button */}
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ marginTop: "10px" }}
+          onClick={toggleDescription}
+        >
+          {showDescription ? "Hide Description" : "Show Description"}
+        </Button>
+
+        <Button variant="contained" color="secondary" style={{ marginTop: "10px" }}>
+          See linked document in the map
+        </Button>
+      </CardContent>
     </Card>
   );
 };
 
 export default DocDetails;
+
+
