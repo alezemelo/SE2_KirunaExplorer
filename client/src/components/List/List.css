@@ -1,5 +1,11 @@
+/* List.css */
+
 .container {
-  padding: 20px;
+  padding-bottom: 20px;
+  padding-right: 20px;
+  padding-left: 20px;
+  background-color: #000; /* Set background color to black */
+  color: white; /* Change text color to white for contrast */
 }
 
 .form-control {
@@ -20,12 +26,13 @@
 .MuiCard-root {
   border-radius: 10px;
   padding: 20px;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* Customize shadow */
-  background-color: white; /* Optional for better visibility */
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  background-color: #333; /* Darken the card background to stand out from the main black background */
+  color: white;
 }
 
-.card-textfield  {
-  color: #333;
+.card-textfield {
+  color: #fff; /* Adjust text color in text fields to white */
 }
 
 .MuiButton-containedPrimary {
@@ -33,4 +40,40 @@
   color: white;
 }
 
-  
+/* Style the scrollable list box with a black background */
+.scrollable-list {
+  background-color: #111; /* Set a slightly different black shade to distinguish the scrollable area */
+  color: white;
+  padding-right: 10px;
+}
+
+
+/* Style the entire dialog to have a black background and white text */
+.custom-dialog .MuiPaper-root {
+  background-color: #000; /* Set dialog background to black */
+  color: white; /* Set text color to white */
+  border: 1px solid white; 
+  border-radius: 8px; /
+}
+
+.custom-dialog .MuiDialogTitle-root {
+  color: white; /* Set title color to white */
+}
+
+.custom-dialog .MuiDialogContent-root {
+  background-color: #000; /* Set content background to black */
+}
+
+.custom-dialog .MuiDialogActions-root {
+  background-color: #000; /* Set actions background to black */
+}
+
+/* Style TextField input fields to have a white background and black text */
+.white-input .MuiInputBase-root {
+  background-color: #fff; /* Set input background to white */
+  color: black; /* Set input text color to black */
+}
+
+.white-input .MuiInputBase-input {
+  color: black; /* Set input text color to black */
+}

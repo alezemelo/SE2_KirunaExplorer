@@ -1,0 +1,9 @@
+body, #root {
+    background-color: black; /* Set background to black */
+    color: white; /* Optional: set text color to white for contrast */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif; /* Optional: Customize the font */
+    height: 100vh; /* Ensure full viewport height */
+  }
+  

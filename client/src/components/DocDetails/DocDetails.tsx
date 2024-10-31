@@ -15,7 +15,12 @@ interface Document {
 }
 
 // Specify the prop type in the component
-const DocDetails: React.FC<{ document: Document }> = ({ document }) => {
+interface DocDetailsProps {
+  document: Document;
+  onLink: () => void; // Add this line to accept the onLink prop
+}
+
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink }) => {
   // State to manage description visibility
   const [showDescription, setShowDescription] = useState(false);
 
@@ -23,7 +28,7 @@ const DocDetails: React.FC<{ document: Document }> = ({ document }) => {
   const toggleDescription = () => setShowDescription((prev) => !prev);
 
   return (
-    <Card elevation={6} style={{ margin: "20px 0", padding: "20px" }}>
+    <Card elevation={6} style={{ margin: "20px 0", padding: "10px" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>
@@ -71,8 +76,14 @@ const DocDetails: React.FC<{ document: Document }> = ({ document }) => {
           {showDescription ? "Hide Description" : "Show Description"}
         </Button>
 
-        <Button variant="contained" color="secondary" style={{ marginTop: "10px" }}>
-          See linked document in the map
+        {/* Button to trigger linking */}
+        <Button 
+          variant="contained" 
+          color="secondary" 
+          style={{ marginTop: "10px" }} 
+          onClick={onLink} // Call onLink when this button is clicked
+        >
+          Link Document
         </Button>
       </CardContent>
     </Card>
@@ -80,5 +91,7 @@ const DocDetails: React.FC<{ document: Document }> = ({ document }) => {
 };
 
 export default DocDetails;
+
+
 
 
