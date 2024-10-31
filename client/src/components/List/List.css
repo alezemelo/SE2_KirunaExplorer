@@ -77,3 +77,14 @@
 .white-input .MuiInputBase-input {
   color: black; /* Set input text color to black */
 }
+
+.document-item {
+  background-color: #222; /* Default background color */
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.document-item:hover {
+  background-color: #444; /* Hover background color */
+  color: #ddd; /* Hover text color */
+}

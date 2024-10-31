@@ -140,12 +140,12 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       </Button>
 
       {/* Linking Dialog */}
-      <Dialog open={openLinkDialog} onClose={closeLinkingDialog}>
+      <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
         <DialogTitle>Link Document</DialogTitle>
         <DialogContent>
           <List>
             {documents.map((doc, index) => (
-              <ListItemButton key={index} onClick={() => linkDocument(doc)}>
+              <ListItemButton key={index} onClick={() => linkDocument(doc)} className="document-item">
                 <ListItemText primary={doc.title} />
               </ListItemButton>
             ))}
