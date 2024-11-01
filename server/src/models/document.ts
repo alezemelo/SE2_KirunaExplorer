@@ -72,10 +72,10 @@ class Document {
 }
 
 enum LinkType {
-    Direct = "DIRECT",
-    Collateral = "COLLATERAL",
-    Projection = "PROJECTION",
-    Update = "UPDATE",
+    direct = "direct",
+    collateral = "collateral",
+    projection = "projection",
+    update = "update",
 }
 
 class DocumentLink {
