@@ -18,13 +18,19 @@ class LinkRouter {
         this.initRoutes();
     }
 
+    getRouter(): Router {
+        return this.router;
+    };
+
     private initRoutes() {
 
         this.router.get('/:doc_id',
             param('doc_id').isInt().toInt(),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.getLinks(req.params.doc_id)
-            .then((links: DocumentLink[]) => res.status(200).json(links))
+            .then((links: DocumentLink[]) =>{
+                res.status(200).json(links);
+            })
             .catch((err: any) => {
                 next(err)
             })

@@ -1,6 +1,7 @@
 import express from "express"
 
 import morgan from "morgan"
+import LinkRouter from "./rcd/routes/LinksRoute"
 const prefix = "/kiruna_explorer"
 
 /**
@@ -15,6 +16,9 @@ function initRoutes(app: express.Application) {
     app.use(morgan("dev")) // Log requests to the console
     app.use(express.json({ limit: "25mb" }))
     app.use(express.urlencoded({ limit: '25mb', extended: true }))
+
+    const linkDocumentRouter = new LinkRouter();
+    app.use(`${prefix}/linkDocuments`, linkDocumentRouter.getRouter());
 
     /**
      * Add your routers here, like the documents router was added
