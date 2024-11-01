@@ -16,7 +16,7 @@ class DocumentController {
     }
 
     /**
-     * Updates the description of a document.
+     * Updates the description of a document. If the old description was empty, this will equate to an insertion. If the new description is empty, this will equate to a clearing.
      * 
      * @param id - The ID of the document to update.
      * @param description - The new description for the document.
@@ -44,13 +44,14 @@ class DocumentController {
     * @throws DocumentNotFoundError if the document with the specified ID is not found.
     * @throws Error for generic errors.
     */
-    async getDocument(id: number): Promise<Document> {
+    async getDocument(id: number): Promise<void> {
         try {
             const doc = await this.dao.getDocument(id);
             if (doc === null) {
                 throw new DocumentNotFoundError([id]);
             }
-            return doc;
+            console.log(doc)
+            // return doc;
         } catch (error) {
             throw error;
         }

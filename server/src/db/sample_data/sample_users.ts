@@ -18,4 +18,10 @@ export const SAMPLE_USERS = [
         salt: "salt3",
         type: "urban_planner",
     },
+    {
+        username: "admin",
+        hash: "hash3",
+        salt: "salt3",
+        type: "urban_planner",
+    },
 ];

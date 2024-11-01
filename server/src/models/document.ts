@@ -99,3 +99,4 @@ export { Document, DocumentType, DocumentLink, LinkType };
 // Changelog
 // Dragos 2021-10-17: Created
 // Dragos 2021-11-01: Modified DocumentType and Document Link enums to those specified in the db (before they were UPPERCASE, now lowercase + _doc or sth like that)
+
