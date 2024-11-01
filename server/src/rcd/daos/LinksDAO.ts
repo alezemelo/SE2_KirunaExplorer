@@ -41,3 +41,5 @@ class LinksDAO{
     }
 
 }
+
+export {LinksDAO}
