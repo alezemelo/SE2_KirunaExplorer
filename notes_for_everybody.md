@@ -4,6 +4,8 @@
 # Dates  
 (Dragos)  
 Every time a field requires the date type use the `dayjs` date type instead of javascript's `Date`.  
+IMPORTANT: when generating a dayjs date use dayjs.utc() in order to avoid timezone bugs.  
+The document dates may only have the year, but for the time being, I am handling them as year-1st-jan, so display that. Later on I'll make our own personalized DocumentDate class able to return the correct string format (i.e. only year, only year+month, or full date)
 
 # Db implementation
 (Angelo)

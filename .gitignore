@@ -1,2 +1,4 @@
 server/node_modules/
 client/node_modules/
+server/src/test/manual_test.ts
+server/random_testing.ts
