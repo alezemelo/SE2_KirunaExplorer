@@ -26,15 +26,15 @@ class LinksDAO{
         }
     }
 
-    async createLink(link:DocumentLink): Promise<any>{
+    async createLink(doc_id1:number,doc_id2:number,link_type:LinkType): Promise<any>{
         try {
-            const sql1 = "SELECT * FROM document_links WHERE (doc_id1=$1 AND doc_id2=$2) OR (doc_id1=$3 AND doc_id2=$4) AND link_type=$5";;
-            const result = await pool.query(sql1,[link.docId1,link.docId2,link.docId2,link.docId1,link.linkType]);
+            const sql1 = "SELECT * FROM document_links WHERE ((doc_id1 = $1 AND doc_id2 = $2) OR (doc_id1 = $3 AND doc_id2 = $4)) AND link_type = $5";
+            const result = await pool.query(sql1,[doc_id1,doc_id2,doc_id2,doc_id1,link_type]);
             if(result.rows.length>0){
                 throw new Error("link already exists");
             }
-            const sql = "INSERT INTO document_links (doc_id1,doc_id2,link_type,created_at) VALUES($1,$2,$3,$4)";
-            await pool.query(sql,[link]);
+            const sql = "INSERT INTO document_links (doc_id1,doc_id2,link_type) VALUES($1,$2,$3)";
+            await pool.query(sql,[doc_id1,doc_id2,link_type]);
         } catch(error){
             throw error; 
         }

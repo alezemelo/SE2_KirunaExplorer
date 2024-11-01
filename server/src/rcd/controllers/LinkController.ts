@@ -1,5 +1,5 @@
 import { LinksDAO } from "../daos/LinksDAO";
-import { DocumentLink } from "../../models/document";
+import { DocumentLink, LinkType } from "../../models/document";
 
 class LinkController {
     private dao: LinksDAO;
@@ -12,7 +12,9 @@ class LinkController {
         return this.dao.getLinks(id);
     }
 
-    async createLink(link:DocumentLink): Promise<any>{
-        this.dao.createLink(link);
+    async createLink(doc_id1:number,doc_id2:number,link_type:LinkType): Promise<any>{
+        return this.dao.createLink(doc_id1,doc_id2,link_type);
     }
 }
+
+export {LinkController};
