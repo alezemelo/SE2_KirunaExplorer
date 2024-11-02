@@ -9,6 +9,9 @@ import DocumentController from "../controllers/documentController";
  * Represents a class that defines the routes for handling document-related operations.
  */
 class DocumentRoutes {
+    addDocument(arg0: string, addDocument: any) {
+        throw new Error("Method not implemented.");
+    }
     private controller: DocumentController;
     private router: Router;
     private errorHandler: ErrorHandler;
@@ -27,7 +30,6 @@ class DocumentRoutes {
      * Initializes the routes for document-related operations.
      */
     private initRoutes() {
-
         /**
          * POST /documents/:id/description
          * Updates the description of a document.
@@ -77,6 +79,24 @@ class DocumentRoutes {
                     }
                 })
         )
+        this.router.post(
+            '/',
+    // TODO remember to enable when there's the authenticator plss
+    // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
+    // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
+    body('id').isInt(),
+    body('title').isString(),
+    body('type').isString(),
+    body('lastModifiedBy').isString(),
+    body('issuanceDate').optional().isISO8601(),
+    body('language').optional().isString(),
+    body('pages').optional().isInt(),
+    body('stakeholders').optional().isString(),
+    body('scale').optional().isString(),
+    body('description').optional().isString(),
+    body('coordinates').optional().isString(),
+    (req: any, res: any, next: any) => this.controller.addDocument(req, res, next)
+);
     }
 
     /**

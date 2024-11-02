@@ -23,8 +23,12 @@ function initRoutes(app: express.Application) {
     /**
      * Add your routers here, like the documents router was added
      */
+    
 
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
+
+    console.log("Routes were initialized!")
+    
 
     //ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");

@@ -1,4 +1,7 @@
 import pg from 'pg';
+import { Document } from '../../models/document';
+import { DocumentNotFoundError } from '../../errors/documentErrors';
+
 
 const client = new pg.Client({
     user: 'postgres',
@@ -8,7 +11,21 @@ const client = new pg.Client({
     port: 5432,
 });
 
+interface LocalDocument {
+    title: string;
+    type: string;
+    lastModifiedBy: string;
+    issuanceDate: Date;
+    language: string;
+    pages: number;
+    stakeholders: string[];
+    scale: string;
+    description: string;
+    coordinates: string;
+}
+
 class DocumentDAO {
+    client: any;
     constructor() {
         this.connect();
     }
@@ -22,7 +39,39 @@ class DocumentDAO {
         }
     }
 
-    public async getDocument(docId: number): Promise<Document> {
+    public async addDocument(doc: Document): Promise<void> {
+        const query = `
+            INSERT INTO documents 
+            (id, title, type, last_modified_by, issuance_date, language, pages, stakeholders, scale, description, coordinates) 
+            VALUES 
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `;
+        const values = [
+            doc.id,
+            doc.title,
+            doc.type,
+            doc.lastModifiedBy,
+            doc.issuanceDate ? doc.issuanceDate.toISOString() : null,
+            doc.language,
+            doc.pages,
+            doc.stakeholders,
+            doc.scale,
+            doc.description,
+            doc.coordinates
+        ];
+
+        try {
+            const res = await this.client.query(query, values);
+            if (res.rowCount !== 1) {
+                throw new Error('Error adding document to the database');
+            }
+        } catch (error) {
+            console.error('Failed to add document:', error);
+            throw error;
+        }
+    }
+
+    public async getDocument(docId: number): Promise<LocalDocument> {
         try {
             const res = await client.query('SELECT * FROM documents WHERE id = $1', [docId]);
             return res.rows[0];
