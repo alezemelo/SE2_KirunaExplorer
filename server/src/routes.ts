@@ -4,6 +4,7 @@ import morgan from "morgan"
 const prefix = "/kiruna_explorer"
 
 import DocumentRoutes from "./rcd/routes/document_routes"
+import ErrorHandler from "./rcd/routes/helper"
 
 /**
  * Initializes the routes for the application.
@@ -26,7 +27,7 @@ function initRoutes(app: express.Application) {
 
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
 
-    //ErrorHandler.registerErrorHandler(app)
+    ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");
 }
 

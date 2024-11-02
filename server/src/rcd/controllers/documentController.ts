@@ -25,13 +25,16 @@ class DocumentController {
      */
     async updateDescription(id: number, description: string): Promise<void> {
         try {
+            console.log("id: ", id);
+            console.log("description: ", description);
+
             const amount_updated = await this.dao.updateDescription(id, description);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
-            } else if (amount_updated > 1) {
-                throw new Error("More than one document was updated.");
-            }
+            } 
+            return;
         } catch (error) {
+            console.error("Error in DocumentController - updateDescription: ", error);
             throw error;
         }
     }
@@ -44,14 +47,14 @@ class DocumentController {
     * @throws DocumentNotFoundError if the document with the specified ID is not found.
     * @throws Error for generic errors.
     */
-    async getDocument(id: number): Promise<void> {
+    async getDocument(id: number): Promise<Document> {
         try {
             const doc = await this.dao.getDocument(id);
             if (doc === null) {
                 throw new DocumentNotFoundError([id]);
             }
             console.log(doc)
-            // return doc;
+            return doc;
         } catch (error) {
             throw error;
         }

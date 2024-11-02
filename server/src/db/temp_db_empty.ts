@@ -1,22 +1,12 @@
 // (Dragos) I created this file because the others don't work and I absolutely have to finish for the frontend.
 
-import pg from 'pg';
-
-const client = new pg.Client({
-    user: 'postgres',
-    host: '127.0.0.1',
-    database: 'kirunadb',
-    password: 'kiruna07',
-    port: 5432,
-});
+import pgdb from './temp_db';
 
 async function temp_emptyDB() {
     try {
-        await client.connect();
-
         // Empty documents
         try {
-            const res = await client.query('DELETE FROM documents');
+            const res = await pgdb.client.query('DELETE FROM documents');
             // console.log(res);
         } catch (error) {
             console.error(error);
@@ -24,7 +14,7 @@ async function temp_emptyDB() {
 
         // Empty users
         try {
-            const res = await client.query('DELETE FROM users');
+            const res = await pgdb.client.query('DELETE FROM users');
             // console.log(res);
         } catch (error) {
             console.error(error);
@@ -32,13 +22,20 @@ async function temp_emptyDB() {
 
     } catch (error) {
         console.error(error);
-    } finally {
-        await client.end();
+        if (require.main === module) {
+            throw error;
+        }
     }
 }
 
+async function run() {
+    await temp_emptyDB();
+    await pgdb.disconnect();
+    console.log('Database emptied.');
+}
+
 if (require.main === module) {
-    temp_emptyDB();
+    run();
 }
 
 export default temp_emptyDB;

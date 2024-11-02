@@ -1,3 +1,6 @@
+// (Dragos) I created this file because the others don't work and I absolutely have to finish for the frontend.
+
+import pgdb from "./temp_db";
 import temp_emptyDB from "./temp_db_empty";
 import temp_populateDB from "./temp_db_population";
 
@@ -6,6 +9,8 @@ import temp_populateDB from "./temp_db_population";
 async function temp_init() {
     await temp_emptyDB();
     await temp_populateDB();
+    await pgdb.disconnect();
+    console.log('Database initialized (empty -> populate).');
 }
 
 if (require.main === module) {

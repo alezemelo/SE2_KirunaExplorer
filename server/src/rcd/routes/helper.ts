@@ -20,6 +20,7 @@ class ErrorHandler {
             errors.array().forEach((e: any) => {
                 error += "- Parameter: **" + e.param + "** - Reason: *" + e.msg + "* - Location: *" + e.location + "*\n\n"
             })
+            // console.error(error)
             return res.status(422).json({ error: error })
         }
         return next()
@@ -31,9 +32,9 @@ class ErrorHandler {
      */
     static registerErrorHandler(router: express.Application) {
         router.use((err: any, req: any, res: any, next: any) => {
-            return res.status(err.customCode || 503).json({
+            return res.status(err.customCode || 500).json({
                 error: err.customMessage || "Internal Server Error",
-                status: err.customCode || 503
+                status: err.customCode || 500
             });
         })
     }
