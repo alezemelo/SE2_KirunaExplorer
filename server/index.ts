@@ -33,8 +33,8 @@ app.post('/hello', [
 
 initRoutes(app);
 // Start the server
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
-export {app }
+export { app, server }

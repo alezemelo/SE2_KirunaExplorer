@@ -3,15 +3,7 @@
 import documents from './actual_data/documents';
 import { SAMPLE_USERS } from './sample_data/sample_users';
 
-import pg from 'pg';
-
-const client = new pg.Client({
-    user: 'postgres',
-    host: '127.0.0.1',
-    database: 'kirunadb',
-    password: 'kiruna07',
-    port: 5432,
-});
+import pgdb from './temp_db';
 
 // Don't want to change db strucutre so I'll just cut description to 255 characters
 for (const doc of documents) {
@@ -22,14 +14,10 @@ for (const doc of documents) {
 
 async function temp_populateDB() {
     try {
-        await client.connect();
-
-        //
-
         // Populate users
         for (const user of SAMPLE_USERS) {
             try {
-                const res = await client.query(
+                const res = await pgdb.client.query(
                     'INSERT INTO users (username, hash, salt, type) VALUES ($1, $2, $3, $4)',
                     [user.username, user.hash, user.salt, user.type]
                 );
@@ -42,7 +30,7 @@ async function temp_populateDB() {
         // Populate documents
         for (const doc of documents) {
             try {
-                const res = await client.query(
+                const res = await pgdb.client.query(
                     'INSERT INTO documents (id, title, type, last_modified_by, issuance_date, language, pages, stakeholders, scale, description, coordinates) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
                     [
                         doc.id,
@@ -65,14 +53,21 @@ async function temp_populateDB() {
         }
     } catch (error) {
         console.error(error);
-        throw error;
-    } finally {
-        await client.end();
+        if (require.main === module) {
+            throw error;
+        }
     }
 }
 
-if (require.main === module)
-    temp_populateDB();
+async function run() {
+    await temp_populateDB();
+    await pgdb.disconnect();
+    console.log('Database populated');
+}
+
+if (require.main === module) {
+    run();
+}
 
 export default temp_populateDB;
 

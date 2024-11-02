@@ -1,4 +1,4 @@
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 enum DocumentType {
     informative_doc = "informative_doc",
@@ -39,6 +39,22 @@ class Document {
         this.type = type;
         this.coordinates = coordinates;
         this.lastModifiedBy = lastModifiedBy;
+    }
+
+    static fromJSON(json: any): Document {
+        return new Document(
+            json.id,
+            json.title,
+            json.type,
+            json.lastModifiedBy,
+            json.issuanceDate ? dayjs(json.issuanceDate) : undefined,
+            json.language,
+            json.pages,
+            json.stakeholders,
+            json.scale,
+            json.description,
+            json.coordinates
+        );
     }
 
     // Setters

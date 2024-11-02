@@ -55,28 +55,34 @@ class DocumentRoutes {
             param('id').isInt().toInt(),
             body('description').isString().isLength({ max: 2000 }),
             this.errorHandler.validateRequest,
-            (req: any, res: any, next: any) => this.controller.updateDescription(req.param.id, req.body.description)   
+            (req: any, res: any, next: any) => this.controller.updateDescription(req.params.id, req.body.description)   
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)
                 })
         );
 
+        /* 
+        * GET /documents/:id
+        * Retrieves a document by its ID.
+        * 
+        * Request Parameters:
+        * - id: The ID of the document to retrieve (must be an integer).
+        * 
+        * Response:
+        * - 200 OK: If the document was successfully retrieved.
+        * - 404 Not Found: If the document with the specified ID is not found.
+        * - 422 Unprocessable Entity: If the request validation fails.
+        * - 500 Internal Server Error: If an unexpected error occurs.
+        */
         this.router.get(
             `/:id`,
-            // TODO remember to enable when there's the authenticator plss
-            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
             param('id').isInt().toInt(),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.getDocument(req.params.id)
                 .then((document: any) => res.status(200).json(document))
                 .catch((err: any) => {
-                    if (err instanceof DocumentNotFoundError) {
-                        res.status(404).end();
-                    } else {
-                        next(err);
-                    }
+                    next(err)
                 })
         )
         this.router.post(
