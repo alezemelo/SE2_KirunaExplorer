@@ -44,6 +44,9 @@ class DocumentDAO {
             throw error;
         }
     }
+
+    public async addDocument(doc: Document): Promise<void> {
+    }
 }
 
 export default DocumentDAO;

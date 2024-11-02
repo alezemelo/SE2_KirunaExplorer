@@ -11,12 +11,12 @@ const corsOptions = {
 const app = express();
 const port = 3000;
 import bodyParser from 'body-parser';
-const documentRoutes = require('./src/routes/document_routes');
+const documentRoutes = require('./src/rcd/routes/document_routes');
 
 // Middleware to parse JSON
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
-app.use('kiruna_explorer/documents', documentRoutes);
+// app.use('kiruna_explorer/documents', documentRoutes);
 
 // Simple route to test server
 app.post('/hello', [
@@ -32,6 +32,7 @@ app.post('/hello', [
 
 
 initRoutes(app);
+
 // Start the server
 const server = app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
