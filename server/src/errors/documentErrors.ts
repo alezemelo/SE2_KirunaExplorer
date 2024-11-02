@@ -16,4 +16,18 @@ class DocumentNotFoundError extends Error {
     }
 }
 
-export { DocumentNotFoundError };
+/**
+ * Represents an error when a document is not added to the database.
+ */
+class DocumentNotAddedError extends Error {
+    customMessage: string;
+    customCode: number;
+
+    constructor() {
+        super();
+        this.customMessage = "Document not added to the database";
+        this.customCode = 500;
+    }
+}
+
+export { DocumentNotFoundError, DocumentNotAddedError };

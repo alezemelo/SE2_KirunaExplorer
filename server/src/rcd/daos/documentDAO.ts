@@ -3,6 +3,19 @@ import pgdb from '../../db/temp_db';
 import {Document} from '../../models/document';
 
 
+interface LocalDocument {
+    title: string;
+    type: string;
+    lastModifiedBy: string;
+    issuanceDate: Date;
+    language: string;
+    pages: number;
+    stakeholders: string[];
+    scale: string;
+    description: string;
+    coordinates: string;
+}
+
 class DocumentDAO {
     public async getDocument(docId: number): Promise<Document | null> {
         try {

@@ -24,6 +24,7 @@ function initRoutes(app: express.Application) {
     /**
      * Add your routers here, like the documents router was added
      */
+    
 
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
 

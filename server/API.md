@@ -22,6 +22,51 @@ xxx
 
 ### Documents API
 
+#### POST `/kiruna_explorer/documents`
+
+Creates a new document
+
+- **Request Body Content:**
+  ```json
+  {
+    "id": 1,
+    "title": "Document Title",
+    "type": "Document Type",
+    "lastModifiedBy": "User Name",
+    "issuanceDate": "2023-10-01T00:00:00Z",
+    "language": "English",
+    "pages": 10,
+    "stakeholders": "Stakeholder Info",
+    "scale": "1:1000",
+    "description": "Document Description",
+    "coordinates": {
+      "lat": 59.3293,
+      "long": 18.0686
+    }
+  }
+- Response Status code:
+  - If created: `201`
+  - If error: `400`
+ - Response Body Content : 
+    ```json
+    {
+    "Message" : "Docuent added Successfully"
+    } 
+- Access Constraints:
+   Only urban planner (Urban Developer)
+- Additional Constraints:
+  - Title and coordinates are required fields
+  - May return errors specified in the head of this file
+
+### Explanation:
+1. **Request Body Content**: Specifies the JSON structure expected in the request body when creating a new document.
+2. **Response Status Code**: Lists the possible HTTP status codes returned by the endpoint.
+3. **Response Body Content**: Provides an example of the JSON structure returned in the response body upon successful creation.
+4. **Access Constraints**: Indicates that only urban planners are allowed to access this endpoint.
+5. **Additional Constraints**: Specifies that the `title` and `coordinates` fields are required and mentions that other errors may be returned as specified in the head of the file.
+
+
+
 #### PATCH `/kiruna_explorer/documents/:id/coordinates`
 
 Edits the coordinates of a document
