@@ -1,6 +1,8 @@
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
+import { NextFunction, Request, Response } from "express";
+import dayjs, { Dayjs } from "dayjs";
 
 /**
  * Represents a controller for handling document-related operations.
@@ -35,6 +37,32 @@ class DocumentController {
             throw error;
         }
     }
+
+    public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const doc: Document = new Document(
+            req.body.id,
+            req.body.title,
+            req.body.type,
+            req.body.lastModifiedBy,
+            req.body.issuanceDate,
+            req.body.language,
+            req.body.pages,
+            req.body.stakeholders,
+            req.body.scale,
+            req.body.description,
+            req.body.coordinates
+        );
+
+        try {
+            await this.dao.addDocument(doc);
+            res.status(201).json({ message: 'Document added successfully' });
+        } catch (error) {
+            console.error('Failed to add document:', error);
+            next(error);
+        }
+    }
+
+
 
     /**
     * Retrieves a document by its ID.
