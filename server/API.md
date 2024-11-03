@@ -127,3 +127,41 @@ Fetches a `Document` object.
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the database.
   - May return errors specified in the head of this file or any other generic error.
 
+#### GET `/kiruna_explorer/linkDocuments/:doc_id`
+
+get the links of the document specified by the doc_id
+
+- Request Parameters: id of the document
+- Request Body Content: None
+- Response Body Content: 
+```
+[
+    {
+        "linkId": 505,
+        "docId1": 15,
+        "docId2": 18,
+        "linkType": "update",
+        "createdAt": "2024-11-03T23:39:18.321Z"
+    }
+]
+```
+- Access Constraints: None
+- Additional Constraints:
+- returns 400 if the id of the docuemnt does not exist.
+
+
+#### POST `/kiruna_explorer/linkDocuments/create`
+
+create a link between two documents
+
+- Request Parameters: None
+- Request Body Content: {doc_id1: 15,
+            doc_id2: 18,
+            link_type: "update"}
+- Response Body Content: 
+- returns 1 if it is ok
+- otherwise the error message
+- Access Constraints: Only urban planner
+- Additional Constraints:
+- returns 400 if the id of the docuemnt does not exist.
+- returns 422 if the request body content is not correct
