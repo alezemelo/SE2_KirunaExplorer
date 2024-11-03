@@ -32,6 +32,9 @@ class LinkRouter {
                 res.status(200).json(links);
             })
             .catch((err: any) => {
+                if (err.message === "one of the documents does not exist") {
+                    return res.status(400).json({ error: err.message }).end(); // Not Found
+                }
                 next(err)
             })
         )
@@ -43,8 +46,11 @@ class LinkRouter {
             body('link_type').isIn(Object.values(LinkType)),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.createLink(req.body.doc_id1,req.body.doc_id2,req.body.link_type)   
-                .then(() => res.status(201).end())
+                .then((row) => res.status(201).json(row).end())
                 .catch((err: any) => {
+                    if (err.message === "one of the documents does not exist") {
+                        return res.status(400).json({ error: err.message }).end(); // Not Found
+                    }
                     next(err)
                 })
         )
