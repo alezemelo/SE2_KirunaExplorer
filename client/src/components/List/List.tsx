@@ -90,7 +90,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
     handleClose();
   };
 
-  const linkDocument = (targetDocument: DocumentType) => {
+  const linkDocument = async (targetDocument: DocumentType) => {
     /*if (currentDocument) {
       setDocuments((prevDocuments) =>
         prevDocuments.map((doc) => 
@@ -99,7 +99,28 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       );
       closeLinkingDialog();
     }*/
-   console.log(targetDocument);
+   try {
+    const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        doc_id1: currentDocument?.id,
+        doc_id2: targetDocument.id,
+        link_type: "direct"
+      }), 
+    });
+
+    if (!response.ok) {
+      throw new Error("Error: " + response.statusText);
+    }
+    const result = await response.json();
+    console.log("res:", result);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+
    
   };
 

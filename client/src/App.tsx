@@ -12,6 +12,7 @@ interface Coordinates {
 }
 
 interface DocumentType {
+  id: number;
   title: string;
   stakeholders: string;
   scale: string;
