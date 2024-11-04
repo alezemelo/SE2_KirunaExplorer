@@ -4,6 +4,8 @@
 # Dates  
 (Dragos)  
 Every time a field requires the date type use the `dayjs` date type instead of javascript's `Date`.  
+IMPORTANT: when generating a dayjs date use dayjs.utc() in order to avoid timezone bugs.  
+The document dates may only have the year, but for the time being, I am handling them as year-1st-jan, so display that. Later on I'll make our own personalized DocumentDate class able to return the correct string format (i.e. only year, only year+month, or full date)
 
 # Db implementation
 (Angelo)
@@ -29,3 +31,8 @@ if you want to roll back run:
 `npx knex migrate:rollback --knexfile knexfile.ts`
 New migration files should always be committed and pushed to github.
 Remember to run `migrate:latest` alter a pull to get the latest version of the db, in case someone changes something. Also if you make changes to the schema please tell other people.
+
+# Errors
+(Dragos)  
+Refer to the standard error codes specified at the top of API.md.  
+If you feel like it's needed create an Error Object (for db errors like Foreign Constraint Error or Unique Key Error for example there's already specific objects).  

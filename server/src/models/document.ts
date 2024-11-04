@@ -1,11 +1,11 @@
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 enum DocumentType {
-    Informative = "INFORMATIVE",
-    Prescriptive = "PRESCRIPTIVE",
-    Design = "DESIGN",
-    Technical = "TECHNICAL",
-    MaterialEffect = "MATERIAL_EFFECT",
+    informative_doc = "informative_doc",
+    prescriptive_doc = "prescriptive_doc",
+    design_doc = "design_doc",
+    technical_doc = "technical_doc",
+    material_effect = "material_effect",
 }
 
 class Document {
@@ -41,6 +41,22 @@ class Document {
         this.lastModifiedBy = lastModifiedBy;
     }
 
+    static fromJSON(json: any): Document {
+        return new Document(
+            json.id,
+            json.title,
+            json.type,
+            json.lastModifiedBy,
+            json.issuanceDate ? dayjs(json.issuanceDate) : undefined,
+            json.language,
+            json.pages,
+            json.stakeholders,
+            json.scale,
+            json.description,
+            json.coordinates
+        );
+    }
+
     // Setters
     setIssuanceDate(issuanceDate: Dayjs) {
         this.issuanceDate = issuanceDate;
@@ -72,10 +88,10 @@ class Document {
 }
 
 enum LinkType {
-    Direct = "DIRECT",
-    Collateral = "COLLATERAL",
-    Projection = "PROJECTION",
-    Update = "UPDATE",
+    direct = "direct",
+    collateral = "collateral",
+    projection = "projection",
+    update = "update",
 }
 
 class DocumentLink {
@@ -95,3 +111,8 @@ class DocumentLink {
 }
 
 export { Document, DocumentType, DocumentLink, LinkType };
+
+// Changelog
+// Dragos 2021-10-17: Created
+// Dragos 2021-11-01: Modified DocumentType and Document Link enums to those specified in the db (before they were UPPERCASE, now lowercase + _doc or sth like that)
+
