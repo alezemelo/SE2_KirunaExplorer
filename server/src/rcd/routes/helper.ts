@@ -20,10 +20,7 @@ class ErrorHandler {
             errors.array().forEach((e: any) => {
                 error += "- Parameter: **" + e.param + "** - Reason: *" + e.msg + "* - Location: *" + e.location + "*\n\n"
             })
-<<<<<<< HEAD
-=======
             // console.error(error)
->>>>>>> 1092080c56aa354756e5e26d780183b44becfd98
             return res.status(422).json({ error: error })
         }
         return next()
@@ -35,15 +32,9 @@ class ErrorHandler {
      */
     static registerErrorHandler(router: express.Application) {
         router.use((err: any, req: any, res: any, next: any) => {
-<<<<<<< HEAD
-            return res.status(err.customCode || 503).json({
-                error: err.customMessage || "Internal Server Error",
-                status: err.customCode || 503
-=======
             return res.status(err.customCode || 500).json({
                 error: err.customMessage || "Internal Server Error",
                 status: err.customCode || 500
->>>>>>> 1092080c56aa354756e5e26d780183b44becfd98
             });
         })
     }
