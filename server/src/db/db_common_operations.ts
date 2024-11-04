@@ -78,15 +78,19 @@ export async function dbRead() {
   }
 }
 
-export async function dbUpdate(table: string, conditions: Record<string, any>, updates: Record<string, any>) {
+export async function dbUpdate(table: string, conditions: Record<string, any>, updates: Record<string, any>): Promise<number> {
     try {
         console.log(`Updating ${table} with conditions:`, conditions, 'and updates:', updates); // Add this for debugging
-        await knex(table)
+        // this returns the array of updated rows, we only need to count them and return the count
+        let updated = await knex(table)
             .where(conditions)
-            .update(updates);
+            .update(updates)
+            .returning('*');
         console.log(`Successfully updated ${table}`);
+        return updated.length;
     } catch (e) {
         console.error(`Error updating the ${table} table`, e);
+        return 0;
     }
 }
 
