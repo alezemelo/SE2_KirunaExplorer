@@ -85,6 +85,16 @@ class DocumentRoutes {
                     next(err)
                 })
         )
+
+        this.router.get(
+            `/`,
+            (req: any, res: any, next: any) => this.controller.getDocuments()
+                .then((documents: any) => res.status(200).json(documents))
+                .catch((err: any) => {
+                    next(err)
+                })
+        )
+
         this.router.post(
             '/',
     // TODO remember to enable when there's the authenticator plss

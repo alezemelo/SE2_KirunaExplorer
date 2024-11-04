@@ -19,6 +19,9 @@ class LinkController {
     }
 
     async createLink(doc_id1:number,doc_id2:number,link_type:LinkType): Promise<any>{
+        if(doc_id1 == doc_id2){
+            throw new Error("you can link only different documents")
+        }
         if (await this.document_dao.getDocument(doc_id1) == null || await this.document_dao.getDocument(doc_id2) == null){
             throw new Error("one of the documents does not exist");
         }

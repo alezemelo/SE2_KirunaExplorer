@@ -32,7 +32,7 @@ function App() {
   });
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
 
-  const [documents, setDocuments] = useState<DocumentType[]>([
+  /*const [documents, setDocuments] = useState<DocumentType[]>([
     {
       title: "Compilation of responses “So what the people of Kiruna think?” (15)",
       stakeholders: "Kiruna kommun/Residents",
@@ -72,7 +72,27 @@ function App() {
       lat: "67.836332",
       lng: "20.267758",
     },
-  ]);
+  ]);*/
+
+  const [documents, setDocuments] = useState<DocumentType[]>([]);
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
+        if (!response.ok) throw new Error("Errore durante il caricamento dei documenti");
+        const data = await response.json();
+        for(let i=0; i<data.length; i++){
+          const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`)
+          const t = await  res.json();
+          data[i].connection = t.length;
+        }
+        setDocuments(data); 
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchDocuments();
+  }, []);
 
   useEffect(() => {
     console.log(coordinates, bounds);

@@ -87,6 +87,15 @@ class DocumentController {
             throw error;
         }
     }
+
+    async getDocuments(): Promise<Document[]> {
+        try {
+            const docs = await this.dao.getDocuments();
+            return docs;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default DocumentController;

@@ -31,6 +31,16 @@ class DocumentDAO {
         }
     }
 
+    public async getDocuments(): Promise<Document[]> {
+        try {
+            const res = await pgdb.client.query('SELECT * FROM documents ', []);
+            return res.rows;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
         try {
             const res = await pgdb.client.query('UPDATE documents SET description = $1 WHERE id = $2', [newDescription, docId]);

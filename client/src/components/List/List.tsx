@@ -19,6 +19,7 @@ import "./List.css";
 
 // Define the type for documents
 interface DocumentType {
+  id: number;
   title: string;
   stakeholders: string;
   scale: string;
@@ -40,6 +41,7 @@ interface DocumentListProps {
 const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) => {
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentType>({
+    id: 0,
     title: "",
     stakeholders: "",
     scale: "",
@@ -72,6 +74,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
   const handleAddDocument = () => {
     setDocuments([...documents, newDocument]);
     setNewDocument({
+      id: 0,
       title: "",
       stakeholders: "",
       scale: "",
@@ -88,14 +91,16 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
   };
 
   const linkDocument = (targetDocument: DocumentType) => {
-    if (currentDocument) {
+    /*if (currentDocument) {
       setDocuments((prevDocuments) =>
-        prevDocuments.map((doc) =>
+        prevDocuments.map((doc) => 
           doc === currentDocument ? { ...doc, connection: targetDocument.title } : doc
         )
       );
       closeLinkingDialog();
-    }
+    }*/
+   console.log(targetDocument);
+   
   };
 
   return (
@@ -144,11 +149,13 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
         <DialogTitle>Link Document</DialogTitle>
         <DialogContent>
           <List>
-            {documents.map((doc, index) => (
+          {documents.map((doc, index) => (
+            currentDocument && doc.id !== currentDocument.id ? ( // Controllo di null
               <ListItemButton key={index} onClick={() => linkDocument(doc)} className="document-item">
                 <ListItemText primary={doc.title} />
               </ListItemButton>
-            ))}
+            ) : null
+          ))}
           </List>
         </DialogContent>
         <DialogActions>
