@@ -81,7 +81,8 @@ Edits the coordinates of a document
 ```
 - Response Status code:
   - If ok:  `200`
-  - If error: `500`
+  - If document was not found: `404`
+  - If other error: `500`
 - Access Constraints: Only urban planner
 - Additional Constraints:
   - May return errors specified in the head of this file

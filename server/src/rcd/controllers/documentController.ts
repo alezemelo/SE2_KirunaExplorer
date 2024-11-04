@@ -4,6 +4,11 @@ import { Document } from "../../models/document";
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
 
+export interface Coordinates {
+    lat: number;
+    long: number;
+}
+
 /**
  * Represents a controller for handling document-related operations.
  */
@@ -37,6 +42,21 @@ class DocumentController {
             return;
         } catch (error) {
             console.error("Error in DocumentController - updateDescription: ", error);
+            throw error;
+        }
+    }
+
+    async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
+        try {
+            console.log("id: ", id);
+            console.log("coordinates: ", coordinates);
+            const amount_updated = await this.dao.updateCoordinates(id, coordinates);
+            if (amount_updated === 0) {
+                throw new DocumentNotFoundError([id]);
+            } 
+            return;
+        } catch (error) {
+            console.error("Error in DocumentController - updateCoordinates: ", error);
             throw error;
         }
     }
