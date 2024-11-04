@@ -1,0 +1,40 @@
+/* Map.css */
+
+.paper {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100px;
+  }
+  
+  .mapContainer {
+    position: relative;
+    height: 85vh;
+    width: 100%;
+  }
+  .mapToggleButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+  }
+  
+  .markerContainer {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+  
+  .markerContainer:hover {
+    z-index: 2;
+  }
+  
+  .pointer {
+    cursor: pointer;
+  }
+  
+  
+
+
+
