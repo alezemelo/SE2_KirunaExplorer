@@ -21,11 +21,16 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await knex('users').truncate();
-  await knex('documents').truncate();
-  await knex('document_links').truncate();
-  await knex('files').truncate();
-  await knex('document_files').truncate();
+  // Using raw SQL to truncate tables with cascading to avoid foreign key constraint issues
+  await knex.raw(`
+    TRUNCATE TABLE document_files RESTART IDENTITY CASCADE;
+    TRUNCATE TABLE document_links RESTART IDENTITY CASCADE;
+    TRUNCATE TABLE files RESTART IDENTITY CASCADE;
+    TRUNCATE TABLE documents RESTART IDENTITY CASCADE;
+    TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+  `);
+
+  // Re-insert the test user after truncation
   await insertTestUser();
 });
 

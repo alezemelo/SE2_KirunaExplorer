@@ -1,9 +1,17 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+// jest.config.js
 module.exports = {
-  preset: 'ts-jest',                  // Use ts-jest preset for TypeScript support
-  testEnvironment: 'node',             // Use Node environment for backend tests
+  preset: 'ts-jest',
+  testEnvironment: 'node',
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',          // Use ts-jest for TypeScript files
+    '^.+\\.tsx?$': 'ts-jest', // Use ts-jest for TypeScript
   },
-  moduleFileExtensions: ['ts', 'js'],  // Allow Jest to resolve .ts and .js files
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1', // Corrects module resolution for CommonJS imports in TS
+  },
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
 };
