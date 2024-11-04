@@ -57,6 +57,14 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
 
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<DocumentType | null>(null);
+  const [targetDocumentId, setTargetDocumentId] = useState(0);
+  const [targetLinkType, setTargetLinkType] = useState("");
+
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setTargetLinkType(value);
+  };
+
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -87,10 +95,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       lat: "",
       lng: ""
     });
-    handleClose();
+    closeLinkingDialog();
   };
 
-  const linkDocument = async (targetDocument: DocumentType) => {
+  const linkDocument = async () => {
     /*if (currentDocument) {
       setDocuments((prevDocuments) =>
         prevDocuments.map((doc) => 
@@ -99,28 +107,31 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       );
       closeLinkingDialog();
     }*/
-   try {
-    const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        doc_id1: currentDocument?.id,
-        doc_id2: targetDocument.id,
-        link_type: "direct"
-      }), 
-    });
-
-    if (!response.ok) {
-      throw new Error("Error: " + response.statusText);
+   if(currentDocument && targetDocumentId && targetLinkType){
+    try {
+      const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          doc_id1: currentDocument?.id,
+          doc_id2: targetDocumentId,
+          link_type: targetLinkType
+        }), 
+      });
+  
+      if (!response.ok) {
+        throw new Error("Error: " + response.statusText);
+      }
+      const result = await response.json();
+      console.log("res:", result);
+    } catch (error) {
+      console.error("Error:", error);
     }
-    const result = await response.json();
-    console.log("res:", result);
-  } catch (error) {
-    console.error("Error:", error);
-  }
+    handleClose()
 
+   }
    
   };
 
@@ -172,14 +183,21 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
           <List>
           {documents.map((doc, index) => (
             currentDocument && doc.id !== currentDocument.id ? ( // Controllo di null
-              <ListItemButton key={index} onClick={() => linkDocument(doc)} className="document-item">
+              <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
                 <ListItemText primary={doc.title} />
+                <select onChange={handleSelectChange} value={targetLinkType}>
+                  <option value="direct" selected>direct</option>
+                  <option value="collateral">collateral</option>
+                  <option value="projection">projection</option>
+                  <option value="update">update</option>
+                </select>
               </ListItemButton>
             ) : null
           ))}
           </List>
         </DialogContent>
         <DialogActions>
+        <Button onClick={linkDocument}  color="secondary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
         </DialogActions>
       </Dialog>
