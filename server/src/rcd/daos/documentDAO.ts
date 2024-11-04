@@ -1,7 +1,8 @@
 import {Client} from 'pg';
 import pgdb from '../../db/temp_db';
 import {Document} from '../../models/document';
-
+import { Coordinates } from '../controllers/documentController';
+import { dbUpdate } from '../../db/db_common_operations';
 
 interface LocalDocument {
     title: string;
@@ -49,6 +50,20 @@ class DocumentDAO {
             } else {
                 return 0;
             }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
+        try {
+            const lat = newCoordinates.lat;
+            const long = newCoordinates.long;
+            const coordInfo = `SRID=4326;POINT(${long} ${lat})`;
+            const updatedRows = await dbUpdate('documents', { id: docId }, { coordinates: coordInfo });
+            //const res = await pgdb.client.query('UPDATE documents SET coordinates = $1 WHERE id = $2', [coordInfo, docId]);
+            return updatedRows;
         } catch (error) {
             console.error(error);
             throw error;
