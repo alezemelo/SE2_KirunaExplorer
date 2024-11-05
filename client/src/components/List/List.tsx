@@ -29,6 +29,7 @@ import "./List.css";
 interface DocumentListProps {
   documents: DocumentType[];
   setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
+  fetchDocuments:() => Promise<void>;
 }
 
 interface DocumentLocal {
@@ -46,7 +47,7 @@ interface DocumentLocal {
   lng?: number
 }
 
-const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments }) => {
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>({
     id: 0,
@@ -114,8 +115,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
     if (typeof newDocument.language !== 'string') {
       newErrors.push("Language must be a string.");
     }
-    if (typeof newDocument.pages !== 'string') {
-      newErrors.push("Pages must be a string.");
+    if (typeof newDocument.pages !== 'number') {
+      newErrors.push("Pages must be a number.");
     }
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
@@ -165,11 +166,13 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
         }
         const result = await response.json();
         console.log("res:", result);
+        await fetchDocuments();
+
       } catch (error) {
         console.error("Error:", error);
       }
     handleClose();
-    /*setNewDocument({
+    setNewDocument({
       id: 0,
       title: "",
       stakeholders: "",
@@ -178,11 +181,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       type: "",
       connection: "",
       language: "",
-      pages: "",
+      pages: 0,
       description: "",
-      lat: "",
-      lng: ""
-    });*/
+      lat: undefined,
+      lng: undefined
+    });
     }
   };
 

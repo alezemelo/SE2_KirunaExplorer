@@ -1,5 +1,5 @@
 // App.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
@@ -74,24 +74,25 @@ function App() {
   ]);*/
 
   const [documents, setDocuments] = useState<DocumentType[]>([]);
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
-        if (!response.ok) throw new Error("Errore durante il caricamento dei documenti");
-        const data = await response.json();
-        for(let i=0; i<data.length; i++){
-          const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`)
-          const t = await  res.json();
-          data[i].connection = t.length;
-        }
-        setDocuments(data); 
-      } catch (error) {
-        console.error(error);
+  const fetchDocuments = useCallback(async () => {
+    try {
+      const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
+      if (!response.ok) throw new Error("Error fetching documents");
+      const data = await response.json();
+      for (let i = 0; i < data.length; i++) {
+        const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
+        const t = await res.json();
+        data[i].connection = t.length;
       }
-    };
-    fetchDocuments();
+      setDocuments(data);
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchDocuments(); // Fetch documents on mount
+  }, [fetchDocuments]);
 
   useEffect(() => {
     console.log(coordinates, bounds);
@@ -103,7 +104,7 @@ function App() {
       <Header />
       <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
       <Grid item xs={12} md={4}>
-          <DocumentList documents={documents} setDocuments={setDocuments} />
+          <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} />
         </Grid>
         <Grid item xs={12} md={8}>
           <Map
