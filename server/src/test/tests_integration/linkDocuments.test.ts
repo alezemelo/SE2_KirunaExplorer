@@ -42,9 +42,9 @@ describe('get links integretion', () => {
 
   describe('linkDAO test', () => {
     test('createLink OK', async () => {
+        await dbpg.client.query('DELETE FROM document_links');
         await temp_emptyDB();
         await temp_populateDB();
-        await dbpg.client.query('DELETE FROM document_links');
         const response = await linksDAO.createLink(15,18,LinkType.direct);
         expect(response).toBe(1);
         
