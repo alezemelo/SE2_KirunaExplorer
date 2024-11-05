@@ -50,4 +50,7 @@ class UserDAO {
     }
 }
 
-export default UserDAO;
+// singleton instance of userDao, to be imported and used in various parts of backend when needed!
+const userDao = new UserDAO();
+
+export default userDao;
