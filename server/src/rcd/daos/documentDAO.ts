@@ -74,24 +74,25 @@ class DocumentDAO {
     }
 
     public async addDocument(doc: Document): Promise<void> {
+        console.log(doc)
         const query = `
             INSERT INTO documents 
-            (id, title, type, last_modified_by, issuance_date, language, pages, stakeholders, scale, description, coordinates) 
+            ( title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates, last_modified_by) 
             VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `;
         const values = [
-            doc.id,
+            
             doc.title,
             doc.type,
-            doc.lastModifiedBy,
             doc.issuanceDate ? doc.issuanceDate.toISOString() : null,
             doc.language,
             doc.pages,
             doc.stakeholders,
             doc.scale,
             doc.description,
-            doc.coordinates
+            doc.coordinates,
+            "admin"
         ];
 
         try {

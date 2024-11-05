@@ -106,7 +106,7 @@ class DocumentRoutes {
             // TODO remember to enable when there's the authenticator plss
             // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
             // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-            body('id').isInt(),
+            //body('id').isInt(),
             body('title').isString(),
             body('type').isString(),
             body('lastModifiedBy').isString(),
