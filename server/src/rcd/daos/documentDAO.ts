@@ -47,6 +47,7 @@ class DocumentDAO {
 
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
         try {
+            console.log(newDescription)
             const res = await pgdb.client.query('UPDATE documents SET description = $1 WHERE id = $2', [newDescription, docId]);
             if (res.rowCount) {
                 return res.rowCount;

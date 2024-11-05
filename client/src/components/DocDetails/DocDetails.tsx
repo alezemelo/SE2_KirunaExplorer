@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, Card, CardContent, Button } from "@mui/material";
+import { Box, Typography, Card, CardContent, Button, TextField } from "@mui/material";
 import { DocumentType } from "../../App";
 
 
@@ -12,14 +12,50 @@ export interface Coordinates {
 interface DocDetailsProps {
   document: DocumentType;
   onLink: () => void; // Add this line to accept the onLink prop
+  fetchDocuments:() => Promise<void>;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink }) => {
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments }) => {
   // State to manage description visibility
   const [showDescription, setShowDescription] = useState(false);
+  const [editDescription, setEditDescription] = useState(false);
+  const [description, setDescription] = useState(document.description);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(e.target.value);
+  };
 
   // Toggle description visibility
   const toggleDescription = () => setShowDescription((prev) => !prev);
+  const toggleEditDescription = () => {
+    setEditDescription(true);
+    toggleDescription();
+  }
+  const closeEdit = () => {
+    setEditDescription(false);
+      toggleDescription();
+  }
+  const saveDescription = async() => {
+    try{
+      const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/description`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({description}), 
+      });
+
+      if (!response.ok) {
+        throw new Error("Error: " + response.statusText);
+      }
+      setEditDescription(false);
+      toggleDescription();
+      await fetchDocuments();
+      
+    }catch (error) {
+      console.error("Error:", error);
+    }
+  } 
 
   return (
     <Card elevation={6} style={{ margin: "20px 0", padding: "10px" }}>
@@ -62,29 +98,43 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink }) => {
         {/* Toggleable Description */}
         {showDescription && (
           <Typography variant="body2" style={{ marginTop: "10px" }}>
-            <strong>Description:</strong> {document.description}
-          </Typography>
+          <strong>Description:</strong> {description}
+        </Typography>
         )}
+        {editDescription? 
+        <>
+          <TextField value={description} autoFocus fullWidth multiline rows={4} onChange={handleDescriptionChange}></TextField>
+          <Button variant="contained"  color="primary" style={{ marginTop: "10px" }} onClick={saveDescription}>
+            Save
+        </Button>
+        <Button variant="contained"  color="primary" style={{ marginTop: "10px" }} onClick={closeEdit}>
+            Cancel
+        </Button>
+        </>
+        :
+        <></>
+        }
 
         {/* Toggle Button */}
-        <Button
-          variant="contained"
-          color="primary"
-          style={{ marginTop: "10px" }}
-          onClick={toggleDescription}
-        >
+        {!editDescription && <Button variant="contained"  color="primary" style={{ marginTop: "10px" }} onClick={toggleDescription}>
           {showDescription ? "Hide Description" : "Show Description"}
-        </Button>
+        </Button>}
 
         {/* Button to trigger linking */}
-        <Button 
+        {!showDescription && !editDescription ? <Button 
           variant="contained" 
           color="secondary" 
           style={{ marginTop: "10px" }} 
           onClick={onLink} // Call onLink when this button is clicked
         >
           Link Document
-        </Button>
+        </Button>:
+         !editDescription ?<Button
+          variant="contained"
+          color="primary"
+          style={{ marginTop: "10px" }}
+          onClick={toggleEditDescription}
+        >Edit Description</Button>: <></>}
       </CardContent>
     </Card>
   );
