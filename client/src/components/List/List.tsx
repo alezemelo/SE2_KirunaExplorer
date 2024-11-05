@@ -112,9 +112,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (typeof newDocument.type !== 'string') {
       newErrors.push("Type must be a string.");
     }
-    if (typeof newDocument.connection !== 'string') {
-      newErrors.push("Connection must be a string.");
-    }
     if (typeof newDocument.language !== 'string') {
       newErrors.push("Language must be a string.");
     }
@@ -124,12 +121,12 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
-    if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
+    /*if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
       newErrors.push("Latitude must be a number.");
     }
     if (newDocument.lng !== undefined && typeof newDocument.lng !== 'number') {
       newErrors.push("Longitude must be a number.");
-    }
+    }*/
     setErrors(newErrors);
     if (newErrors.length === 0){
     if (Object.keys(newErrors).length === 0)
@@ -151,7 +148,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
           pages: newDocument.pages,
           description: newDocument.description,
           coordinates: newDocument.lat !== undefined && newDocument.lng !== undefined 
-            ? { lat: newDocument.lat, lng: newDocument.lng }
+            ? { lat: Number(newDocument.lat), lng: Number(newDocument.lng) }
             : undefined 
         }; 
         const b = JSON.stringify(final);
