@@ -4,6 +4,13 @@ import pgdb from './temp_db';
 
 async function temp_emptyDB() {
     try {
+        // Disable constraints
+        await pgdb.client.query('ALTER TABLE documents DISABLE TRIGGER ALL');
+        await pgdb.client.query('ALTER TABLE users DISABLE TRIGGER ALL');
+        await pgdb.client.query('ALTER TABLE document_links DISABLE TRIGGER ALL');
+        await pgdb.client.query('ALTER TABLE document_files DISABLE TRIGGER ALL');
+        await pgdb.client.query('ALTER TABLE files DISABLE TRIGGER ALL');
+
         // Empty documents
         try {
             const res = await pgdb.client.query('DELETE FROM documents');
