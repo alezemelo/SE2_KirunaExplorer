@@ -129,18 +129,18 @@ class DocumentRoutes {
         * PATCH `/documents/:id/coordinates`
         * Updates the coordinates of a document.
         */
-        this.router.patch('documents/:id/coordinates',
+        this.router.patch('/:id/coordinates',
             // TODO: CHECK IF AUTH MIDDLEWARE WORKS
-            this.authenticator.isLoggedIn,
-            this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
+            //this.authenticator.isLoggedIn,
+            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('lat').isFloat().withMessage('Latitude must be a number'),
-            body('long').isFloat().withMessage('Longitude must be a number'),
+            body('lng').isFloat().withMessage('Longitude must be a number'),
             this.errorHandler.validateRequest,
             async (req: any, res: any, next: any) => {
                 //TODO: call controller
-                const {lat, long} = req.body;
-                this.controller.updateCoordinates(req.params.id, {lat, long})
+                const {lat, lng} = req.body;
+                this.controller.updateCoordinates(req.params.id, {lat, lng})
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)

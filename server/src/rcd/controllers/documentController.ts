@@ -6,7 +6,7 @@ import dayjs, { Dayjs } from "dayjs";
 
 export interface Coordinates {
     lat: number;
-    long: number;
+    lng: number;
 }
 
 /**
@@ -101,7 +101,6 @@ class DocumentController {
             if (doc === null) {
                 throw new DocumentNotFoundError([id]);
             }
-            console.log(doc)
             return doc;
         } catch (error) {
             throw error;

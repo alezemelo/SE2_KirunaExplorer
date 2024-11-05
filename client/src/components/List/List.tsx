@@ -178,7 +178,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       stakeholders: "",
       scale: "",
       issuanceDate: "",
-      type: "",
+      type: "informative_doc",
       connection: [],
       language: "",
       pages: 0,

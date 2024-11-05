@@ -20,7 +20,36 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [description, setDescription] = useState(document.description);
+  const [lat, setLat] = useState(document.coordinates?.lat || '');
+  const [lng, setLng] = useState(document.coordinates?.lng || '');
 
+  const handleLatChange = (event:React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
+  const handleLngChange = (event:React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);
+
+  const handleSave = async() => {
+    try{
+      const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({lat, lng}), 
+      });
+
+      if (!response.ok) {
+        throw new Error("Error: " + response.statusText);
+      }
+      await fetchDocuments();
+      
+    }catch (error) {
+      console.error("Error:", error);
+    }
+  }
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSave(); 
+    }
+  };
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDescription(e.target.value);
   };
@@ -87,12 +116,12 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
           <Typography variant="body2">
             <strong>Pages:</strong> {document.pages}
           </Typography>
-          <Typography variant="body2">
-            <strong>Latitude:</strong> {document.coordinates?document.coordinates.lat:''}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Longitude:</strong> {document.coordinates?document.coordinates.lng:''}
-          </Typography>
+          <Typography variant="body2"><strong>Latitude:</strong>
+        <TextField value={lat} onChange={handleLatChange} onKeyPress={handleKeyPress} onBlur={handleSave}  variant="outlined" size="small" style={{ marginLeft: '8px', width: '100px' }} />
+      </Typography>
+      <Typography variant="body2"><strong>Longitude:</strong>
+        <TextField value={lng} onChange={handleLngChange} onKeyPress={handleKeyPress} onBlur={handleSave}  variant="outlined" size="small" style={{ marginLeft: '8px', width: '100px' }} />
+      </Typography>
         </Box>
 
         {/* Toggleable Description */}

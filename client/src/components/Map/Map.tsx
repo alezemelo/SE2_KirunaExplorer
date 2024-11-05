@@ -4,17 +4,18 @@ import { useMediaQuery } from "@mui/material";
 import DocumentMarker from "./DocMarkers";
 import "./Map.css";
 
-interface Coordinates {
+// Interfaccia per le coordinate
+export interface Coordinates {
   lat: number;
   lng: number;
 }
 
+// Interfaccia per i documenti
 interface Document {
   id: number;
   title: string;
   coordinates: Coordinates; 
 }
-
 
 interface MapProps {
   setCoordinates: (coordinates: Coordinates) => void;
@@ -26,14 +27,14 @@ interface MapProps {
 const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, documents }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
-  // State for map options and zoom level
+  // Stato per le opzioni della mappa e livello di zoom
   const [mapOptions, setMapOptions] = useState<MapOptions>({
     fullscreenControl: false,
     mapTypeControl: true,
   });
-  const [zoom, setZoom] = useState(12); // Set initial zoom level
+  const [zoom, setZoom] = useState(12); // Imposta il livello di zoom iniziale
 
-  // Update map options when API loads
+  // Aggiorna le opzioni della mappa quando l'API è caricata
   const handleApiLoaded = (map: any, maps: any) => {
     setMapOptions({
       fullscreenControl: false,
@@ -45,19 +46,20 @@ const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, docum
     });
   };
 
-  // Handle map changes, including zoom updates
+  // Gestisce i cambiamenti della mappa, compreso l'aggiornamento dello zoom
   const handleMapChange = (e: ChangeEventValue) => {
+    // Aggiorna le coordinate con latitudine e longitudine
     setCoordinates({ lat: e.center.lat, lng: e.center.lng });
     setBounds({ ne: e.marginBounds.ne, sw: e.marginBounds.sw });
-    setZoom(e.zoom); // Update zoom level in state
+    setZoom(e.zoom); // Aggiorna il livello di zoom nel stato
   };
 
   return (
     <div className="mapContainer">
       <GoogleMapReact
-        bootstrapURLKeys={{ key: "AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4" }}
+        bootstrapURLKeys={{ key: "AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4" }} // La tua API Key di Google Maps
         center={coordinates}
-        zoom={zoom} // Bind zoom level to state
+        zoom={zoom} // Collega il livello di zoom allo stato
         options={mapOptions}
         onChange={handleMapChange}
         onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
@@ -65,7 +67,7 @@ const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, docum
       >
         {documents.map((document, index) => (
           <DocumentMarker
-            key={`${index}-${zoom}`} // Include zoom in key to force re-render on zoom change
+            key={`${index}-${zoom}`} // Aggiungi zoom alla chiave per forzare il re-rendering in caso di cambiamento dello zoom
             lat={document.coordinates.lat}
             lng={document.coordinates.lng}
             text={document.title}
