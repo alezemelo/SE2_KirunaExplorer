@@ -56,8 +56,8 @@ class DocumentRoutes {
             // TODO remember to enable when there's the authenticator plss
             // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
             // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-            this.authenticator.isLoggedIn,
-            this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
+            //this.authenticator.isLoggedIn,
+            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('description').isString().isLength({ max: 2000 }),
             this.errorHandler.validateRequest,
@@ -137,8 +137,8 @@ class DocumentRoutes {
         */
         this.router.patch('documents/:id/coordinates',
             // TODO: CHECK IF AUTH MIDDLEWARE WORKS
-            this.authenticator.isLoggedIn,
-            this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
+            //this.authenticator.isLoggedIn,
+            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('lat').isFloat().withMessage('Latitude must be a number'),
             body('long').isFloat().withMessage('Longitude must be a number'),
