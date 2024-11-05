@@ -39,7 +39,7 @@ interface DocumentLocal {
   scale: string;
   issuanceDate: any;
   type: string;
-  connection: string;
+  connection: string[];
   language: string;
   pages: number;
   description: string;
@@ -56,7 +56,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     scale: "",
     issuanceDate: "",
     type: "informative_doc",
-    connection: "",
+    connection: [],
     language: "",
     pages: 1,
     description: "",
@@ -182,7 +182,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       scale: "",
       issuanceDate: "",
       type: "",
-      connection: "",
+      connection: [],
       language: "",
       pages: 0,
       description: "",

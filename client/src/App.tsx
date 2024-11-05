@@ -18,7 +18,7 @@ export interface DocumentType {
   scale: string;
   issuanceDate: any;
   type: string;
-  connection: string;
+  connection: string[];
   language: string;
   pages: number;
   description: string;
@@ -82,8 +82,18 @@ function App() {
       for (let i = 0; i < data.length; i++) {
         const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
         const t = await res.json();
-        data[i].connection = t.length;
-      }
+        for(let j = 0;j<t.length;j++){
+            if(t[j].docIdd1 != data[i].id){
+              const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId1}`);
+              const t1 = await temp.json()
+              data[i].connection = t1.title+` (${t[j].linkType})`;
+            }else{
+              const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docIdd2}`);
+              const t2 = await temp.json()
+              data[i].connection = t2.title+` (${t[j].linkType})`;
+            }
+        }
+        }
       setDocuments(data);
     } catch (error) {
       console.error(error);
