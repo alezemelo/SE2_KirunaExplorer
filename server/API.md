@@ -166,3 +166,41 @@ create a link between two documents
 - Additional Constraints:
 - returns 400 if the id of the docuemnt does not exist.
 - returns 422 if the request body content is not correct
+
+
+#### POST `kiruna_explorer/sessions`
+
+Allows login for a user with the provided credentials.
+
+- Request Parameters: None
+- Request Body Content: An object having as attributes:
+  - `username`: a string that must not be empty
+  - `password`: a string that must not be empty
+  - Example: `{username: "MarioRossi", password: "MarioRossi"}`
+- Response Body Content: A **User** object that represents the logged in user
+  - Example: `{username: "Mario Rossi", type: "urban_planner", salt: "some_salt", hash: "some_hash"}`
+- Access Constraints: None
+- Additional Constraints:
+  - Returns a 401 error if the username does not exist
+  - Returns a 401 error if the password provided does not match the one in the database
+
+#### DELETE `kiruna_explorer/sessions/current`
+
+Performs logout for the current user
+
+Performs logout for the currently logged in user.
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Body Content: None
+- Access Constraints: Can only be called by a logged in User
+
+#### GET `kiruna_explorer/sessions/current`
+
+Retrieves information about the currently logged in user.
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Body Content: A **User** object that represents the logged in user
+  - Example: `{username: "Gianni Verdi", type: "resident"}`
+- Access Constraints: Can only be called by a logged in User

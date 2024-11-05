@@ -1,6 +1,8 @@
 import express, { Router } from "express";
 import ErrorHandler from "./helper";
 import { body, param } from "express-validator";
+import Authenticator from "../../authentication/auth";
+import { UserType } from "../../models/user";
 
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentController from "../controllers/documentController";
@@ -15,11 +17,13 @@ class DocumentRoutes {
     private controller: DocumentController;
     private router: Router;
     private errorHandler: ErrorHandler;
+    private authenticator: Authenticator;
 
     /**
      * Constructs a new instance of the DocumentRoutes class.
      */
-    constructor() {
+    constructor(authenticator: Authenticator) {
+        this.authenticator = authenticator;
         this.controller = new DocumentController();
         this.router = express.Router();
         this.errorHandler = new ErrorHandler();
@@ -52,6 +56,8 @@ class DocumentRoutes {
             // TODO remember to enable when there's the authenticator plss
             // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
             // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
+            this.authenticator.isLoggedIn,
+            this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('description').isString().isLength({ max: 2000 }),
             this.errorHandler.validateRequest,
@@ -97,29 +103,31 @@ class DocumentRoutes {
 
         this.router.post(
             '/',
-    // TODO remember to enable when there's the authenticator plss
-    // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-    // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-    body('id').isInt(),
-    body('title').isString(),
-    body('type').isString(),
-    body('lastModifiedBy').isString(),
-    body('issuanceDate').optional().isISO8601(),
-    body('language').optional().isString(),
-    body('pages').optional().isInt(),
-    body('stakeholders').optional().isString(),
-    body('scale').optional().isString(),
-    body('description').optional().isString(),
-    body('coordinates').optional().isString(),
-    (req: any, res: any, next: any) => this.controller.addDocument(req, res, next)
-);
+            // TODO remember to enable when there's the authenticator plss
+            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
+            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
+            body('id').isInt(),
+            body('title').isString(),
+            body('type').isString(),
+            body('lastModifiedBy').isString(),
+            body('issuanceDate').optional().isISO8601(),
+            body('language').optional().isString(),
+            body('pages').optional().isInt(),
+            body('stakeholders').optional().isString(),
+            body('scale').optional().isString(),
+            body('description').optional().isString(),
+            body('coordinates').optional().isString(),
+            (req: any, res: any, next: any) => this.controller.addDocument(req, res, next)
+        );
 
         /*
         * PATCH `/documents/:id/coordinates`
         * Updates the coordinates of a document.
         */
         this.router.patch('documents/:id/coordinates',
-            // TODO: AUTHORIZATAION MIDDLEWARE CHECK TO BE ADDED HERE
+            // TODO: CHECK IF AUTH MIDDLEWARE WORKS
+            this.authenticator.isLoggedIn,
+            this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('lat').isFloat().withMessage('Latitude must be a number'),
             body('long').isFloat().withMessage('Longitude must be a number'),

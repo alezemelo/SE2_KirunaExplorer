@@ -17,8 +17,11 @@ interface LocalDocument {
     coordinates: string;
 }
 
+
+
 class DocumentDAO {
     public async getDocument(docId: number): Promise<Document | null> {
+        
         try {
             const res = await pgdb.client.query('SELECT * FROM documents WHERE id = $1', [docId]);
             if (res.rows.length === 0) {
@@ -71,6 +74,35 @@ class DocumentDAO {
     }
 
     public async addDocument(doc: Document): Promise<void> {
+        const query = `
+            INSERT INTO documents 
+            (id, title, type, last_modified_by, issuance_date, language, pages, stakeholders, scale, description, coordinates) 
+            VALUES 
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `;
+        const values = [
+            doc.id,
+            doc.title,
+            doc.type,
+            doc.lastModifiedBy,
+            doc.issuanceDate ? doc.issuanceDate.toISOString() : null,
+            doc.language,
+            doc.pages,
+            doc.stakeholders,
+            doc.scale,
+            doc.description,
+            doc.coordinates
+        ];
+
+        try {
+            const res = await pgdb.client.query(query, values);
+            if (res.rowCount !== 1) {
+                throw new Error('Error adding document to the database');
+            }
+        } catch (error) {
+            console.error('Failed to add document:', error);
+            throw error;
+        }
     }
 }
 

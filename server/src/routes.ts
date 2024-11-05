@@ -6,6 +6,8 @@ const prefix = "/kiruna_explorer"
 import DocumentRoutes from "./rcd/routes/document_routes"
 import ErrorHandler from "./rcd/routes/helper"
 import LinkRouter from "./rcd/routes/LinksRoute"
+import Authenticator from "./authentication/auth"
+import { AuthRoutes } from "./rcd/routes/user_routes"
 
 /**
  * Initializes the routes for the application.
@@ -20,8 +22,10 @@ function initRoutes(app: express.Application) {
     app.use(express.json({ limit: "25mb" }))
     app.use(express.urlencoded({ limit: '25mb', extended: true }))
 
-    const documentRoutes = new DocumentRoutes()
+    const authenticator = new Authenticator(app);
+    const documentRoutes = new DocumentRoutes(authenticator);
     const linkDocumentRouter = new LinkRouter();
+    const authRoutes = new AuthRoutes(authenticator);
     
 
     /**
@@ -31,6 +35,7 @@ function initRoutes(app: express.Application) {
 
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
     app.use(`${prefix}/linkDocuments`, linkDocumentRouter.getRouter());
+    app.use(`${prefix}/sessions`, authRoutes.getRouter());
 
     ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");
