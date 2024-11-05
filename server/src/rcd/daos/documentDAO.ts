@@ -20,6 +20,12 @@ interface LocalDocument {
 
 
 class DocumentDAO {
+    private db: any;
+
+    constructor() {
+        this.db = pgdb.client; 
+    }
+
     public async getDocument(docId: number): Promise<Document | null> {
         
         try {
@@ -63,35 +69,32 @@ class DocumentDAO {
         }
     }
 
-    public async addDocument(doc: Document): Promise<void> {
-        const query = `
-            INSERT INTO documents 
-            (id, title, type, last_modified_by, issuance_date, language, pages, stakeholders, scale, description, coordinates) 
-            VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        `;
-        const values = [
-            doc.id,
-            doc.title,
-            doc.type,
-            doc.lastModifiedBy,
-            doc.issuanceDate ? doc.issuanceDate.toISOString() : null,
-            doc.language,
-            doc.pages,
-            doc.stakeholders,
-            doc.scale,
-            doc.description,
-            doc.coordinates
-        ];
-
+    public async addDocument(doc: any): Promise<number> {
         try {
-            const res = await pgdb.client.query(query, values);
-            if (res.rowCount !== 1) {
-                throw new Error('Error adding document to the database');
-            }
+            const { title, type, lastModifiedBy, issuanceDate, language, pages, stakeholders, scale, description, coordinates } = doc;
+
+            const coordInfo = coordinates ? `SRID=4326;POINT(${coordinates.long} ${coordinates.lat})` : null;
+
+            const [insertedId] = await this.db('documents')
+                .insert({
+                    title,
+                    type,
+                    last_modified_by: lastModifiedBy,
+                    issuance_date: issuanceDate,
+                    language,
+                    pages,
+                    stakeholders,
+                    scale,
+                    description,
+                    coordinates: coordInfo,
+                })
+                .returning('id');
+
+            console.log(`Document added with ID: ${insertedId}`);
+            return insertedId;
         } catch (error) {
-            console.error('Failed to add document:', error);
-            throw error;
+            console.error('Error adding document to the database:', error);
+            throw new Error('Database Error: Unable to add document');
         }
     }
 }

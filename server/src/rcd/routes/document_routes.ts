@@ -1,6 +1,6 @@
-import express, { Router } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
 import ErrorHandler from "./helper";
-import { body, param } from "express-validator";
+import { body, param,validationResult } from "express-validator";
 
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentController from "../controllers/documentController";
@@ -85,23 +85,44 @@ class DocumentRoutes {
                     next(err)
                 })
         )
+        
         this.router.post(
             '/',
-            // TODO remember to enable when there's the authenticator plss
-            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-            body('id').isInt(),
-            body('title').isString(),
-            body('type').isString(),
-            body('lastModifiedBy').isString(),
-            body('issuanceDate').optional().isISO8601(),
-            body('language').optional().isString(),
-            body('pages').optional().isInt(),
-            body('stakeholders').optional().isString(),
-            body('scale').optional().isString(),
-            body('description').optional().isString(),
-            body('coordinates').optional().isString(),
-            (req: any, res: any, next: any) => this.controller.addDocument(req, res, next)
+            // Authentication middlewares (uncomment if needed)
+            // (req, res, next) => this.authenticator.isLoggedIn(req, res, next),
+            // (req, res, next) => this.authenticator.isUrbanPlanner(req, res, next),
+    
+            body('title').isString().withMessage('Title must be a string'),
+            body('type').isString().withMessage('Type must be a valid string'),
+            body('lastModifiedBy').isString().withMessage('Last modified by must be a valid username'),
+            body('issuanceDate').optional().isISO8601().withMessage('Issuance date must be a valid date'),
+            body('language').optional().isString().withMessage('Language must be a string'),
+            body('pages').optional().isInt().withMessage('Pages must be an integer'),
+            body('stakeholders').optional().isString().withMessage('Stakeholders must be a string'),
+            body('scale').optional().isString().withMessage('Scale must be a string'),
+            body('description').optional().isString().withMessage('Description must be a string'),
+            body('coordinates').optional().custom(value => {
+                if (typeof value !== 'object' || !value.lat || !value.long) {
+                    throw new Error('Coordinates must be an object with lat and long');
+                }
+                return true;
+            }).withMessage('Coordinates must be an object with lat and long'),
+    
+            // Main controller function
+            async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+                const errors = validationResult(req);
+                if (!errors.isEmpty()) {
+                    res.status(400).json({ errors: errors.array() });
+                    return;
+                }
+    
+                // Call controller to add the document
+                try {
+                    await this.controller.addDocument(req, res, next);
+                } catch (error) {
+                    next(error);
+                }
+            }
         );
 
         /*

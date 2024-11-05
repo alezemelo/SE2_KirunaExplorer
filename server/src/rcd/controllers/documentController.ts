@@ -22,6 +22,59 @@ class DocumentController {
         this.dao = new DocumentDAO();
     }
 
+
+    /**
+     * Adds a new document to the database.
+     * 
+     * @param title - The title of the document.
+     * @param description - The description of the document.
+     * @param coordinates - The coordinates of the document.
+     * @param date - The date of the document.
+     * @param image - The image of the document.
+     * @returns The ID of the newly added document.
+     * @throws Error for generic errors.
+     * @throws Error if the document could not be added.
+     */
+
+    public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const {
+            title,
+            type,
+            lastModifiedBy,
+            issuanceDate,
+            language,
+            pages,
+            stakeholders,
+            scale,
+            description,
+            coordinates
+        } = req.body;
+
+        // Create a document data object with the necessary fields
+        const documentData = {
+            title,
+            type,
+            lastModifiedBy,
+            issuanceDate,
+            language,
+            pages,
+            stakeholders,
+            scale,
+            description,
+            coordinates,
+        };
+
+        try {
+            // Call DAO to add the document and retrieve the generated document ID
+            const documentId = await this.dao.addDocument(documentData);
+            res.status(201).json({ message: 'Document added successfully', documentId });
+        } catch (error) {
+            console.error('Failed to add document:', error);
+            next(error); // Pass the error to the error-handling middleware
+        }
+    };
+
+
     /**
      * Updates the description of a document. If the old description was empty, this will equate to an insertion. If the new description is empty, this will equate to a clearing.
      * 
@@ -58,30 +111,6 @@ class DocumentController {
         } catch (error) {
             console.error("Error in DocumentController - updateCoordinates: ", error);
             throw error;
-        }
-    }
-
-    public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const doc: Document = new Document(
-            req.body.id,
-            req.body.title,
-            req.body.type,
-            req.body.lastModifiedBy,
-            req.body.issuanceDate,
-            req.body.language,
-            req.body.pages,
-            req.body.stakeholders,
-            req.body.scale,
-            req.body.description,
-            req.body.coordinates
-        );
-
-        try {
-            await this.dao.addDocument(doc);
-            res.status(201).json({ message: 'Document added successfully' });
-        } catch (error) {
-            console.error('Failed to add document:', error);
-            next(error);
         }
     }
 
