@@ -13,6 +13,11 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
 } from "@mui/material";
 import DocDetails from "../DocDetails/DocDetails";
 import "./List.css";
@@ -46,7 +51,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
     stakeholders: "",
     scale: "",
     issuanceDate: "",
-    type: "",
+    type: "informative_doc",
     connection: "",
     language: "",
     pages: "",
@@ -79,9 +84,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
     setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
   };
 
-  const handleAddDocument = () => {
-    setDocuments([...documents, newDocument]);
-    setNewDocument({
+  const handleAddDocument = async () => {
+    //setDocuments([...documents, newDocument]);
+    /*setNewDocument({
       id: 0,
       title: "",
       stakeholders: "",
@@ -94,9 +99,28 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       description: "",
       lat: "",
       lng: ""
-    });
+    });*/
+      try {
+        const b = JSON.stringify(newDocument);
+        const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: b, 
+        });
+    
+        if (!response.ok) {
+          throw new Error("Error: " + response.statusText);
+        }
+        const result = await response.json();
+        console.log("res:", result);
+      } catch (error) {
+        console.error("Error:", error);
+      }
     closeLinkingDialog();
   };
+
 
   const linkDocument = async () => {
     /*if (currentDocument) {
@@ -147,8 +171,13 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
             <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Issuance Date" name="issuanceDate" fullWidth value={newDocument.issuanceDate} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Type" name="type" fullWidth value={newDocument.type} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Connection" name="connection" fullWidth value={newDocument.connection} onChange={handleChange} />
+            <FormControl component="fieldset" margin="dense" fullWidth>
+            <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
+            <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
+              <FormControlLabel value="informative_doc" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="informative_doc" />
+              <FormControlLabel value="prescriptive_doc" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="prescriptive_doc" />
+            </RadioGroup>
+          </FormControl>
             <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Pages" name="pages" fullWidth value={newDocument.pages} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.lat} onChange={handleChange} />
