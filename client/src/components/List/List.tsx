@@ -67,7 +67,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<DocumentType | null>(null);
   const [targetDocumentId, setTargetDocumentId] = useState(0);
-  const [targetLinkType, setTargetLinkType] = useState("");
+  const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -83,7 +83,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     setCurrentDocument(document);
     setOpenLinkDialog(true);
   };
-  const closeLinkingDialog = () => setOpenLinkDialog(false);
+  const closeLinkingDialog = () => {setOpenLinkDialog(false);
+    setTargetDocumentId(0);
+    setTargetLinkType("direct");
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
@@ -191,14 +194,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
 
   const linkDocument = async () => {
-    /*if (currentDocument) {
-      setDocuments((prevDocuments) =>
-        prevDocuments.map((doc) => 
-          doc === currentDocument ? { ...doc, connection: targetDocument.title } : doc
-        )
-      );
-      closeLinkingDialog();
-    }*/
    if(currentDocument && targetDocumentId && targetLinkType){
     try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
@@ -218,6 +213,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       }
       const result = await response.json();
       console.log("res:", result);
+      await fetchDocuments();
     } catch (error) {
       console.error("Error:", error);
     }
@@ -292,17 +288,17 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
           {documents.map((doc, index) => (
             currentDocument && doc.id !== currentDocument.id ? ( // Controllo di null
               <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
-                <ListItemText primary={doc.title} />
-                <select onChange={handleSelectChange} value={targetLinkType}>
+                {(targetDocumentId!=0 && targetDocumentId == doc.id) ? <ListItemText primary={doc.title} sx={{ color: 'yellow' }} /> : <ListItemText primary={doc.title}/> }
+              </ListItemButton>
+            ) : null
+          ))}
+          </List>
+          <select onChange={handleSelectChange} value={targetLinkType}>
                   <option value="direct" selected>direct</option>
                   <option value="collateral">collateral</option>
                   <option value="projection">projection</option>
                   <option value="update">update</option>
                 </select>
-              </ListItemButton>
-            ) : null
-          ))}
-          </List>
         </DialogContent>
         <DialogActions>
         <Button onClick={linkDocument}  color="secondary">Create</Button>
