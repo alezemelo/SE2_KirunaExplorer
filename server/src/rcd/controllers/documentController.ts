@@ -30,7 +30,6 @@ class DocumentController {
      * @param description - The description of the document.
      * @param coordinates - The coordinates of the document.
      * @param date - The date of the document.
-     * @param image - The image of the document.
      * @returns The ID of the newly added document.
      * @throws Error for generic errors.
      * @throws Error if the document could not be added.
