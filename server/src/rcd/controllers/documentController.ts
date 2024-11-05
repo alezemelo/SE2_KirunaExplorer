@@ -84,9 +84,6 @@ class DocumentController {
      */
     async updateDescription(id: number, description: string): Promise<void> {
         try {
-            console.log("id: ", id);
-            console.log("description: ", description);
-
             const amount_updated = await this.dao.updateDescription(id, description);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
