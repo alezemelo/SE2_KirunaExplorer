@@ -20,11 +20,18 @@ import {
   Radio,
   RadioGroup,
 } from "@mui/material";
-import DocDetails from "../DocDetails/DocDetails";
+import { DocumentType } from "../../App";
+import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
 import "./List.css";
 
-// Define the type for documents
-interface DocumentType {
+
+
+interface DocumentListProps {
+  documents: DocumentType[];
+  setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
+}
+
+interface DocumentLocal {
   id: number;
   title: string;
   stakeholders: string;
@@ -33,20 +40,15 @@ interface DocumentType {
   type: string;
   connection: string;
   language: string;
-  pages: string;
+  pages: number;
   description: string;
-  lat: string; 
-  lng: string; 
-}
-
-interface DocumentListProps {
-  documents: DocumentType[];
-  setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
+  lat?: number,
+  lng?: number
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) => {
   const [open, setOpen] = useState(false);
-  const [newDocument, setNewDocument] = useState<DocumentType>({
+  const [newDocument, setNewDocument] = useState<DocumentLocal>({
     id: 0,
     title: "",
     stakeholders: "",
@@ -55,16 +57,17 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
     type: "informative_doc",
     connection: "",
     language: "",
-    pages: "",
+    pages: 1,
     description: "",
-    lat: "",
-    lng: ""
+    lat: undefined,
+    lng: undefined
   });
 
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<DocumentType | null>(null);
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -86,28 +89,69 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
   };
 
   const handleAddDocument = async () => {
-    //setDocuments([...documents, newDocument]);
-    /*setNewDocument({
-      id: 0,
-      title: "",
-      stakeholders: "",
-      scale: "",
-      issuanceDate: "",
-      type: "",
-      connection: "",
-      language: "",
-      pages: "",
-      description: "",
-      lat: "",
-      lng: ""
-    });*/
+    const newErrors: string[] = [];
+    if (!newDocument.title) {
+      newErrors.push("Title is required.");
+    }
+    if (typeof newDocument.title !== 'string') {
+      newErrors.push("Title must be a string.");
+    }
+    if (typeof newDocument.stakeholders !== 'string') {
+      newErrors.push("Stakeholders must be a string.");
+    }
+    if (typeof newDocument.scale !== 'string') {
+      newErrors.push("Scale must be a string.");
+    }
+    if (newDocument.issuanceDate && typeof newDocument.issuanceDate !== 'string') {
+      newErrors.push("Issuance Date must be a string.");
+    }
+    if (typeof newDocument.type !== 'string') {
+      newErrors.push("Type must be a string.");
+    }
+    if (typeof newDocument.connection !== 'string') {
+      newErrors.push("Connection must be a string.");
+    }
+    if (typeof newDocument.language !== 'string') {
+      newErrors.push("Language must be a string.");
+    }
+    if (typeof newDocument.pages !== 'string') {
+      newErrors.push("Pages must be a string.");
+    }
+    if (newDocument.description && typeof newDocument.description !== 'string') {
+      newErrors.push("Description must be a string.");
+    }
+    if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
+      newErrors.push("Latitude must be a number.");
+    }
+    if (newDocument.lng !== undefined && typeof newDocument.lng !== 'number') {
+      newErrors.push("Longitude must be a number.");
+    }
+    setErrors(newErrors);
+    if (newErrors.length === 0){
+    if (Object.keys(newErrors).length === 0)
       try {
         const date = dayjs(newDocument.issuanceDate).toDate();
         setNewDocument(prevDocument => ({
           ...prevDocument,
           issuanceDate: date
         }));
-        const b = JSON.stringify(newDocument);
+        const final: DocumentType = {
+          id: newDocument.id,
+          title: newDocument.title,
+          stakeholders: newDocument.stakeholders,
+          scale: newDocument.scale,
+          issuanceDate: newDocument.issuanceDate,
+          type: newDocument.type,
+          connection: newDocument.connection,
+          language: newDocument.language,
+          pages: newDocument.pages,
+          description: newDocument.description,
+          coordinates: newDocument.lat !== undefined && newDocument.lng !== undefined 
+            ? { lat: newDocument.lat, lng: newDocument.lng }
+            : undefined 
+        }; 
+        const b = JSON.stringify(final);
+        console.log(b);
         const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
           method: "POST",
           headers: {
@@ -139,6 +183,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       lat: "",
       lng: ""
     });*/
+    }
   };
 
 
@@ -187,10 +232,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       <Dialog open={open} onClose={handleClose} className="custom-dialog">
         <DialogTitle>Add a New Document</DialogTitle>
           <DialogContent>
-            <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" fullWidth value={newDocument.title} onChange={handleChange} />
+            <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Issuance Date" name="issuanceDate" fullWidth value={newDocument.issuanceDate} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="ex. 2022-01-01" name="issuanceDate" fullWidth value={newDocument.issuanceDate} onChange={handleChange} />
             <FormControl component="fieldset" margin="dense" fullWidth>
             <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
             <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
@@ -203,10 +248,18 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
           </FormControl>
             <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Pages" name="pages" fullWidth value={newDocument.pages} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.lat} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.lng} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument?.lat} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument?.lng} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
           </DialogContent>
+          {errors.length > 0 && (
+            <div className="error-messages">
+              {errors.map((error, index) => (
+                <p key={index} style={{ color: 'red' }}>{error}</p> 
+              ))}
+            </div>
+          )}
+
         <DialogActions>
           <Button onClick={handleClose} color="secondary">Cancel</Button>
           <Button onClick={handleAddDocument} color="primary">Add Document</Button>

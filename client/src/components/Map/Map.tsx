@@ -10,10 +10,11 @@ interface Coordinates {
 }
 
 interface Document {
-  lat: string;
-  lng: string;
+  id: number;
   title: string;
+  coordinates: Coordinates; 
 }
+
 
 interface MapProps {
   setCoordinates: (coordinates: Coordinates) => void;
@@ -65,8 +66,8 @@ const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, docum
         {documents.map((document, index) => (
           <DocumentMarker
             key={`${index}-${zoom}`} // Include zoom in key to force re-render on zoom change
-            lat={parseFloat(document.lat)}
-            lng={parseFloat(document.lng)}
+            lat={document.coordinates.lat}
+            lng={document.coordinates.lng}
             text={document.title}
           />
         ))}

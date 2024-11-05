@@ -32,7 +32,7 @@ describe('get links integretion', () => {
   });*/
 
   afterAll(async () => {
-    await temp_emptyDB();
+    //await temp_emptyDB();
 
     await dbpg.disconnect();
     server.close();

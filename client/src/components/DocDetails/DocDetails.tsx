@@ -1,22 +1,16 @@
 import React, { useState } from "react";
 import { Box, Typography, Card, CardContent, Button } from "@mui/material";
+import { DocumentType } from "../../App";
 
-// Define the type for document
-interface Document {
-  title: string;
-  stakeholders: string;
-  scale: string;
-  issuanceDate: string;
-  type: string;
-  connection: string;
-  language: string;
-  pages: string;
-  description: string;
+
+export interface Coordinates {
+  lat: number;
+  long: number;
 }
 
 // Specify the prop type in the component
 interface DocDetailsProps {
-  document: Document;
+  document: DocumentType;
   onLink: () => void; // Add this line to accept the onLink prop
 }
 
@@ -56,6 +50,12 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink }) => {
           </Typography>
           <Typography variant="body2">
             <strong>Pages:</strong> {document.pages}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Latitude:</strong> {document.coordinates?document.coordinates.lat:''}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Longitude:</strong> {document.coordinates?document.coordinates.lng:''}
           </Typography>
         </Box>
 

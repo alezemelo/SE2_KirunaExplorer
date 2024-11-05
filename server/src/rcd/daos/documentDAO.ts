@@ -14,7 +14,7 @@ interface LocalDocument {
     stakeholders: string[];
     scale: string;
     description: string;
-    coordinates: string;
+    coordinates: Coordinates;
 }
 
 
@@ -83,16 +83,15 @@ class DocumentDAO {
             ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `;
         const values = [
-            
             doc.title,
             doc.type,
-            doc.issuanceDate ? doc.issuanceDate.toISOString() : null,
+            doc.issuanceDate ? doc.issuanceDate : null,
             doc.language,
             doc.pages,
             doc.stakeholders,
             doc.scale,
             doc.description,
-            doc.coordinates,
+            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.long} ${doc.coordinates.lat})`: null,
             "admin"
         ];
 

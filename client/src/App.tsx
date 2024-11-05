@@ -11,21 +11,19 @@ interface Coordinates {
   lng: number;
 }
 
-interface DocumentType {
+export interface DocumentType {
   id: number;
   title: string;
   stakeholders: string;
   scale: string;
-  issuanceDate: string;
+  issuanceDate: any;
   type: string;
   connection: string;
   language: string;
-  pages: string;
+  pages: number;
   description: string;
-  lat: string;
-  lng: string;
+  coordinates?: Coordinates
 }
-
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({
     lat: 67.85572,
@@ -114,8 +112,10 @@ function App() {
             coordinates={coordinates}
             documents={documents.map(doc => ({
               ...doc,
-              lat: doc.lat,  // Parse lat to number
-              lng: doc.lng,  // Parse lng to number
+              coordinates: {
+                lat: doc.coordinates?.lat ?? 0,
+                lng: doc.coordinates?.lng ?? 0,
+              }   
             }))}
           />
         </Grid>

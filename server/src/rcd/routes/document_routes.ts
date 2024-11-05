@@ -116,7 +116,12 @@ class DocumentRoutes {
             body('stakeholders').optional().isString(),
             body('scale').optional().isString(),
             body('description').optional().isString(),
-            body('coordinates').optional().isString(),
+            body('coordinates').optional().custom(coordinates => {
+                if (typeof coordinates.latitude !== 'number' || typeof coordinates.longitude !== 'number') {
+                    throw new Error('coordinates are not valide.');
+                }
+                return true;
+            }),
             (req: any, res: any, next: any) => this.controller.addDocument(req, res, next)
         );
 
