@@ -1,5 +1,6 @@
 // List.tsx
 import React, { useState } from "react";
+import dayjs from "dayjs";
 import {
   Box,
   Grid,
@@ -28,7 +29,7 @@ interface DocumentType {
   title: string;
   stakeholders: string;
   scale: string;
-  issuanceDate: string;
+  issuanceDate: any;
   type: string;
   connection: string;
   language: string;
@@ -101,6 +102,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       lng: ""
     });*/
       try {
+        const date = dayjs(newDocument.issuanceDate).toDate();
+        setNewDocument(prevDocument => ({
+          ...prevDocument,
+          issuanceDate: date
+        }));
         const b = JSON.stringify(newDocument);
         const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
           method: "POST",
@@ -118,7 +124,21 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
       } catch (error) {
         console.error("Error:", error);
       }
-    closeLinkingDialog();
+    handleClose();
+    /*setNewDocument({
+      id: 0,
+      title: "",
+      stakeholders: "",
+      scale: "",
+      issuanceDate: "",
+      type: "",
+      connection: "",
+      language: "",
+      pages: "",
+      description: "",
+      lat: "",
+      lng: ""
+    });*/
   };
 
 
@@ -153,7 +173,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
     } catch (error) {
       console.error("Error:", error);
     }
-    handleClose()
+    closeLinkingDialog()
 
    }
    
@@ -176,6 +196,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments }) 
             <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
               <FormControlLabel value="informative_doc" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="informative_doc" />
               <FormControlLabel value="prescriptive_doc" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="prescriptive_doc" />
+              <FormControlLabel value="design_doc" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="design_doc" />
+              <FormControlLabel value="technical_doc" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="technical_doc" />
+              <FormControlLabel value="material_effect" control={<Radio sx={{color: "white",'&.Mui-checked': { color: "lightblue" },}}/>} label="material_effect" />
             </RadioGroup>
           </FormControl>
             <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} onChange={handleChange} />

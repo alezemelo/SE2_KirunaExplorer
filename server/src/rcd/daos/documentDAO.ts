@@ -74,6 +74,7 @@ class DocumentDAO {
     }
 
     public async addDocument(doc: Document): Promise<void> {
+        console.log("dao")
         console.log(doc)
         const query = `
             INSERT INTO documents 
