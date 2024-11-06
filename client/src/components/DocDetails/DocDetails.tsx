@@ -24,7 +24,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const [description, setDescription] = useState(document.description);
   const [lat, setLat] = useState(document.coordinates?.lat || '');
   const [lng, setLng] = useState(document.coordinates?.lng || '');
-  const [expand,setExpanded] = useState(true);
+  const [expand,setExpanded] = useState(false);
 
   const handleToggle = () => {
     setExpanded(!expand);
