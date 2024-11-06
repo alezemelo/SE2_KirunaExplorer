@@ -91,33 +91,41 @@ class DocumentRoutes {
                     next(err)
                 })
         )
-        
+
+        this.router.get(
+            `/`,
+            (req: any, res: any, next: any) => this.controller.getDocuments()
+                .then((documents: any) => res.status(200).json(documents))
+                .catch((err: any) => {
+                    next(err)
+                })
+        )
+
         this.router.post(
             '/',
-            // Authentication middlewares (uncomment if needed)
-            // (req, res, next) => this.authenticator.isLoggedIn(req, res, next),
-            // (req, res, next) => this.authenticator.isUrbanPlanner(req, res, next),
-    
-            body('title').isString().withMessage('Title must be a string'),
-            body('type').isString().withMessage('Type must be a valid string'),
-            body('lastModifiedBy').isString().withMessage('Last modified by must be a valid username'),
-            body('issuanceDate').optional().isISO8601().withMessage('Issuance date must be a valid date'),
-            body('language').optional().isString().withMessage('Language must be a string'),
-            body('pages').optional().isInt().withMessage('Pages must be an integer'),
-            body('stakeholders').optional().isString().withMessage('Stakeholders must be a string'),
-            body('scale').optional().isString().withMessage('Scale must be a string'),
-            body('description').optional().isString().withMessage('Description must be a string'),
-            body('coordinates').optional().custom(value => {
-                if (typeof value !== 'object' || !value.lat || !value.long) {
-                    throw new Error('Coordinates must be an object with lat and long');
+            // TODO remember to enable when there's the authenticator plss
+            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
+            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
+
+            body('title').isString(),
+            body('type').isString(),
+            //body('lastModifiedBy').isString(),
+            body('issuanceDate').optional().isISO8601(),
+            body('language').optional().isString(),
+            body('pages').optional().isInt(),
+            body('stakeholders').optional().isString(),
+            body('scale').optional().isString(),
+            body('description').optional().isString(),
+            body('coordinates').optional().custom(coordinates => {
+                if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+                    throw new Error('coordinates are not valide.');
                 }
                 return true;
-            }).withMessage('Coordinates must be an object with lat and long'),
-    
-            // Main controller function
+            }),
             async (req: Request, res: Response, next: NextFunction): Promise<void> => {
                 const errors = validationResult(req);
                 if (!errors.isEmpty()) {
+                    console.log(errors)
                     res.status(400).json({ errors: errors.array() });
                     return;
                 }
@@ -135,18 +143,18 @@ class DocumentRoutes {
         * PATCH `/documents/:id/coordinates`
         * Updates the coordinates of a document.
         */
-        this.router.patch('documents/:id/coordinates',
+        this.router.patch('/:id/coordinates',
             // TODO: CHECK IF AUTH MIDDLEWARE WORKS
             //this.authenticator.isLoggedIn,
             //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('lat').isFloat().withMessage('Latitude must be a number'),
-            body('long').isFloat().withMessage('Longitude must be a number'),
+            body('lng').isFloat().withMessage('Longitude must be a number'),
             this.errorHandler.validateRequest,
             async (req: any, res: any, next: any) => {
                 //TODO: call controller
-                const {lat, long} = req.body;
-                this.controller.updateCoordinates(req.params.id, {lat, long})
+                const {lat, lng} = req.body;
+                this.controller.updateCoordinates(req.params.id, {lat, lng})
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)

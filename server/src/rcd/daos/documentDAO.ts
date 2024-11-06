@@ -14,7 +14,7 @@ interface LocalDocument {
     stakeholders: string[];
     scale: string;
     description: string;
-    coordinates: string;
+    coordinates: Coordinates;
 }
 
 
@@ -41,8 +41,33 @@ class DocumentDAO {
         }
     }
 
+    public async getDocuments(): Promise<Document[]> {
+        try {
+            const res = await pgdb.client.query('SELECT * FROM documents ', []);
+            for(let i=0;i<res.rows.length;i++){
+                if(res.rows[i].coordinates){
+                    const coordinatesHex = Buffer.from(res.rows[i].coordinates, 'hex');
+                    const c = await pgdb.client.query(
+                        'SELECT ST_AsText(ST_GeomFromWKB($1::bytea)) as geom_text',
+                        [coordinatesHex]
+                      );
+                      const [long, lat] = c.rows[0].geom_text.replace("POINT(", "").replace(")", "").split(" ");
+                      res.rows[i].coordinates = {
+                        lat: parseFloat(lat),
+                        lng: parseFloat(long) 
+                    };
+                }
+            }
+            return res.rows;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
         try {
+            console.log(newDescription)
             const res = await pgdb.client.query('UPDATE documents SET description = $1 WHERE id = $2', [newDescription, docId]);
             if (res.rowCount) {
                 return res.rowCount;
@@ -58,7 +83,8 @@ class DocumentDAO {
     public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
         try {
             const lat = newCoordinates.lat;
-            const long = newCoordinates.long;
+            const long = newCoordinates.lng;
+            console.log(newCoordinates)
             const coordInfo = `SRID=4326;POINT(${long} ${lat})`;
             const updatedRows = await dbUpdate('documents', { id: docId }, { coordinates: coordInfo });
             //const res = await pgdb.client.query('UPDATE documents SET coordinates = $1 WHERE id = $2', [coordInfo, docId]);
@@ -69,29 +95,37 @@ class DocumentDAO {
         }
     }
 
-    public async addDocument(doc: any): Promise<number> {
+    public async addDocument(doc: any): Promise<void> {
+        console.log("dao")
+        console.log(doc)
+
+
+        let coordinates = null;
+
+        const query = `
+            INSERT INTO documents 
+            ( title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates, last_modified_by) 
+            VALUES 
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `;
+        const values = [
+            doc.title,
+            doc.type,
+            doc.issuanceDate ? doc.issuanceDate : null,
+            doc.language,
+            doc.pages,
+            doc.stakeholders,
+            doc.scale,
+            doc.description,
+            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lat} ${doc.coordinates.lng})`: null,
+            "admin"
+        ];
+
         try {
-            const { title, type, lastModifiedBy, issuanceDate, language, pages, stakeholders, scale, description, coordinates } = doc;
-
-            const coordInfo = coordinates ? `SRID=4326;POINT(${coordinates.long} ${coordinates.lat})` : null;
-
-            const [insertedId] = await this.db('documents')
-                .insert({
-                    title,
-                    type,
-                    last_modified_by: lastModifiedBy,
-                    issuance_date: issuanceDate,
-                    language,
-                    pages,
-                    stakeholders,
-                    scale,
-                    description,
-                    coordinates: coordInfo,
-                })
-                .returning('id');
-
-            console.log(`Document added with ID: ${insertedId}`);
-            return insertedId;
+            const res = await pgdb.client.query(query, values);
+            if (res.rowCount !== 1) {
+                throw new Error('Error adding document to the database');
+            }
         } catch (error) {
             console.error('Error adding document to the database:', error);
             throw new Error('Database Error: Unable to add document');

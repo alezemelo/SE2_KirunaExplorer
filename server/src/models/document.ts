@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from "dayjs";
+import { Coordinates } from "../rcd/controllers/documentController";
 
 enum DocumentType {
     informative_doc = "informative_doc",
@@ -21,13 +22,13 @@ class Document {
     description?: string;
     type: DocumentType;
 
-    coordinates?: string;
+    coordinates?: Coordinates;
     lastModifiedBy: string;
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
                 issuanceDate?: Dayjs, language?: string, pages?: number,                 // Optional fields
                 stakeholders?: string, scale?: string,
-                description?: string, coordinates?: string) {
+                description?: string, coordinates?: Coordinates) {
         this.id = id;
         this.title = title;
         this.issuanceDate = issuanceDate;
@@ -82,7 +83,7 @@ class Document {
         this.description = description;
     }
 
-    setCoordinates(coordinates: string) {
+    setCoordinates(coordinates: Coordinates) {
         this.coordinates = coordinates;
     }
 }

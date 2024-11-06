@@ -6,7 +6,7 @@ import dayjs, { Dayjs } from "dayjs";
 
 export interface Coordinates {
     lat: number;
-    long: number;
+    lng: number;
 }
 
 /**
@@ -126,8 +126,16 @@ class DocumentController {
             if (doc === null) {
                 throw new DocumentNotFoundError([id]);
             }
-            console.log(doc)
             return doc;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getDocuments(): Promise<Document[]> {
+        try {
+            const docs = await this.dao.getDocuments();
+            return docs;
         } catch (error) {
             throw error;
         }
