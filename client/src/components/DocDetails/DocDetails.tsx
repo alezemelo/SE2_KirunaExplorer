@@ -51,6 +51,9 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
   const handleSaveCoordinates = async () => {
     if(lat && lng){
+      if (Number(lat) < -90 || Number(lat) > 90 || Number(lng) < -180 || Number(lng) > 180) {
+        console.error("Invalid coordinates");
+      } else {
       try {
         const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
           method: "PATCH",
@@ -65,7 +68,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         console.error("Error:", error);
       }
     }
-    
+  }
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {

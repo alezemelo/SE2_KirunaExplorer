@@ -142,6 +142,12 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
+    if (((!newDocument.lat && newDocument.lng) || (newDocument.lat && !newDocument.lng))) {
+      newErrors.push("Latitude and Longitude must be defined."); 
+    }
+    if ((Number(newDocument.lat) < -90 || Number(newDocument.lat) > 90) || (Number(newDocument.lng) < -180 || Number(newDocument.lng) > 180)) {
+      newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
+    }
     /*
     if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
       newErrors.push("Latitude must be a number.");

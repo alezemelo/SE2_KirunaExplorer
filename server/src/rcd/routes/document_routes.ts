@@ -118,6 +118,7 @@ class DocumentRoutes {
             body('description').optional().isString(),
             body('coordinates').optional().custom(coordinates => {
                 if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+                    console.log("invalid coordinates");
                     throw new Error('coordinates are not valide.');
                 }
                 return true;
