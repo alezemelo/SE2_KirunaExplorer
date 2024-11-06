@@ -29,8 +29,10 @@
 // export default config;
 
 
-
 import { Knex } from 'knex';
+import path from 'path';
+
+const migrations_path = path.join(__dirname, 'migrations');
 
 const config: { [key: string]: Knex.Config } = {
   development: {
@@ -43,7 +45,7 @@ const config: { [key: string]: Knex.Config } = {
       port: 5432,
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: migrations_path,
     },
   },
   test: {
@@ -56,14 +58,14 @@ const config: { [key: string]: Knex.Config } = {
       port: 5432,
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: migrations_path,
     },
   },
   production: {
     client: 'pg',
     connection: process.env.DATABASE_URL, // Use environment variable for production DB URL
     migrations: {
-      directory: './src/db/migrations',
+      directory: migrations_path,
     },
   },
 };

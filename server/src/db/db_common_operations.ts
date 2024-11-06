@@ -1,5 +1,14 @@
 import { Knex } from "knex";
 import knex from "./db"; // Assuming you have a knex instance exported from db.ts
+import { Document, DocumentLink, LinkType } from "../models/document";
+import dayjs from "dayjs";
+
+// Data (actual and sample)
+import actualDocuments from "./actual_data/documents";
+import { SAMPLE_DOC_FILES } from "./sample_data/sample_doc_files";
+import { SAMPLE_FILES } from "./sample_data/sample_files";
+import { SAMPLE_USERS } from "./sample_data/sample_users";
+import db from "./db";
 
 // Database Populate function
 export async function dbPopulate() {
@@ -94,3 +103,44 @@ export async function dbUpdate(table: string, conditions: Record<string, any>, u
     }
 }
 
+export async function dbPopulateActualData() {
+    try {
+        // Insert __ACTUAL__ documents
+        for (let document of actualDocuments) {
+            await knex('documents').insert(document.toObject());
+        }
+        console.log("Actual documents inserted.");
+
+        // Insert __SAMPLE__ document links
+        const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs());
+        const doclink2 = new DocumentLink(2, 18, 41, LinkType.collateral, dayjs());
+        await knex('document_links').insert(doclink1.toObject());
+        await knex('document_links').insert(doclink2.toObject());
+        console.log("Sample document links inserted.");
+
+        // Insert __SAMPLE__ files
+        for (let file of SAMPLE_FILES) {
+            await knex('files').insert(file);
+        }
+        console.log("Sample files inserted.");
+
+        // Insert __SAMPLE__ document files
+        for (let docFile of SAMPLE_DOC_FILES) {
+            await knex('document_files').insert(docFile);
+        }
+        console.log("Sample document files inserted.");
+
+        // Insert __SAMPLE__ users
+        for (let user of SAMPLE_USERS) {
+            await knex('users').insert(user);
+        }
+        console.log("Sample users inserted.");
+    } catch (error) {
+        console.error("Error populating database with (only some for now) actual data:", error);
+        // dbEmpty();
+    }
+}
+    
+
+// Changelog
+// Dragos 2024-11-06: Added dbPopulateActualData function for population with real data

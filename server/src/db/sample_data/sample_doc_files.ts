@@ -1,12 +1,12 @@
 export const SAMPLE_DOC_FILES = [
     {
-        docId: 1,
-        fileId: 1,
+        doc_id: 1,
+        file_id: 1,
         role: "original_resource",
     },
     {
-        docId: 2,
-        fileId: 2,
+        doc_id: 2,
+        file_id: 2,
         role: "attachment",
     }
 ];

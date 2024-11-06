@@ -11,6 +11,8 @@ const corsOptions = {
 const app = express();
 const port = 3000;
 import bodyParser from 'body-parser';
+import db from './src/db/db';
+import dbInit from './src/db/db_init';
 const documentRoutes = require('./src/rcd/routes/document_routes');
 
 // Middleware to parse JSON
@@ -30,6 +32,7 @@ app.post('/hello', [
   res.json({ message: `Hello, ${name}!` });
 });
 
+dbInit();
 
 initRoutes(app);
 

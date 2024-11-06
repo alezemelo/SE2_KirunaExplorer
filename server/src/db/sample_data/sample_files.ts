@@ -2,11 +2,11 @@ import dayjs from "dayjs";
 
 export const SAMPLE_FILES = [
     {
-        fileUrl: "https://file1.com",
-        uploadedAt: dayjs("2020-01-01").toDate(),
+        file_url: "https://file1.com",
+        uploaded_at: dayjs.utc("2020-01-01"),
     },
     {
-        fileUrl: "https://file2.com",
-        uploadedAt: dayjs("2021-04-06").toDate(),
+        file_url: "https://file2.com",
+        uploaded_at: dayjs.utc("2021-04-06"),
     }
 ];
