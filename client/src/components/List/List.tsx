@@ -330,7 +330,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
                 </select>
         </DialogContent>
         <DialogActions>
-        <Button onClick={linkDocument}  color="secondary">Create</Button>
+        <Button onClick={linkDocument}  color="primary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
         </DialogActions>
       </Dialog>
