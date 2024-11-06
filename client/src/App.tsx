@@ -43,17 +43,17 @@ function App() {
           data[i].coordinates.long = data[i].coordinates.lng;
           delete data[i].coordinates.lng;
         }*/
-
         const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
         const t = await res.json();
+        console.log(t);
         let c = [];
         for (let j = 0; j < t.length; j++) {
-          if (t[j].docIdd1 !== data[i].id) {
-            const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId1}`);
+          if (t[j].docId1 == data[i].id) {
+            const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId2}`);
             const t1 = await temp.json();
             c.push(t1.title + ` (${t[j].linkType})`);
           } else {
-            const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docIdd2}`);
+            const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId1}`);
             const t2 = await temp.json();
             c.push(t2.title + ` (${t[j].linkType})`);
           }
