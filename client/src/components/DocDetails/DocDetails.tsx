@@ -50,19 +50,22 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const handleLngChange = (event: React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);
 
   const handleSaveCoordinates = async () => {
-    try {
-      const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
-      });
+    if(lat && lng){
+      try {
+        const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
+        });
 
-      if (!response.ok) throw new Error("Error: " + response.statusText);
-      
-      await fetchDocuments();
-    } catch (error) {
-      console.error("Error:", error);
+        if (!response.ok) throw new Error("Error: " + response.statusText);
+        
+        await fetchDocuments();
+      } catch (error) {
+        console.error("Error:", error);
+      }
     }
+    
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
