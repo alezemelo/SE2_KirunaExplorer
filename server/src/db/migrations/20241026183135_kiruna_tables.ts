@@ -26,7 +26,7 @@ export async function up(knex: Knex): Promise<void> {
             table.increments('link_id').primary();
             table.integer('doc_id1').notNullable().references('id').inTable('documents');
             table.integer('doc_id2').notNullable().references('id').inTable('documents');
-            table.enu('link_type', ['original_resource', 'attachment']).notNullable(); // Make sure this line exists
+            table.enu('link_type', ['direct', 'collateral', 'projection', 'update']).notNullable(); // Make sure this line exists
             table.timestamp('created_at').defaultTo(knex.fn.now());
         })
         .createTable('files', (table) => {
