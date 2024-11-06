@@ -105,6 +105,12 @@ export async function dbUpdate(table: string, conditions: Record<string, any>, u
 
 export async function dbPopulateActualData() {
     try {
+        // Insert __SAMPLE__ users
+        for (let user of SAMPLE_USERS) {
+            await knex('users').insert(user);
+        }
+        console.log("Sample users inserted.");
+
         // Insert __ACTUAL__ documents
         for (let document of actualDocuments) {
             await knex('documents').insert(document.toObject());
@@ -130,11 +136,6 @@ export async function dbPopulateActualData() {
         }
         console.log("Sample document files inserted.");
 
-        // Insert __SAMPLE__ users
-        for (let user of SAMPLE_USERS) {
-            await knex('users').insert(user);
-        }
-        console.log("Sample users inserted.");
     } catch (error) {
         console.error("Error populating database with (only some for now) actual data:", error);
         // dbEmpty();

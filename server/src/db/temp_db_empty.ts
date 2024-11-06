@@ -27,6 +27,30 @@ async function temp_emptyDB() {
             console.error(error);
         }
 
+        // Empty document_links
+        try {
+            const res = await pgdb.client.query('DELETE FROM document_links');
+            // console.log(res);
+        } catch (error) {
+            console.error(error);
+        }
+
+        // Empty document_files
+        try {
+            const res = await pgdb.client.query('DELETE FROM document_files');
+            // console.log(res);
+        } catch (error) {
+            console.error(error);
+        }
+
+        // Empty files
+        try {
+            const res = await pgdb.client.query('DELETE FROM files');
+            // console.log(res);
+        } catch (error) {
+            console.error(error);
+        }
+
     } catch (error) {
         console.error(error);
         if (require.main === module) {
