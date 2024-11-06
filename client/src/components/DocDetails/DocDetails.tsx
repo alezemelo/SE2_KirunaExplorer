@@ -82,7 +82,10 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
   const toggleDescription = () => setShowDescription(!showDescription);
   const toggleEditDescription = () => setEditDescription(true);
-  const closeEditDescription = () => setEditDescription(false);
+  const closeEditDescription = () => {
+    setEditDescription(false);
+    setDescription(document.description)
+  }
 
   const saveDescription = async () => {
     try {
