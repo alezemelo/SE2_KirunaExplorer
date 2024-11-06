@@ -31,6 +31,12 @@ const Header = () => {
                 </div>
                 <InputBase
                   placeholder="Search…"
+                  sx={{
+                    color: 'white',  // Text color
+                    '& ::placeholder': {
+                      color: 'white',  // Placeholder text color
+                    },
+                  }}
                   className="inputRoot"
                 />
               </div>
