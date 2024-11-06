@@ -1,6 +1,11 @@
 // List.tsx
 import React, { useState } from "react";
 import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import {
   Box,
   Grid,
@@ -168,7 +173,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
           date = undefined;
         }
         else {
-          date = dayjs(newDocument.issuanceDate).isValid() ? dayjs(newDocument.issuanceDate).toDate() : undefined;
+          date = dayjs(newDocument.issuanceDate).isValid() ? new Date(dayjs(newDocument.issuanceDate).set('hour', 12).tz("Europe/Rome").format("YYYY-MM-DDTHH:mm:ss")) : undefined;
         }
         setNewDocument(prevDocument => ({
           ...prevDocument,
