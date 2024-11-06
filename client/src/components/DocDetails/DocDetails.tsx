@@ -121,7 +121,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
                   value={lat}
                   onChange={handleLatChange}
                   onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e) => handleKeyPress(e, "lat")}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}
                   autoFocus
                   variant="outlined"
                   size="small"
@@ -147,7 +147,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
                   value={lng}
                   onChange={handleLngChange}
                   onBlur={() => { setEditLng(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e) => handleKeyPress(e, "lng")}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lng")}
                   autoFocus
                   variant="outlined"
                   size="small"
@@ -168,7 +168,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         </Box>
 
         {/* Description Section */}
-        {showDescription && (
+        {!editDescription && showDescription && (
           <Typography variant="body2" style={{ marginTop: "10px" }}>
             <strong>Description:</strong> {description}
           </Typography>
@@ -176,7 +176,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         {editDescription ? (
           <>
-            <TextField value={description} autoFocus fullWidth multiline rows={4} onChange={handleDescriptionChange} />
+            <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
             <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
             {/* Save Button */}
             <Button
