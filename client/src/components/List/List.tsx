@@ -136,8 +136,17 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (Number(newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
       newErrors.push("Pages must be greater than 0");
     }
+    if (newDocument.issuanceDate != '' && (!dayjs(newDocument.issuanceDate, 'YYYY-MM-DD', true).isValid() || dayjs(newDocument.issuanceDate).isAfter(dayjs()))) {
+      newErrors.push("Date is not valid");
+  }
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
+    }
+    if (((!newDocument.lat && newDocument.lng) || (newDocument.lat && !newDocument.lng))) {
+      newErrors.push("Latitude and Longitude must be defined."); 
+    }
+    if ((Number(newDocument.lat) < -90 || Number(newDocument.lat) > 90) || (Number(newDocument.lng) < -180 || Number(newDocument.lng) > 180)) {
+      newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
     }
     /*
     if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
@@ -330,7 +339,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
                 </select>
         </DialogContent>
         <DialogActions>
-        <Button onClick={linkDocument}  color="secondary">Create</Button>
+        <Button onClick={linkDocument}  color="primary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
         </DialogActions>
       </Dialog>

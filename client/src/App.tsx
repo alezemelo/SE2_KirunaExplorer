@@ -15,7 +15,7 @@ export interface DocumentType {
   title: string;
   stakeholders: string;
   scale: string;
-  issuanceDate: any;
+  issuance_date: any;
   type: string;
   connection: string[];
   language: string;
@@ -37,8 +37,10 @@ function App() {
       const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
       if (!response.ok) throw new Error("Error fetching documents");
       const data = await response.json();
+      console.log(data)
 
       for (let i = 0; i < data.length; i++) {
+
 /*        if (data[i].coordinates && data[i].coordinates.lng !== undefined) {
           data[i].coordinates.long = data[i].coordinates.lng;
           delete data[i].coordinates.lng;
