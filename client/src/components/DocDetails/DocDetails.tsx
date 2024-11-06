@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { Box, Typography, Card, CardContent, Button, TextField } from "@mui/material";
 import { DocumentType } from "../../App";
-
+import { IconButton } from '@mui/material';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 export interface Coordinates {
   lat: number;
@@ -22,6 +24,11 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const [description, setDescription] = useState(document.description);
   const [lat, setLat] = useState(document.coordinates?.lat || '');
   const [lng, setLng] = useState(document.coordinates?.lng || '');
+  const [expand,setExpanded] = useState(true);
+
+  const handleToggle = () => {
+    setExpanded(!expand);
+  }
 
   const handleLatChange = (event:React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
   const handleLngChange = (event:React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);
@@ -108,8 +115,23 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
             <strong>Type:</strong> {document.type}
           </Typography>
           <Typography variant="body2">
-            <strong>Connections:</strong> {document.connection}
+            <strong>Connections:</strong> {/*document.connection*/}
+            {expand && (() => {
+              let connections = [];
+              for (let i = 0; i < document.connection.length; i++) {
+                connections.push(
+                  <div key={i}>{document.connection[i]}</div> 
+                );
+              }
+          
+              return connections;
+            })()}
           </Typography>
+          <div>
+      <IconButton onClick={handleToggle} aria-label="expand">
+        {expand ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+      </IconButton>
+    </div>
           <Typography variant="body2">
             <strong>Language:</strong> {document.language}
           </Typography>
