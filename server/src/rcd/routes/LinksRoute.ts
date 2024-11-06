@@ -51,6 +51,9 @@ class LinkRouter {
                     if (err.message === "one of the documents does not exist") {
                         return res.status(400).json({ error: err.message }).end(); // Not Found
                     }
+                    if (err.message === "link already exists") {
+                        return res.status(400).json({ error: err.message }).end(); // Not Found
+                    }
                     next(err)
                 })
         )
