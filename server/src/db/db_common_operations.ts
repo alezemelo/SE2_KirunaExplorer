@@ -41,7 +41,7 @@ export async function dbPopulate() {
 
         // Insert document links using valid document IDs
         await knex('document_links').insert([
-            { doc_id1: doc1[0].id, doc_id2: doc2[0].id, link_type: 'original_resource', created_at: new Date() }
+            { doc_id1: doc1[0].id, doc_id2: doc2[0].id, link_type: 'direct', created_at: new Date() }
         ]);
         console.log("Sample document links inserted.");
         

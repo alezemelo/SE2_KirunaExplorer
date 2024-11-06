@@ -8,6 +8,7 @@ describe('DB Common Operations', () => {
   });
 
   afterAll(async () => {
+    await dbEmpty();
     await knex.destroy(); // Close the Knex connection after tests
   });
 
@@ -20,7 +21,7 @@ describe('DB Common Operations', () => {
 
 
   it('should populate the database with sample data', async () => {
-    await dbPopulate();
+    // await dbPopulate();
 
     const users = await knex('users').select();
     expect(users).toHaveLength(2); // Verify two users were inserted
@@ -32,28 +33,28 @@ describe('DB Common Operations', () => {
     expect(documentLinks).toHaveLength(1); // Verify one document link was inserted
 });
 
-  it('should read data from the database', async () => {
-    await dbPopulate();
-    const result = await dbRead();
-    expect(result).toBeDefined(); // Ensure the read function returns data
-    expect(result.users.length).toBeGreaterThan(0);
-    expect(result.documents.length).toBeGreaterThan(0);
+    it('should read data from the database', async () => {
+      // await dbPopulate();
+      const result = await dbRead();
+      expect(result).toBeDefined(); // Ensure the read function returns data
+      expect(result.users.length).toBeGreaterThan(0);
+      expect(result.documents.length).toBeGreaterThan(0);
+    });
+
+    it('should update a record in the database', async () => {
+      await dbUpdate('users', { username: 'user1' }, { type: 'urban_planner' });
+      const updatedUser = await knex('users').where({ username: 'user1' }).first();
+      expect(updatedUser.type).toBe('urban_planner');
   });
 
-  it('should update a record in the database', async () => {
-    await dbUpdate('users', { username: 'user1' }, { type: 'urban_planner' });
-    const updatedUser = await knex('users').where({ username: 'user1' }).first();
-    expect(updatedUser.type).toBe('urban_planner');
-});
 
-
-it('should empty the database', async () => {
-    await dbEmpty();
-    const users = await knex('users').select();
-    const documents = await knex('documents').select();
-    const documentLinks = await knex('document_links').select();
-    expect(users).toHaveLength(0);
-    expect(documents).toHaveLength(0);
-    expect(documentLinks).toHaveLength(0);
-    });
+  it('should empty the database', async () => {
+      await dbEmpty();
+      const users = await knex('users').select();
+      const documents = await knex('documents').select();
+      const documentLinks = await knex('document_links').select();
+      expect(users).toHaveLength(0);
+      expect(documents).toHaveLength(0);
+      expect(documentLinks).toHaveLength(0);
+      });
 });

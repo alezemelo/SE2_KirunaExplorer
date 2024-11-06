@@ -1,11 +1,9 @@
 import knexConfig from './knexfile';
-import Knex, { Knex as KnexType } from 'knex';
-
-let knex: KnexType;
+const knex = require('./db').default;
+import { dbEmpty } from './db_common_operations';
 
 beforeAll(async () => {
-  knex = Knex(knexConfig.test);
-  await knex.migrate.latest();
+  await knex.migrate.latest(); // Ensure the latest migrations are applied
 
   // Insert a test user to satisfy foreign key constraint in documents
   await knex('users').insert({
@@ -17,6 +15,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await dbEmpty();
   await knex.destroy();
 });
 
@@ -60,7 +59,7 @@ const insertSampleDocument = async (title: string = 'Sample Document') => {
   return document.id;
 };
 
-const insertSampleDocumentLink = async (docId1: number, docId2: number, linkType: string = 'original_resource') => {
+const insertSampleDocumentLink = async (docId1: number, docId2: number, linkType: string = 'direct') => {
   await knex('document_links').insert({
     doc_id1: docId1,
     doc_id2: docId2,
@@ -157,7 +156,7 @@ describe('Users CRUD operations', () => {
       const documentLink = await knex('document_links').where({ link_id: linkId }).first();
       expect(documentLink).toHaveProperty('doc_id1', docId1);
       expect(documentLink).toHaveProperty('doc_id2', docId2);
-      expect(documentLink).toHaveProperty('link_type', 'original_resource');
+      expect(documentLink).toHaveProperty('link_type', 'direct');
     });
   
     it('should read a document link by ID', async () => {
@@ -177,9 +176,9 @@ describe('Users CRUD operations', () => {
   
       const linkId = await insertSampleDocumentLink(docId1, docId2);
   
-      await knex('document_links').where({ link_id: linkId }).update({ link_type: 'attachment' });
+      await knex('document_links').where({ link_id: linkId }).update({ link_type: 'collateral' });
       const updatedDocumentLink = await knex('document_links').where({ link_id: linkId }).first();
-      expect(updatedDocumentLink).toHaveProperty('link_type', 'attachment');
+      expect(updatedDocumentLink).toHaveProperty('link_type', 'collateral');
     });
   
     it('should delete a document link', async () => {
