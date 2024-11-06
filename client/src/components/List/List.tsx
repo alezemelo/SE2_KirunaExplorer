@@ -136,6 +136,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (Number(newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
       newErrors.push("Pages must be greater than 0");
     }
+    if (!dayjs(newDocument.issuanceDate, 'YYYY-MM-DD', true).isValid() || dayjs(newDocument.issuanceDate).isAfter(dayjs())) {
+      newErrors.push("Date is not valid");
+  }
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }

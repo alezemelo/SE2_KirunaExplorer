@@ -4,6 +4,7 @@ import { DocumentType } from "../../App";
 import { IconButton } from '@mui/material';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import dayjs from "dayjs";
 
 export interface Coordinates {
   lat: number;
@@ -109,7 +110,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
             <strong>Scale:</strong> {document.scale}
           </Typography>
           <Typography variant="body2">
-            <strong>Issuance date:</strong> {document.issuanceDate}
+            <strong>Issuance date:</strong> {document.issuance_date? dayjs(document.issuance_date).format('YYYY-MM-DD'):''}
           </Typography>
           <Typography variant="body2">
             <strong>Type:</strong> {document.type}
