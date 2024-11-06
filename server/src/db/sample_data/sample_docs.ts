@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 export const SAMPLE_DOCS = [
     {
         title: "Document 1",
-        issuanceDate: dayjs("2020-01-01").toDate(),
+        issuance_date: dayjs.utc("2020-01-01"),
         language: "en",
         pages: 10,
         stakeholders: "Stakeholders 1",
@@ -11,11 +11,11 @@ export const SAMPLE_DOCS = [
         description: "Description 1",
         type: "informative_doc",
         coordinates: "SRID=4326;POINT(67.85625685527295 20.241584084527606)",
-        lastModifiedBy: "user3",
+        last_modified_by: "user3",
     },
     {
         title: "Document 2",
-        issuanceDate: dayjs("2021-04-06").toDate(),
+        issuance_date: dayjs.utc("2021-04-06"),
         language: "it",
         pages: 15,
         stakeholders: "Stakeholders 2",
@@ -23,11 +23,11 @@ export const SAMPLE_DOCS = [
         description: "Description 2",
         type: "prescriptive_doc",
         coordinates: "SRID=4326;POINT(67.85834345186562 20.226038175215244)",
-        lastModifiedBy: "user3",
+        last_modified_by: "user3",
     },
     {
         title: "Document 3",
-        issuanceDate: dayjs("2022-07-12").toDate(),
+        issuance_date: dayjs.utc("2022-07-12"),
         language: "fr",
         pages: 20,
         stakeholders: "Stakeholders 3",
@@ -35,11 +35,11 @@ export const SAMPLE_DOCS = [
         description: "Description 3",
         type: "design_doc",
         coordinates: "SRID=4326;POINT(67.84617784206577 20.252347068227593)",
-        lastModifiedBy: "user3",
+        last_modified_by: "user3",
     },
     {
         title: "Document 4",
-        issuanceDate: dayjs("2023-10-18").toDate(),
+        issuance_date: dayjs.utc("2023-10-18"),
         language: "es",
         pages: 25,
         stakeholders: "Stakeholders 4",
@@ -47,11 +47,11 @@ export const SAMPLE_DOCS = [
         description: "Description 4",
         type: "technical_doc",
         coordinates: "SRID=4326;POINT(67.85547163404883 20.280191948170188)",
-        lastModifiedBy: "user3",
+        last_modified_by: "user3",
     },
     {
         title: "Document 5",
-        issuanceDate: dayjs("2024-01-24").toDate(),
+        issuance_date: dayjs.utc("2024-01-24"),
         language: "de",
         pages: 30,
         stakeholders: "Stakeholders 5",
@@ -59,6 +59,6 @@ export const SAMPLE_DOCS = [
         description: "Description 5",
         type: "material_effect",
         coordinates: "SRID=4326;POINT(67.84680627149262 20.246583664149696)",
-        lastModifiedBy: "user3",
+        last_modified_by: "user3",
     }
 ];

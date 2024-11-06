@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-
 import { Document, DocumentType } from "../../models/document";
 
 const doc_15 = new Document(
