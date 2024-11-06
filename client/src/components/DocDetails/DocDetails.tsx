@@ -105,7 +105,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date}</Typography>
+          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date?dayjs(document.issuance_date).format("YYYY-MM-DD"):''}</Typography>
           <Typography variant="body2"><strong>Type:</strong> {document.type}</Typography>
           
           {renderConnections()}
