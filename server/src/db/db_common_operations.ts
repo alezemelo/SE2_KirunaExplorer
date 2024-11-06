@@ -118,10 +118,10 @@ export async function dbPopulateActualData() {
         console.log("Actual documents inserted.");
 
         // Insert __SAMPLE__ document links
-        const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs());
-        const doclink2 = new DocumentLink(2, 18, 41, LinkType.collateral, dayjs());
-        await knex('document_links').insert(doclink1.toObject());
-        await knex('document_links').insert(doclink2.toObject());
+        const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
+        const doclink2 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
+        await knex('document_links').insert(doclink1);
+        await knex('document_links').insert(doclink2);
         console.log("Sample document links inserted.");
 
         // Insert __SAMPLE__ files

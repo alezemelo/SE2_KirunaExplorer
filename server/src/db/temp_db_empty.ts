@@ -51,6 +51,13 @@ async function temp_emptyDB() {
             console.error(error);
         }
 
+        // // Enable constraints
+        // await pgdb.client.query('ALTER TABLE documents ENABLE TRIGGER ALL');
+        // await pgdb.client.query('ALTER TABLE users ENABLE TRIGGER ALL');
+        // await pgdb.client.query('ALTER TABLE document_links ENABLE TRIGGER ALL');
+        // await pgdb.client.query('ALTER TABLE document_files ENABLE TRIGGER ALL');
+        // await pgdb.client.query('ALTER TABLE files ENABLE TRIGGER ALL');
+
     } catch (error) {
         console.error(error);
         if (require.main === module) {

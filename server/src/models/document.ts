@@ -77,6 +77,28 @@ class Document {
         };
     }
 
+    /**
+     * Use this when you want to send a Document to the db and let the autoincrement handle the primary key/ID.
+     * This should return the Document's JSON without the ID.
+     * 
+     * Returns an object without the id field
+     * @returns Object without the id field
+    */
+    toObjectWithoutId(): Object {
+        return {
+            title: this.title,
+            issuance_date: this.issuanceDate,
+            language: this.language,
+            pages: this.pages,
+            stakeholders: this.stakeholders,
+            scale: this.scale,
+            description: this.description,
+            type: this.type,
+            coordinates: this.coordinates,
+            last_modified_by: this.lastModifiedBy,
+        };
+    }
+
     // Setters
     setIssuanceDate(issuanceDate: Dayjs) {
         this.issuanceDate = issuanceDate;
@@ -150,6 +172,22 @@ class DocumentLink {
     toObject(): Object {
         return {
             link_id: this.linkId,
+            doc_id1: this.docId1,
+            doc_id2: this.docId2,
+            link_type: this.linkType,
+            created_at: this.createdAt,
+        };
+    }
+
+    /**
+     * Use this when you want to send a DocumentLink to the db and let the autoincrement handle the primary key/ID.
+     * This should return the DocumentLink's JSON without the ID.
+     * 
+     * Returns an object without the id field
+     * @returns Object without the id field
+    */
+    toObjectWithoutId(): Object {
+        return {
             doc_id1: this.docId1,
             doc_id2: this.docId2,
             link_type: this.linkType,
