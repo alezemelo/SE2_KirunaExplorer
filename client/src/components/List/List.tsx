@@ -26,7 +26,7 @@ import {
   RadioGroup,
   InputBase,
 } from "@mui/material";
-import { DocumentType } from "../../App";
+import { DocumentType } from "../../type";
 import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
 import "./List.css";
 

@@ -20,18 +20,25 @@
     z-index: 10;
   }
   
-  .markerContainer {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    z-index: 1;
-  }
-  
-  .markerContainer:hover {
-    z-index: 2;
-  }
-  
-  .pointer {
+  .marker {
+    position: relative;
     cursor: pointer;
+  }
+  
+  .markerTitle {
+    display: none;
+    position: absolute;
+    top: -20px;
+    left: -10px;
+    background-color: #fff;
+    color: #000;
+    padding: 2px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  
+  .marker:hover .markerTitle {
+    display: block;
   }
   
   

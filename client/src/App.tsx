@@ -3,26 +3,8 @@ import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import { CssBaseline, Grid } from "@mui/material";
+import { DocumentType, Coordinates } from "./type"  // Import from types.ts
 import "./App.css";
-
-interface Coordinates {
-  lat: number;
-  lng: number;
-}
-
-export interface DocumentType {
-  id: number;
-  title: string;
-  stakeholders: string;
-  scale: string;
-  issuance_date: any;
-  type: string;
-  connection: string[];
-  language: string;
-  pages: number;
-  description: string;
-  coordinates?: Coordinates;
-}
 
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({
@@ -31,19 +13,17 @@ function App() {
   });
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
-  const [isDocumentListOpen, setIsDocumentListOpen] = useState(true); // State to control DocumentList visibility
+  const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
 
   const fetchDocuments = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
       if (!response.ok) throw new Error("Error fetching documents");
       const data = await response.json();
-      console.log(data);
 
       for (let i = 0; i < data.length; i++) {
         const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
         const t = await res.json();
-        console.log(t);
         let c = [];
         for (let j = 0; j < t.length; j++) {
           if (t[j].docId1 == data[i].id) {
@@ -58,8 +38,9 @@ function App() {
         }
         data[i].connection = c;
       }
-      console.log(data);
+
       setDocuments(data);
+      console.log("Documents fetched:", data);
     } catch (error) {
       console.error(error);
     }
@@ -73,7 +54,6 @@ function App() {
     console.log(coordinates, bounds);
   }, [coordinates, bounds]);
 
-  // Toggle function for DocumentList visibility
   const toggleDocumentList = () => {
     setIsDocumentListOpen((prev) => !prev);
   };
@@ -81,22 +61,22 @@ function App() {
   return (
     <>
       <CssBaseline />
-      <Header onToggleDocumentList={toggleDocumentList} /> 
+      <Header onToggleDocumentList={toggleDocumentList} />
       <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
-      <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
-          {/* Document List Grid Item */}
+        <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
           {isDocumentListOpen && (
             <Grid item xs={12} md={4}>
               <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} />
             </Grid>
           )}
 
-          {/* Map Grid Item */}
           <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
             <Map
               setCoordinates={setCoordinates}
               setBounds={setBounds}
               coordinates={coordinates}
+              setDocuments={setDocuments}
+              fetchDocuments={fetchDocuments}
               documents={documents.map((doc) => ({
                 ...doc,
                 coordinates: {
@@ -113,6 +93,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
