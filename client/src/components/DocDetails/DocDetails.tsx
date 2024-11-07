@@ -14,9 +14,10 @@ interface DocDetailsProps {
   document: DocumentType;
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
+  setNewDocument: (newDocument: DocumentType) => void;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments }) => {
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, setNewDocument }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
@@ -63,7 +64,13 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         if (!response.ok) throw new Error("Error: " + response.statusText);
         
-        await fetchDocuments();
+        //await fetchDocuments();
+        setNewDocument(prevDocs =>
+          prevDocs.map(doc =>
+            doc.id === docId ? { ...doc, coordinates: { lat, lng } } : doc
+          )
+        );
+
       } catch (error) {
         console.error("Error:", error);
       }

@@ -313,7 +313,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         <Grid container spacing={3}>
           {documents.map((document, i) => (
             <Grid item xs={12} key={i}>
-              <DocDetails document={document} fetchDocuments={fetchDocuments} onLink={() => openLinkingDialog(document)} />
+              <DocDetails document={document} fetchDocuments={fetchDocuments} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
             </Grid>
           ))}
         </Grid>
