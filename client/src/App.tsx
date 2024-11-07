@@ -31,20 +31,16 @@ function App() {
   });
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
+  const [isDocumentListOpen, setIsDocumentListOpen] = useState(true); // State to control DocumentList visibility
 
   const fetchDocuments = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
       if (!response.ok) throw new Error("Error fetching documents");
       const data = await response.json();
-      console.log(data)
+      console.log(data);
 
       for (let i = 0; i < data.length; i++) {
-
-/*        if (data[i].coordinates && data[i].coordinates.lng !== undefined) {
-          data[i].coordinates.long = data[i].coordinates.lng;
-          delete data[i].coordinates.lng;
-        }*/
         const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
         const t = await res.json();
         console.log(t);
@@ -60,9 +56,9 @@ function App() {
             c.push(t2.title + ` (${t[j].linkType})`);
           }
         }
-        data[i].connection = c; 
+        data[i].connection = c;
       }
-      console.log(data)
+      console.log(data);
       setDocuments(data);
     } catch (error) {
       console.error(error);
@@ -77,27 +73,39 @@ function App() {
     console.log(coordinates, bounds);
   }, [coordinates, bounds]);
 
+  // Toggle function for DocumentList visibility
+  const toggleDocumentList = () => {
+    setIsDocumentListOpen((prev) => !prev);
+  };
+
   return (
     <>
       <CssBaseline />
-      <Header />
+      <Header onToggleDocumentList={toggleDocumentList} /> 
       <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
-        <Grid item xs={12} md={4}>
-          <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} />
-        </Grid>
-        <Grid item xs={12} md={8}>
-          <Map
-            setCoordinates={setCoordinates}
-            setBounds={setBounds}
-            coordinates={coordinates}
-            documents={documents.map(doc => ({
-              ...doc,
-              coordinates: {
-                lat: doc.coordinates?.lat ?? 0,
-                lng: doc.coordinates?.lng ?? 0,
-              },
-            }))}
-          />
+      <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
+          {/* Document List Grid Item */}
+          {isDocumentListOpen && (
+            <Grid item xs={12} md={4}>
+              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} />
+            </Grid>
+          )}
+
+          {/* Map Grid Item */}
+          <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
+            <Map
+              setCoordinates={setCoordinates}
+              setBounds={setBounds}
+              coordinates={coordinates}
+              documents={documents.map((doc) => ({
+                ...doc,
+                coordinates: {
+                  lat: doc.coordinates?.lat ?? 0,
+                  lng: doc.coordinates?.lng ?? 0,
+                },
+              }))}
+            />
+          </Grid>
         </Grid>
       </Grid>
     </>
@@ -105,6 +113,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
