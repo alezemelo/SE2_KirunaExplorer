@@ -179,7 +179,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         {/* Description Section */}
         {!editDescription && showDescription && (
-          <Typography variant="body2" style={{ marginTop: "10px" }}>
+          <Typography variant="body2" style={{ marginTop: "10px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
             <strong>Description:</strong> {description}
           </Typography>
         )}
