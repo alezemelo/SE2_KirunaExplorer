@@ -91,6 +91,18 @@ const Login: React.FC<LoginPageProps> = (props) => {
             </Box>
           </form>
         </Grid>
+
+        <Grid item xs={12} mt={3}>
+          <Button
+            variant="outlined"
+            color="error"
+            fullWidth
+            onClick={() => navigate('../register')}
+            sx={{ height: 50 }}
+          >
+            Register
+          </Button>
+        </Grid>
       </Grid>
     </Container>
   );
