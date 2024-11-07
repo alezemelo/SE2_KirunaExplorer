@@ -234,6 +234,10 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
           {/* Link Document or Edit Description Button */}
           {!showDescription && !editDescription ? (
+            <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
+              Link Document
+            </Button>
+          ) : !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={toggleEditDescription}>
               Edit Description
             </Button>
