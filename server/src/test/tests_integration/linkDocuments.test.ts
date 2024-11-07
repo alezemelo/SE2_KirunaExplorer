@@ -8,6 +8,7 @@ import temp_populateDB from "../../db/temp_db_population";
 import { LinksDAO } from "../../rcd/daos/LinksDAO";
 import { LinkController } from "../../rcd/controllers/LinkController";
 import { DocumentLink, LinkType } from "../../models/document";
+import db from "../../db/db";
 
 
 describe('get links integretion', () => {
@@ -36,6 +37,7 @@ describe('get links integretion', () => {
 
     await dbpg.disconnect();
     server.close();
+    await db.destroy();
   });
 
 

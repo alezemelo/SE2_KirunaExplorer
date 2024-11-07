@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app, server } from '../../../index';
 import db from '../../db/db';
+import dbpg from '../../db/temp_db';
 
 
 beforeAll(async () => {
@@ -17,6 +18,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await dbpg.disconnect();
+  server.close();
   await db.destroy(); // Ensure the database connection is closed after tests
 });
 

@@ -11,6 +11,7 @@ import { DocumentNotFoundError } from '../../errors/documentErrors';
 
 import temp_emptyDB from "../../db/temp_db_empty";
 import temp_populateDB from "../../db/temp_db_population";
+import db from "../../db/db";
 
 describe('update_description Integration Tests', () => {
   let documentDAO: DocumentDAO;
@@ -31,6 +32,7 @@ describe('update_description Integration Tests', () => {
 
     await dbpg.disconnect();
     server.close();
+    await db.destroy();
   });
 
   beforeEach(async () => {
