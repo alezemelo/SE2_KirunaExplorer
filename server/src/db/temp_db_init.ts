@@ -10,9 +10,9 @@ async function temp_init() {
     await temp_emptyDB();
     await temp_populateDB();
     await pgdb.disconnect();
-    console.log('Database initialized (empty -> populate).');
 }
 
 if (require.main === module) {
     temp_init();
+    console.log('Database emptied and re-populated');
 }

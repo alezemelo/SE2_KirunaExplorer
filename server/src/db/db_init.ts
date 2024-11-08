@@ -9,6 +9,7 @@ async function dbInit() {
 
 if (require.main === module) {
     dbInit();
+    console.log('Database emptied and re-populated using knex');
 }
 
 export default dbInit;
