@@ -24,8 +24,9 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
+  InputBase,
 } from "@mui/material";
-import { DocumentType } from "../../App";
+import { DocumentType } from "../../type";
 import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
 import "./List.css";
 
@@ -327,6 +328,16 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
         <DialogTitle>Link Document</DialogTitle>
         <DialogContent>
+        <div className="search">
+            <InputBase
+              placeholder="Search…"
+              sx={{
+                color: 'white',
+                '& ::placeholder': { color: 'white' },
+              }}
+              className="inputRoot"
+            />
+          </div>
           <List>
           {documents.map((doc, index) => (
             currentDocument && doc.id !== currentDocument.id ? ( // Controllo di null
