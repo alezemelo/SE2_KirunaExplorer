@@ -80,6 +80,7 @@ sections:
     - Inexperience with Docker containers management
 
 - What lessons did you learn (both positive and negative) in this sprint?
+    - Planning tasks has to be done in a more precise way so thet team members don't get in each other's way. 
 
 - Which improvement goals set in the previous retrospective were you able to achieve? 
     - GitHub repository management has become way smooher
