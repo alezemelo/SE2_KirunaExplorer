@@ -4,20 +4,7 @@ import {Document} from '../../models/document';
 import { Coordinates } from '../controllers/documentController';
 import { dbUpdate } from '../../db/db_common_operations';
 
-interface LocalDocument {
-    title: string;
-    type: string;
-    lastModifiedBy: string;
-    issuanceDate: Date;
-    language: string;
-    pages: number;
-    stakeholders: string[];
-    scale: string;
-    description: string;
-    coordinates: Coordinates;
-}
-
-
+import db from '../../db/db';
 
 class DocumentDAO {
     private db: any;
@@ -27,13 +14,12 @@ class DocumentDAO {
     }
 
     public async getDocument(docId: number): Promise<Document | null> {
-        
         try {
-            const res = await pgdb.client.query('SELECT * FROM documents WHERE id = $1', [docId]);
-            if (res.rows.length === 0) {
+            const res = await db('documents').where({ id: docId }).first();
+            if (!res) {
                 return null;
             } else {
-                return Document.fromJSON(res.rows[0]);
+                return Document.fromJSON(res);
             }
         } catch (error) {
             console.error(error);
@@ -67,13 +53,11 @@ class DocumentDAO {
 
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
         try {
-            console.log(newDescription)
-            const res = await pgdb.client.query('UPDATE documents SET description = $1 WHERE id = $2', [newDescription, docId]);
-            if (res.rowCount) {
-                return res.rowCount;
-            } else {
-                return 0;
-            }
+            const res = await db('documents')
+                .where({ id: docId })
+                .update({ description: newDescription });
+
+            return res;
         } catch (error) {
             console.error(error);
             throw error;
@@ -84,7 +68,7 @@ class DocumentDAO {
         try {
             const lat = newCoordinates.lat;
             const long = newCoordinates.lng;
-            console.log(newCoordinates)
+            // console.log(newCoordinates)
             const coordInfo = `SRID=4326;POINT(${long} ${lat})`;
             const updatedRows = await dbUpdate('documents', { id: docId }, { coordinates: coordInfo });
             //const res = await pgdb.client.query('UPDATE documents SET coordinates = $1 WHERE id = $2', [coordInfo, docId]);
@@ -96,8 +80,8 @@ class DocumentDAO {
     }
 
     public async addDocument(doc: any): Promise<void> {
-        console.log("dao")
-        console.log(doc)
+        // console.log("dao")
+        // console.log(doc)
 
 
         let coordinates = null;

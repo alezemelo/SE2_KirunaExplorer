@@ -39,3 +39,9 @@ If you want to _alter_ a table, use knex.schema.raw() instead of knex.schema.alt
 (Dragos)  
 Refer to the standard error codes specified at the top of API.md.  
 If you feel like it's needed create an Error Object (for db errors like Foreign Constraint Error or Unique Key Error for example there's already specific objects).  
+
+# DB
+(Dragos)  
+When inserting on a table that uses autoincrement you should not provide the primary key if not necessary. In case you absolutely need to provide it, run this `await db.raw("SELECT setval(pg_get_serial_sequence('documents', 'id'), (SELECT MAX(id) FROM documents) + 1)");` after, in order to update the autincrement's status.  
+(Dragos)
+Foreign keys may get disabled for some reason. To check you can run test_integration/db_constraints.test.ts. To fix you can just run temp_db_init() or any other file that contains some activation of foreign keys.  

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "test": "jest --detectOpenHandles --json --outputFile=jest_report.json",
+    "test": "jest --detectOpenHandles --json --outputFile=jest_report.json ",
     "type-check": "tsc --noEmit",
     "start": "nodemon index.ts"
   },
