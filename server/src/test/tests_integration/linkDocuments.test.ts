@@ -1,15 +1,18 @@
 import { describe, beforeEach, beforeAll, afterAll, test, expect } from "@jest/globals";
 import request from 'supertest';
 
-import { app, server } from '../../../index';
-import dbpg from '../../db/temp_db';
-import temp_emptyDB from "../../db/temp_db_empty";
-import temp_populateDB from "../../db/temp_db_population";
+
 import { LinksDAO } from "../../rcd/daos/LinksDAO";
 import { LinkController } from "../../rcd/controllers/LinkController";
 import { DocumentLink, LinkType } from "../../models/document";
 import db from "../../db/db";
 
+import { app, server } from '../../../index';
+import dbpg from '../../db/temp_db';
+
+import { dbEmpty } from '../../db/db_common_operations';
+import { populate } from '../populate_for_some_tests';
+import db from '../../db/db';
 
 describe('get links integretion', () => {
     let linksDAO: LinksDAO;
@@ -26,14 +29,14 @@ describe('get links integretion', () => {
   })
 
   afterAll(async () => {
-    await temp_emptyDB();
+    await dbEmpty();
 
     await dbpg.disconnect();
     server.close();
   });*/
 
   afterAll(async () => {
-    //await temp_emptyDB();
+    await dbEmpty();
 
     await dbpg.disconnect();
     server.close();
@@ -45,9 +48,9 @@ describe('get links integretion', () => {
   describe('linkDAO test', () => {
     test('createLink OK', async () => {
         await dbpg.client.query('DELETE FROM document_links');
-        await temp_emptyDB();
-        await temp_populateDB();
-        const response = await linksDAO.createLink(15,18,LinkType.direct);
+        await dbEmpty();
+        await populate();
+        const response = await linksDAO.createLink(15,18,LinkType.projection);
         expect(response).toBe(1);
         
     })

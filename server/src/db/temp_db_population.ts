@@ -62,11 +62,12 @@ async function temp_populateDB() {
 async function run() {
     await temp_populateDB();
     await pgdb.disconnect();
-    console.log('Database populated');
+    // console.log('Database populated');
 }
 
 if (require.main === module) {
     run();
+    console.log('Database populated');
 }
 
 export default temp_populateDB;

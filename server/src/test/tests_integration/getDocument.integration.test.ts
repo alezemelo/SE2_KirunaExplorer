@@ -2,16 +2,17 @@ import { describe, beforeEach, beforeAll, afterAll, test, expect } from "@jest/g
 import request from 'supertest';
 
 import { app, server } from '../../../index';
-import dbpg from '../../db/temp_db';
+import pgdb from '../../db/temp_db';
 import {Document} from '../../models/document';
 
 import DocumentController from '../../rcd/controllers/documentController';
 import DocumentDAO from "../../rcd/daos/documentDAO";
 import { DocumentNotFoundError } from '../../errors/documentErrors';
 
-import temp_emptyDB from "../../db/temp_db_empty";
-import temp_populateDB from "../../db/temp_db_population";
-import db from "../../db/db";
+import { dbEmpty } from '../../db/db_common_operations';
+import { populate } from '../populate_for_some_tests';
+import db from '../../db/db';
+
 
 describe('update_description Integration Tests', () => {
   let documentDAO: DocumentDAO;
@@ -23,20 +24,20 @@ describe('update_description Integration Tests', () => {
     documentController = new DocumentController();
 
     // TODO Empty the db
-    await temp_emptyDB();
-    await temp_populateDB();
+    await dbEmpty();
+    await populate();
   });
 
   afterAll(async () => {
-    await temp_emptyDB();
+    await dbEmpty();
 
-    await dbpg.disconnect();
+    await pgdb.disconnect();
     server.close();
     await db.destroy();
   });
 
   beforeEach(async () => {
-    await temp_emptyDB();
+    await dbEmpty();
   });
 
   // ================================---------------+++++++++++++++++++++-----------------================================
@@ -44,7 +45,8 @@ describe('update_description Integration Tests', () => {
   describe('DAO Tests', () => {
       test('OK document found', async () => {
         // Setting data
-        await temp_populateDB();
+        await dbEmpty();
+        await populate();
 
         // Running test target function(s)
         const response = await documentDAO.getDocument(15);
@@ -71,7 +73,7 @@ describe('update_description Integration Tests', () => {
   describe('Controller Tests', () => { 
     test('OK document found', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       const response = await documentController.getDocument(15);
@@ -97,7 +99,7 @@ describe('update_description Integration Tests', () => {
   describe('Route Tests', () => { 
     test('OK document found', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       const response = await request(app).get('/kiruna_explorer/documents/15');
@@ -105,7 +107,15 @@ describe('update_description Integration Tests', () => {
       // Checking results
       expect(response.status).toBe(200);
       expect(response.body.id).toBe(15);
-      expect(response.body.description).toBe("This document is a compilation of the responses to the survey 'What is your impression of Kiruna?' From the citizens' responses to this last part of the survey, it is evident that certain buildings, such as the Kiruna Church, the Hjalmar Lundbohmsgården,");
+      expect(response.body.description).toBe(`This document is a compilation of the responses to ` +
+    `the survey 'What is your impression of Kiruna?' ` +
+    `From the citizens' responses to this last part of the ` +
+    `survey, it is evident that certain buildings, such as ` +
+    `the Kiruna Church, the Hjalmar Lundbohmsgården, ` +
+    `and the Town Hall, are considered of significant ` +
+    `value to the population. The municipality views the ` +
+    `experience of this survey positively, to the extent ` +
+    `that over the years it will propose various consultation opportunities`);
     });
 
     test('ERROR document not found', async () => {
