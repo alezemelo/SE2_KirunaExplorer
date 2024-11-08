@@ -5,7 +5,6 @@ import request from 'supertest';
 import { LinksDAO } from "../../rcd/daos/LinksDAO";
 import { LinkController } from "../../rcd/controllers/LinkController";
 import { DocumentLink, LinkType } from "../../models/document";
-import db from "../../db/db";
 
 import { app, server } from '../../../index';
 import dbpg from '../../db/temp_db';
