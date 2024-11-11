@@ -59,7 +59,7 @@ class DocumentRoutes {
             //this.authenticator.isLoggedIn,
             //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
-            body('description').isString().isLength({ max: 2000 }),
+            body('description').isString().isLength({ max: 2500 }),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.updateDescription(req.params.id, req.body.description)   
                 .then(() => res.status(200).end())

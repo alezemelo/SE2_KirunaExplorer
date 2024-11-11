@@ -18,7 +18,7 @@ export async function dbPopulate() {
             { username: 'user1', hash: 'hash1', salt: 'salt1', type: 'resident' },
             { username: 'user2', hash: 'hash2', salt: 'salt2', type: 'urban_planner' }
         ]);
-        console.log("Sample users inserted.");
+        // console.log("Sample users inserted.");
 
         // Insert documents and retrieve their IDs
         const [doc1, doc2] = await Promise.all([
@@ -46,13 +46,13 @@ export async function dbPopulate() {
             }).returning('id')
         ]);
 
-        console.log("Sample documents inserted.");
+        // console.log("Sample documents inserted.");
 
         // Insert document links using valid document IDs
         await knex('document_links').insert([
             { doc_id1: doc1[0].id, doc_id2: doc2[0].id, link_type: 'direct', created_at: new Date() }
         ]);
-        console.log("Sample document links inserted.");
+        // console.log("Sample document links inserted.");
         
     } catch (error) {
         console.error("Error populating database:", error);
@@ -63,7 +63,7 @@ export async function dbPopulate() {
 export async function dbEmpty() {
     try {
         await knex.raw('TRUNCATE TABLE document_files, document_links, files, documents, users RESTART IDENTITY CASCADE');
-        console.log("Database emptied successfully.");
+        // console.log("Database emptied successfully.");
     } catch (error) {
         console.error("Error emptying database:", error);
     }
@@ -89,13 +89,13 @@ export async function dbRead() {
 
 export async function dbUpdate(table: string, conditions: Record<string, any>, updates: Record<string, any>): Promise<number> {
     try {
-        console.log(`Updating ${table} with conditions:`, conditions, 'and updates:', updates); // Add this for debugging
+        // console.log(`Updating ${table} with conditions:`, conditions, 'and updates:', updates); // Add this for debugging
         // this returns the array of updated rows, we only need to count them and return the count
         let updated = await knex(table)
             .where(conditions)
             .update(updates)
             .returning('*');
-        console.log(`Successfully updated ${table}`);
+        // console.log(`Successfully updated ${table}`);
         return updated.length;
     } catch (e) {
         console.error(`Error updating the ${table} table`, e);
@@ -109,32 +109,32 @@ export async function dbPopulateActualData() {
         for (let user of SAMPLE_USERS) {
             await knex('users').insert(user);
         }
-        console.log("Sample users inserted.");
+        // console.log("Sample users inserted.");
 
         // Insert __ACTUAL__ documents
         for (let document of actualDocuments) {
             await knex('documents').insert(document.toObject());
         }
-        console.log("Actual documents inserted.");
+        // console.log("Actual documents inserted.");
 
         // Insert __SAMPLE__ document links
         const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
         const doclink2 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
         await knex('document_links').insert(doclink1);
         await knex('document_links').insert(doclink2);
-        console.log("Sample document links inserted.");
+        // console.log("Sample document links inserted.");
 
         // Insert __SAMPLE__ files
         for (let file of SAMPLE_FILES) {
             await knex('files').insert(file);
         }
-        console.log("Sample files inserted.");
+        // console.log("Sample files inserted.");
 
         // Insert __SAMPLE__ document files
         for (let docFile of SAMPLE_DOC_FILES) {
             await knex('document_files').insert(docFile);
         }
-        console.log("Sample document files inserted.");
+        // console.log("Sample document files inserted.");
 
     } catch (error) {
         console.error("Error populating database with (only some for now) actual data:", error);

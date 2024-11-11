@@ -1,9 +1,13 @@
 import request from 'supertest';
 import { app, server } from '../../../index';
 import db from '../../db/db';
+import pgdb from '../../db/temp_db';
+import { dbEmpty } from '../../db/db_common_operations';
+
 
 
 beforeAll(async () => {
+  await dbEmpty();
   const adminExists = await db('users').where({ username: 'admin' }).first();
 
   if (!adminExists) {
@@ -17,6 +21,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await dbEmpty();
+  await pgdb.disconnect();
+
+  server.close();
   await db.destroy(); // Ensure the database connection is closed after tests
 });
 
@@ -83,10 +91,5 @@ describe('POST /kiruna_explorer/documents - Add a document', () => {
       ])
     );
   });
-});
-
-afterAll(async () => {
-  await db.destroy(); 
-  server.close(); 
 });
 

@@ -23,7 +23,7 @@ const doc_15 = new Document(
     `value to the population. The municipality views the ` +
     `experience of this survey positively, to the extent ` +
     `that over the years it will propose various consultation opportunities`, // Description
-  undefined // Coordinates
+    undefined // Coordinates
 );
 
 const doc_18 = new Document(

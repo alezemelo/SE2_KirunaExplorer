@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Box, Typography, Card, CardContent, Button, TextField, IconButton } from "@mui/material";
+import { Button, Box, Typography, Card, CardContent, TextField, IconButton } from "@mui/material";
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import dayjs from "dayjs";
-import { DocumentType } from "../../App";
+import { DocumentType } from "../../type";
 
 export interface Coordinates {
   lat: number;
@@ -29,22 +29,34 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
   const handleToggleExpand = () => setExpand(!expand);
 
-  const displayedConnections = expand ? document.connection : document.connection.slice(0, 3);
+  const connections = document.connection || []; 
+  const displayedConnections = expand ? connections : connections.slice(0, 3);
 
   const renderConnections = () => (
-    <Typography variant="body2">
-      <strong>Connections:</strong>
+    <Box marginTop={1}>
+      <Typography variant="body2">
+        <strong>Connections:</strong>
+      </Typography>
       <Box display="flex" flexDirection="column" marginTop={1}>
-        {displayedConnections.map((conn, index) => (
-          <div key={index}>{conn}</div>
-        ))}
-        {document.connection.length > 3 && (
+        {connections.length > 0 ? (
+          displayedConnections.map((conn, index) => (
+            <Typography key={index} variant="body2">
+              {conn}
+            </Typography> 
+          ))
+        ) : (
+          <Typography variant="body2" color="textSecondary">
+            No connections available.
+          </Typography>
+        )}
+
+        {connections.length > 3 && (
           <IconButton onClick={handleToggleExpand} aria-label="expand">
             {expand ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
           </IconButton>
         )}
       </Box>
-    </Typography>
+    </Box>
   );
 
   const handleLatChange = (event: React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
@@ -55,27 +67,21 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
       if (Number(lat) < -90 || Number(lat) > 90 || Number(lng) < -180 || Number(lng) > 180) {
         console.error("Invalid coordinates");
       } else {
-      try {
-        const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
-        });
+        try {
+          const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
+          });
 
-        if (!response.ok) throw new Error("Error: " + response.statusText);
-        
-        //await fetchDocuments();
-        setNewDocument(prevDocs =>
-          prevDocs.map(doc =>
-            doc.id === docId ? { ...doc, coordinates: { lat, lng } } : doc
-          )
-        );
-
-      } catch (error) {
-        console.error("Error:", error);
+          if (!response.ok) throw new Error("Error: " + response.statusText);
+          
+          await fetchDocuments();
+        } catch (error) {
+          console.error("Error:", error);
+        }
       }
     }
-  }
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
@@ -121,7 +127,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date?dayjs(document.issuance_date).format("YYYY-MM-DD"):''}</Typography>
+          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date ? dayjs(document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
           <Typography variant="body2"><strong>Type:</strong> {document.type}</Typography>
           
           {renderConnections()}
@@ -186,7 +192,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         {/* Description Section */}
         {!editDescription && showDescription && (
-          <Typography variant="body2" style={{ marginTop: "10px" }}>
+          <Typography variant="body2" style={{ marginTop: "10px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
             <strong>Description:</strong> {description}
           </Typography>
         )}
@@ -195,26 +201,26 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
           <>
             <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
             <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
-            {/* Save Button */}
-            <Button
-              variant="contained"
-              color="primary"
-              style={{ width: "48%" }}
-              onClick={saveDescription}
-            >
-              Save
-            </Button>
+              {/* Save Button */}
+              <Button
+                variant="contained"
+                color="primary"
+                style={{ width: "48%" }}
+                onClick={saveDescription}
+              >
+                Save
+              </Button>
 
-            {/* Cancel Button */}
-            <Button
-              variant="contained"
-              color="error"
-              style={{ width: "48%" }}
-              onClick={closeEditDescription}
-            >
-              Cancel
-            </Button>
-          </Box>
+              {/* Cancel Button */}
+              <Button
+                variant="contained"
+                color="error"
+                style={{ width: "48%" }}
+                onClick={closeEditDescription}
+              >
+                Cancel
+              </Button>
+            </Box>
           </>
         ) : null}
 
@@ -244,10 +250,4 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 };
 
 export default DocDetails;
-
-
-
-
-
-
 
