@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
-import GoogleMapReact, { ChangeEventValue, MapOptions } from "google-map-react";
+import  { ChangeEventValue, MapOptions } from "google-map-react";
 import { useMediaQuery } from "@mui/material";
 import DocumentMarker from "./DocMarkers";
 import { DocumentType, Coordinates } from "../../type" // Import from types.ts
 import "./Map.css";
+import {AdvancedMarker, APIProvider, Map} from "@vis.gl/react-google-maps";
+
 
 interface MapProps {
   setCoordinates: (coordinates: Coordinates) => void;
@@ -14,7 +16,7 @@ interface MapProps {
   fetchDocuments: () => Promise<void>;
 }
 
-const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents }) => {
+const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const [mapOptions, setMapOptions] = useState<MapOptions>({
@@ -51,7 +53,7 @@ const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDo
  }, [documents]); 
 
   return (
-    <div className="mapContainer">
+    /*<div className="mapContainer">
       <GoogleMapReact
         bootstrapURLKeys={{ key: "AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4" }}
         center={coordinates}
@@ -76,10 +78,25 @@ const Map: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDo
         })}
       </GoogleMapReact>
     </div>
+    */
+   <APIProvider apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
+    <div style={{height: "100vh"}}>
+      <Map zoom={zoom} center={{lat: 67.85766491972178,lng: 20.22771266622486}} mapId={"590615088799a724"}>
+      {documents.map((doc) => {
+          if (doc.coordinates && doc.coordinates.lat && doc.coordinates.lng) {
+            return (
+              <AdvancedMarker key={doc.id} position={{lat: doc.coordinates.lat,lng: doc.coordinates.lng}}></AdvancedMarker>
+            );
+          }
+          return null; // Return null if coordinates are undefined or incomplete
+        })}
+      </Map>
+    </div>
+   </APIProvider>
   );
 };
 
-export default Map;
+export default MyMap;
 
 
 
