@@ -1,47 +1,55 @@
+// Header.tsx
 import React from "react";
-import { Autocomplete } from "@react-google-maps/api";
-import { AppBar, Toolbar, Typography, InputBase, Box, IconButton} from "@mui/material";
+import { AppBar, Toolbar, Typography, Box, IconButton, InputBase } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import { useNavigate } from "react-router-dom"; // Import for navigation
-import SearchIcon from "@mui/icons-material/Search";
-import "./Header.css"; // Import the CSS file here
+import MenuIcon from "@mui/icons-material/Menu"; // Import icon for toggle
+import { useNavigate } from "react-router-dom";
+import "./Header.css";
 
-const Header = () => {
+interface Header {
+  onToggleDocumentList: () => void;
+}
+
+const Header: React.FC<Header> = ({ onToggleDocumentList }) => {
   const navigate = useNavigate();
 
   const handleLoginClick = () => {
-    navigate("/login"); // Redirect to the login page
+    navigate("/login");
   };
 
-
   return (
-      <AppBar position="static" sx={{ backgroundColor: "#000" }}>
-        <Toolbar className="toolbar">
-          <Typography variant="h5" className="title">
+    <AppBar position="static" sx={{ backgroundColor: "#000" }}>
+      <Toolbar className="toolbar">
+        <Box display="flex" alignItems="center">
+          <IconButton color="inherit" onClick={onToggleDocumentList} edge="start">
+            <MenuIcon /> {/* Button to open/close document list */}
+          </IconButton>
+          <Typography variant="h5" className="title" style={{ marginLeft: 8 }}>
             Kiruna
           </Typography>
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" className="title">
-              Explore documents
-            </Typography>
-{       /*     <Autocomplete>
-*/}              <div className="search">
-                <div className="searchIcon">
-                  <SearchIcon />
-                </div>
-                <InputBase
-                  placeholder="Search…"
-                  className="inputRoot"
-                />
-              </div>
-              {       /*     </Autocomplete>
-*/}        </Box>
-          <IconButton color="inherit" onClick={handleLoginClick} edge="end">
-            <AccountCircle fontSize="large"/>
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Typography variant="h6" className="title">
+            Explore documents
+          </Typography>
+          <div className="search">
+            <InputBase
+              placeholder="Search…"
+              sx={{
+                color: 'white',
+                '& ::placeholder': { color: 'white' },
+              }}
+              className="inputRoot"
+            />
+          </div>
+        </Box>
+        <IconButton color="inherit" onClick={handleLoginClick} edge="end">
+          <AccountCircle fontSize="large" />
+        </IconButton>
+      </Toolbar>
+    </AppBar>
   );
 };
 
 export default Header;
+

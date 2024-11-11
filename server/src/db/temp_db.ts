@@ -1,0 +1,41 @@
+// (Dragos) I created this file because the others don't work and I absolutely have to finish for the frontend.
+
+
+import pg from 'pg';
+
+class my_pgDB {
+    client: pg.Client;
+
+    constructor() {
+        this.client = new pg.Client({
+            user: 'postgres',
+            host: '127.0.0.1',
+            database: 'kirunadb',
+            password: 'kiruna07',
+            port: 5432,
+        });
+    }
+
+    public async connect() {
+        try {
+            await this.client.connect();
+        } catch (error) {
+            console.error('Error connecting to the database:', error);
+            throw error;
+        }
+    }
+
+    public async disconnect() {
+        try {
+            await this.client.end();
+        } catch (error) {
+            console.error('Error disconnecting from the database:', error);
+            throw error;
+        }
+    }
+}
+
+const pgdb = new my_pgDB();
+pgdb.connect(); // Careful with open handles
+
+export default pgdb;

@@ -1,0 +1,48 @@
+Issue-id,Type,BusinessValue,Description,Comments
+KX1,User Story,1000,"As an Urban Planner
+I want to add a new document description","fields are defined in the glossary.  The description is not the actual pdf, it is a short text description as in the example. For a document there are some fields that are optional or can be changed over time: issuance date can be changed or can be less precise (don't have day or month), type and connection are always there (one document is connected to at least one other), language and pages are optional (some documents could be images) and description is mandatory. Coordinates are optional in the case of documents referring to an area and not specific point"
+KX2,User Story,980,"As an Urban Planner
+I want to link documents to each other
+So that I can study their relationships","Different types of links are defined in the accompanying documentation. There are max 4 types of links so two documents can be linked in max 4 possible ways, if we can we implement bidirectional links."
+KX3,User Story,970,"As an Urban Planner 
+I want to georeference a document (possibly at insertion time)
+So that I can study its relationship to the territory ","Can be the whole municipal area or a specific point expressed as (lon,lat). Draw the area eventually we try to make holes in it. Whole municipal area is the whole area of the territory."
+KX4,User Story,960,"As a resident/visitor/urban planner
+I want to view the documents on the map 
+So that I can see to which position or area they relate ",
+KX5,User Story,956,"As an Urban Planner 
+I want to adjust/define the georeferencing of a document on the map
+So that I can study its relationship to the territory ","Modify existing single point or whole municipality area, not sub area of municipality."
+KX6,User Story,950,"As an Urban Planner
+I want to list all documents",A table with the list of documents
+KX7,User Story,940,"As an Urban Planner
+I want to add one or more original resources for a document","the resources are the original item or document, could be more files, e.g., a map and a text document of a ruling"
+KX8,User Story,925,"As an Urban Planner
+I want to search documents
+So that I can find what I am interested in ","Search by name, if desired also by area or document type."
+KX9,User Story,920,"As an Urban Planner 
+I want to define the geolocated area of a document on the map",Disegnare un'area. Specificatamente un area.
+KX10,User Story,900,"As an Urban Planner
+I want to visualize all documents on the diagram
+So that I can study their relationship with time","The diagram is done for this story, before it is not necessary. All nodes are documents: some nodes are actions but still have documents describing them."
+KX11,User Story,890,"As a resident
+I want to visualize the area associated with the different documents
+So that I can assess their impact",
+KX12,User Story,880,"As an Urban Planner
+I want to adjust the position of documents on the diagram
+So that I can improve the readability",Changing the position on the graph changes the characteristics of the document (date and scale)
+KX13,User Story,870,"As an Urban Planner
+I want to adjust the connections of documents on the diagram
+So that I can update it",
+KX14,User Story,860,"As a resident/visitor/urban planner
+I want to click on the documents shown on the diagram
+So that I can access to the document",
+KX15,User Story,840,"As a resident/visitor/urban planner
+I want to filter the documents shown on the diagram
+So that I can focus on what is relevant",The filter types are defined in the documentation of the project
+KX16,User Story,840,"As a resident/visitor/urban planner
+I want to see on the map the document selected in the diagram",
+KX17,User Story,830,"As a resident/visitor/urban planner
+I want to see on the diagram the document selected in the map",
+KX18,User Story,820,"As an Urban Planner
+I want to add one or more attachments for a document","Additional documentation e.g. photo, video etc."
