@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Box, Typography, Card, CardContent, TextField, IconButton } from "@mui/material";
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -15,9 +15,11 @@ interface DocDetailsProps {
   document: DocumentType;
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
+  pin: number;
+  setNewPin: any
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments }) => {
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, pin, setNewPin }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
@@ -28,6 +30,13 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const [expand, setExpand] = useState(false);
 
   const handleToggleExpand = () => setExpand(!expand);
+
+  useEffect(() => {
+    if (document.coordinates) {
+      setLat(document.coordinates.lat.toString());
+      setLng(document.coordinates.lng.toString());
+    }
+  }, [document.coordinates]);
 
   const connections = document.connection || []; 
   const displayedConnections = expand ? connections : connections.slice(0, 3);
@@ -86,6 +95,11 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
     }
   };
 
+  const setPin = (id:number) => {
+    console.log("click"+id)
+    setNewPin(id);
+  }
+
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
     if (event.key === 'Enter') {
       handleSaveCoordinates();
@@ -123,7 +137,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   };
 
   return (
-    <Card elevation={6} style={{ margin: "20px 0", padding: "10px" }}>
+    <Card elevation={6} onClick={() => setPin(document.id)} style={{ margin: "20px 0", padding: "10px" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{document.title}

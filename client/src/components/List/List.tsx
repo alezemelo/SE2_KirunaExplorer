@@ -1,5 +1,5 @@
 // List.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -37,6 +37,8 @@ interface DocumentListProps {
   documents: DocumentType[];
   setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
   fetchDocuments:() => Promise<void>;
+  pin: number,
+  setNewPin: any;
 }
 
 interface DocumentLocal {
@@ -54,7 +56,7 @@ interface DocumentLocal {
   lng?: number
 }
 
-const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin }) => {
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>({
     id: 0,
@@ -76,11 +78,17 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
+  const[document, setDocument] = useState<any>(0);
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setTargetLinkType(value);
   };
+
+  useEffect(()=>{
+    const t = documents.find((doc)=>doc.id==pin)
+    if(t){setDocument(t)}
+  },[pin])
 
 
   const handleClickOpen = () => setOpen(true);
@@ -271,6 +279,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
    }
    
+   
   };
 
   return (
@@ -318,11 +327,15 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       {/* Scrollable document list */}
       <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
         <Grid container spacing={3}>
-          {documents.map((document, i) => (
+          {pin==0 ?  documents.map((document, i) => (
             <Grid item xs={12} key={i}>
-              <DocDetails document={document} fetchDocuments={fetchDocuments} onLink={() => openLinkingDialog(document)} />
+              <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} onLink={() => openLinkingDialog(document)} />
             </Grid>
-          ))}
+          )): (document!=0?
+          <Grid item xs={12} >
+          <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} onLink={() => openLinkingDialog(document)} />
+        </Grid>:<></>)
+        }
         </Grid>
       </Box>
 

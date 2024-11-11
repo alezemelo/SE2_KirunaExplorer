@@ -9,6 +9,7 @@ import API from "./API";
 
 
 
+
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({
     lat: 67.85572,
@@ -17,6 +18,7 @@ function App() {
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
+  const [pin, setPin] = useState(0)
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -63,6 +65,7 @@ function App() {
 
   const toggleDocumentList = () => {
     setIsDocumentListOpen((prev) => !prev);
+    setPin(0)
   };
 
   return (
@@ -73,7 +76,7 @@ function App() {
         <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
           {isDocumentListOpen && (
             <Grid item xs={12} md={4}>
-              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} />
+              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setPin} />
             </Grid>
           )}
 
@@ -84,6 +87,8 @@ function App() {
               coordinates={coordinates}
               setDocuments={setDocuments}
               fetchDocuments={fetchDocuments}
+              pin={pin}
+              setPin={setPin}
               documents={documents.map((doc) => ({
                 ...doc,
                 coordinates: {

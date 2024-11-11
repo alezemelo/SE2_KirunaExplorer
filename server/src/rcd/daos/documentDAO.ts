@@ -37,6 +37,7 @@ class DocumentDAO {
                         'SELECT ST_AsText(ST_GeomFromWKB($1::bytea)) as geom_text',
                         [coordinatesHex]
                       );
+                      console.log(c)
                       const [long, lat] = c.rows[0].geom_text.replace("POINT(", "").replace(")", "").split(" ");
                       res.rows[i].coordinates = {
                         lat: parseFloat(lat),
@@ -101,9 +102,11 @@ class DocumentDAO {
             doc.stakeholders,
             doc.scale,
             doc.description,
-            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lat} ${doc.coordinates.lng})`: null,
+            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lng} ${doc.coordinates.lat})`: null,
             "admin"
         ];
+
+        console.log(doc.coordinates)
 
         try {
             const res = await pgdb.client.query(query, values);
