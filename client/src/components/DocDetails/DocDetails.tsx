@@ -4,6 +4,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import dayjs from "dayjs";
 import { DocumentType } from "../../type";
+import API from "../../API";
 
 export interface Coordinates {
   lat: number;
@@ -14,10 +15,9 @@ interface DocDetailsProps {
   document: DocumentType;
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
-  setNewDocument: (newDocument: DocumentType) => void;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, setNewDocument }) => {
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
@@ -67,7 +67,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
       if (Number(lat) < -90 || Number(lat) > 90 || Number(lng) < -180 || Number(lng) > 180) {
         console.error("Invalid coordinates");
       } else {
-        try {
+        /*try {
           const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -79,7 +79,9 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
           await fetchDocuments();
         } catch (error) {
           console.error("Error:", error);
-        }
+        }*/
+       await API.updateCoordinates(document.id, lat, lng)
+       await fetchDocuments();
       }
     }
   };
@@ -101,7 +103,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   }
 
   const saveDescription = async () => {
-    try {
+    /*try {
       const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/description`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -114,7 +116,10 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
       await fetchDocuments();
     } catch (error) {
       console.error("Error:", error);
-    }
+    }*/
+   await API.updateDescription(document.id, description);
+   setEditDescription(false);
+    await fetchDocuments();
   };
 
   return (

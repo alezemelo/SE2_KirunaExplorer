@@ -5,6 +5,9 @@ import Map from "./components/Map/Map";
 import { CssBaseline, Grid } from "@mui/material";
 import { DocumentType, Coordinates } from "./type"  // Import from types.ts
 import "./App.css";
+import API from "./API";
+
+
 
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({
@@ -17,22 +20,26 @@ function App() {
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
+      /*const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
       if (!response.ok) throw new Error("Error fetching documents");
-      const data = await response.json();
+      const data = await response.json();*/
+      const data = await API.getDocuments();
 
       for (let i = 0; i < data.length; i++) {
-        const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
-        const t = await res.json();
+        /*const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
+        const t = await res.json();*/
+        const t = await API.getLinks(data[i].id)
         let c = [];
         for (let j = 0; j < t.length; j++) {
           if (t[j].docId1 == data[i].id) {
-            const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId2}`);
-            const t1 = await temp.json();
+            /*const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId2}`);
+            const t1 = await temp.json();*/
+            const t1 = await API.getDocument(t[j].docId2)
             c.push(t1.title + ` (${t[j].linkType})`);
           } else {
-            const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId1}`);
-            const t2 = await temp.json();
+            /*const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId1}`);
+            const t2 = await temp.json();*/
+            const t2 = await API.getDocument(t[j].docId1)
             c.push(t2.title + ` (${t[j].linkType})`);
           }
         }

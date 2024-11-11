@@ -29,6 +29,7 @@ import {
 import { DocumentType } from "../../type";
 import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
 import "./List.css";
+import API from "../../API";
 
 
 
@@ -142,7 +143,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (Number(newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
       newErrors.push("Pages must be greater than 0");
     }
-    if (newDocument.issuanceDate != '' && (!dayjs(newDocument.issuanceDate, 'YYYY-MM-DD', true).isValid() || dayjs(newDocument.issuanceDate).isAfter(dayjs()))) {
+    const regexYearMonth = /^\d{4}-(0[1-9]|1[0-2])$/;
+    const regexYearOnly = /^\d{4}$/;
+    if (newDocument.issuanceDate != '' && (!(!dayjs(newDocument.issuanceDate, 'YYYY-MM-DD', true).isValid() || regexYearMonth.test(newDocument.issuanceDate) || regexYearOnly.test(newDocument.issuanceDate)) || dayjs(newDocument.issuanceDate).isAfter(dayjs()))) {
       newErrors.push("Date is not valid");
   }
     if (newDocument.description && typeof newDocument.description !== 'string') {
@@ -199,7 +202,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         };
   
         // Invio del documento al server
-        const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
+        /*const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(finalDocument),
@@ -209,7 +212,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
           throw new Error("Error: " + response.statusText);
         }
         const result = await response.json();
-        console.log("res:", result);
+        console.log("res:", result);*/
+        await API.addDocument(finalDocument);
         await fetchDocuments();
   
         // Chiudi il form e resetta i dati solo se tutto è andato a buon fine
@@ -239,7 +243,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
   const linkDocument = async () => {
    if(currentDocument && targetDocumentId && targetLinkType){
-    try {
+    /*try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
         method: "POST",
         headers: {
@@ -260,7 +264,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       await fetchDocuments();
     } catch (error) {
       console.error("Error:", error);
-    }
+    }*/
+    await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
+    await fetchDocuments();
     closeLinkingDialog()
 
    }
@@ -278,7 +284,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
             <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="ex. 2022-01-01" name="issuanceDate" fullWidth value={newDocument.issuanceDate} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="ex. 2022-01-01/2022-01/2022" name="issuanceDate" fullWidth value={newDocument.issuanceDate} onChange={handleChange} />
             <FormControl component="fieldset" margin="dense" fullWidth>
             <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
             <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
@@ -314,7 +320,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         <Grid container spacing={3}>
           {documents.map((document, i) => (
             <Grid item xs={12} key={i}>
-              <DocDetails document={document} fetchDocuments={fetchDocuments} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
+              <DocDetails document={document} fetchDocuments={fetchDocuments} onLink={() => openLinkingDialog(document)} />
             </Grid>
           ))}
         </Grid>

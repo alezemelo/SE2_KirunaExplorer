@@ -29,7 +29,7 @@ class DocumentDAO {
 
     public async getDocuments(): Promise<Document[]> {
         try {
-            const res = await pgdb.client.query('SELECT * FROM documents ', []);
+            const res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
             for(let i=0;i<res.rows.length;i++){
                 if(res.rows[i].coordinates){
                     const coordinatesHex = Buffer.from(res.rows[i].coordinates, 'hex');
