@@ -39,6 +39,10 @@ interface DocumentListProps {
   fetchDocuments:() => Promise<void>;
   pin: number,
   setNewPin: any;
+  coordMap?: Coordinates;
+  setCoordMap: any;
+  adding: boolean; 
+  setAdding:any;
 }
 
 interface DocumentLocal {
@@ -56,7 +60,7 @@ interface DocumentLocal {
   lng?: number
 }
 
-const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin, coordMap, setCoordMap, adding, setAdding }) => {
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>({
     id: 0,
@@ -80,6 +84,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const [errors, setErrors] = useState<string[]>([]);
   const[document, setDocument] = useState<any>(0);
   const [docExpand, setDocExpand] = useState(0);
+  
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -90,6 +95,20 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     const t = documents.find((doc)=>doc.id==pin)
     if(t){setDocument(t)}
   },[pin])
+
+
+  useEffect(()=> {
+    if(coordMap){
+      setNewDocument((prev)=>{
+        return{
+          ...prev,
+          lat: coordMap?.lat,
+          lng: coordMap?.lng
+        }
+      })
+      setOpen(true);
+    }
+  },[coordMap])
 
 
   const handleClickOpen = () => setOpen(true);
@@ -126,6 +145,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
   const handleMapCoord = () => {
     setOpen(false);
+    setAdding(true);
   }
 
   const handleAddDocument = async () => {

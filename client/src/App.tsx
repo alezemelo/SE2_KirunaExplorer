@@ -18,7 +18,9 @@ function App() {
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
-  const [pin, setPin] = useState(0)
+  const [pin, setPin] = useState(0);
+  const [coordMap,setCoordMap] = useState<Coordinates|undefined>(undefined);//coordinates of the point choosen on the map
+  const [adding, setAdding] = useState(false);//mode for taking coordinate from map
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -76,7 +78,8 @@ function App() {
         <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
           {isDocumentListOpen && (
             <Grid item xs={12} md={4}>
-              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setPin} />
+              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
+               pin={pin} setNewPin={setPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} />
             </Grid>
           )}
 
@@ -89,6 +92,9 @@ function App() {
               fetchDocuments={fetchDocuments}
               pin={pin}
               setPin={setPin}
+              coordMap={coordMap}
+              setCoordMap={setCoordMap}
+              adding={adding} setAdding={setAdding}
               documents={documents.map((doc) => ({
                 ...doc,
                 coordinates: {

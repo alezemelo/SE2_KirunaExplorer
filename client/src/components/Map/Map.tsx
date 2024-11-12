@@ -4,7 +4,7 @@ import { useMediaQuery } from "@mui/material";
 import DocumentMarker from "./DocMarkers";
 import { DocumentType, Coordinates } from "../../type" // Import from types.ts
 import "./Map.css";
-import {AdvancedMarker, APIProvider, InfoWindow, Map, MapCameraChangedEvent, MapControl, Pin} from "@vis.gl/react-google-maps";
+import {AdvancedMarker, APIProvider, InfoWindow, Map, MapCameraChangedEvent, MapControl, MapMouseEvent, Pin} from "@vis.gl/react-google-maps";
 import API from "../../API";
 import { Padding, Style } from "@mui/icons-material";
 
@@ -19,9 +19,13 @@ interface MapProps {
   fetchDocuments: () => Promise<void>;
   pin: number,
   setPin: any;
+  coordMap?: Coordinates;
+  setCoordMap: any;
+  adding: boolean; 
+  setAdding:any;
 }
 
-const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents,pin, setPin, fetchDocuments }) => {
+const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents,pin, setPin, fetchDocuments, coordMap, setCoordMap, adding, setAdding }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const [mapOptions, setMapOptions] = useState<MapOptions>({
@@ -60,9 +64,25 @@ const handleDrag = async (e: google.maps.MapMouseEvent, id:number) => {
   }
 }
 
+const handleZoomChanged = (e: google.maps.Map): void => {
+  setZoom(e.getZoom() ?? zoom);
+};
 
+const handleDragend = (e: any): void => {
+  const c = e.map.getCenter();
+  if (c) {
+    setCoordinates({ lat: c.lat(), lng: c.lng() });
+  }
+};
 
-
+const onMapClick = (e: MapMouseEvent) => {
+  if(adding){
+    const c={lat: e.detail.latLng?.lat, lng: e.detail.latLng?.lng}
+    setCoordMap(c)
+    console.log(c);
+    setAdding(false);
+  }
+}
 
  useEffect(() => {
   documents.map((doc) => {
@@ -99,48 +119,38 @@ const handleDrag = async (e: google.maps.MapMouseEvent, id:number) => {
       </GoogleMapReact>
     </div>*/
     
-   /*<APIProvider apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
+   /*<APIProvider apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4" solutionChannel='GMP_devsite_samples_v3_rgmbasicmap'>
     <div style={{height: "100vh"}}>
-      <Map zoom={zoom} center={coordinates} mapId={"590615088799a724"} onZoomChanged={(e)=>setZoom(e.map.getZoom()??zoom)} onCenterChanged={(e)=>{
-        const c = e.map.getCenter();
-        const lat = c ? c.lat() : coordinates.lat; 
-        const lng = c ? c.lng() : coordinates.lng;
-        setCoordinates({ lat, lng })}}
-        onBoundsChanged={(e)=>{
-          const newBounds = e.map.getBounds();
-      if (newBounds) {
-        const northEast = newBounds.getNorthEast();
-        const southWest = newBounds.getSouthWest();
-        setBounds({
-          ne: {
-            lat: northEast.lat(),
-            lng: northEast.lng(),
-          },
-          sw: {
-            lat: southWest.lat(),
-            lng: southWest.lng(),
-          },
-        });}
-        }}
+      <Map zoom={10} center={{lat: 43.64, lng: -79.41}} 
+      gestureHandling={'greedy'}
+      disableDefaultUI={true}
         >
+
+      </Map>
+    </div>
+   </APIProvider>*/
+
+   <APIProvider
+    solutionChannel='GMP_devsite_samples_v3_rgmbasicmap'
+    apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
+    <Map
+      defaultZoom={12}
+      defaultCenter={center}
+      gestureHandling={'greedy'}
+      disableDefaultUI={true}
+      onClick={onMapClick}
+      mapId="590615088799a724"
+    >
       {documents.map((doc) => {
           if (doc.coordinates && doc.coordinates.lat && doc.coordinates.lng) {
             return (
-              <>
-              <AdvancedMarker key={doc.id} position={{lat: doc.coordinates.lat,lng: doc.coordinates.lng}} onDragEnd={(e) => handleDrag(e,doc.id)} onClick={()=>{setPin(doc.id)}} >
-                <Pin scale={doc.id != pin ? 1:1.5}/>
-              </AdvancedMarker>
-              {open==doc.id && <InfoWindow position={{lat: doc.coordinates.lat, lng: doc.coordinates.lng}} onCloseClick={()=>setOpen(0)}>
-                <div style={{color: 'black'}}><p><b>Title: </b>{doc.title} </p></div>
-                </InfoWindow>}
-              </>
+              <AdvancedMarker position={doc.coordinates}/>
             );
           }
           return null; // Return null if coordinates are undefined or incomplete
         })}
-      </Map>
-    </div>
-   </APIProvider>*/
+    </Map>
+  </APIProvider>
   );
 };
 
