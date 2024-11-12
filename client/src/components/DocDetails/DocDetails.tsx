@@ -16,10 +16,12 @@ interface DocDetailsProps {
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
   pin: number;
-  setNewPin: any
+  setNewPin: any;
+  docExpand?: number;
+  setDocExpand?:any;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, pin, setNewPin }) => {
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, pin, setNewPin, docExpand, setDocExpand }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
@@ -98,6 +100,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const setPin = (id:number) => {
     console.log("click"+id)
     setNewPin(id);
+    setDocExpand(id);
   }
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
@@ -143,7 +146,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
           <strong>Title: </strong>{document.title}
         </Typography>
 
-        <Box display="flex" flexDirection="column" gap={1}>
+        {docExpand==0 ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
           <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date ? dayjs(document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
@@ -207,7 +210,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               )}
             </Box>
           </Box>
-        </Box>
+        </Box>: <></>}
 
         {/* Description Section */}
         {!editDescription && showDescription && (
@@ -216,7 +219,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
           </Typography>
         )}
 
-        {editDescription ? (
+        { editDescription ? (
           <>
             <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
             <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
@@ -246,14 +249,14 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
-          {!editDescription && (
+          {docExpand==0 && !editDescription && (
             <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={toggleDescription}>
               {showDescription ? "Hide Description" : "Show Description"}
             </Button>
           )}
 
           {/* Link Document or Edit Description Button */}
-          {!showDescription && !editDescription ? (
+          {docExpand ==0 && (!showDescription && !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
               Link Document
             </Button>
@@ -261,7 +264,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={toggleEditDescription}>
               Edit Description
             </Button>
-          ) : null}
+          ) : null)}
         </Box>
       </CardContent>
     </Card>

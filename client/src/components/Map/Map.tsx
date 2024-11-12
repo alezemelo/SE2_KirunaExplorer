@@ -9,6 +9,7 @@ import API from "../../API";
 import { Padding, Style } from "@mui/icons-material";
 
 
+
 interface MapProps {
   setCoordinates: (coordinates: Coordinates) => void;
   setBounds: (bounds: { ne: Coordinates; sw: Coordinates } | null) => void;
@@ -96,9 +97,9 @@ const handleDrag = async (e: google.maps.MapMouseEvent, id:number) => {
           return null; // Return null if coordinates are undefined or incomplete
         })}
       </GoogleMapReact>
-    </div>
-    */
-   <APIProvider apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
+    </div>*/
+    
+   /*<APIProvider apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
     <div style={{height: "100vh"}}>
       <Map zoom={zoom} center={coordinates} mapId={"590615088799a724"} onZoomChanged={(e)=>setZoom(e.map.getZoom()??zoom)} onCenterChanged={(e)=>{
         const c = e.map.getCenter();
@@ -139,7 +140,7 @@ const handleDrag = async (e: google.maps.MapMouseEvent, id:number) => {
         })}
       </Map>
     </div>
-   </APIProvider>
+   </APIProvider>*/
   );
 };
 

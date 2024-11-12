@@ -79,6 +79,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
   const[document, setDocument] = useState<any>(0);
+  const [docExpand, setDocExpand] = useState(0);
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -122,6 +123,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
   };
+
+  const handleMapCoord = () => {
+    setOpen(false);
+  }
 
   const handleAddDocument = async () => {
     const newErrors = [];
@@ -308,6 +313,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
             <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument?.lat} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument?.lng} onChange={handleChange} />
+            <Button color="primary" onClick={handleMapCoord}>Choose on map</Button>
             <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
           </DialogContent>
           {errors.length > 0 && (
@@ -333,7 +339,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
             </Grid>
           )): (document!=0?
           <Grid item xs={12} >
-          <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} onLink={() => openLinkingDialog(document)} />
+          <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} docExpand={docExpand} setDocExpand={setDocExpand} onLink={() => openLinkingDialog(document)} />
         </Grid>:<></>)
         }
         </Grid>
