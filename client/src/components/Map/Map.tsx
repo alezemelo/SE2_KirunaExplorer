@@ -54,26 +54,16 @@ const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, set
 
   const center = {lat: 67.85766491972178,lng: 20.22771266622486}
 
-const handleDrag = async (e: google.maps.MapMouseEvent, id:number) => {
-  const lat = e.latLng?.lat();
-  const lng = e.latLng?.lng();
-  if (lat !== undefined && lng !== undefined) {
-    setCoordinates({ lat, lng });
-    await API.updateCoordinates(id, lat.toString(), lng.toString())
-    await fetchDocuments();
+  const handleDrag = async (e: google.maps.MapMouseEvent, id:number) => {
+    const lat = e.latLng?.lat();
+    const lng = e.latLng?.lng();
+    if (lat !== undefined && lng !== undefined) {
+      setCoordinates({ lat, lng });
+      await API.updateCoordinates(id, lat.toString(), lng.toString())
+      await fetchDocuments();
+    }
   }
-}
 
-const handleZoomChanged = (e: google.maps.Map): void => {
-  setZoom(e.getZoom() ?? zoom);
-};
-
-const handleDragend = (e: any): void => {
-  const c = e.map.getCenter();
-  if (c) {
-    setCoordinates({ lat: c.lat(), lng: c.lng() });
-  }
-};
 
 const onMapClick = (e: MapMouseEvent) => {
   if(adding){
@@ -144,7 +134,9 @@ const onMapClick = (e: MapMouseEvent) => {
       {documents.map((doc) => {
           if (doc.coordinates && doc.coordinates.lat && doc.coordinates.lng) {
             return (
-              <AdvancedMarker position={doc.coordinates}/>
+              <AdvancedMarker position={doc.coordinates} onDragEnd={(e) => handleDrag(e,doc.id)} onClick={()=>{setPin(doc.id)}} >
+                <Pin scale={doc.id != pin ? 1:1.5}/>
+                </AdvancedMarker>
             );
           }
           return null; // Return null if coordinates are undefined or incomplete

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
-import { CssBaseline, Grid } from "@mui/material";
+import { Box, Button, CssBaseline, Grid } from "@mui/material";
 import { DocumentType, Coordinates } from "./type"  // Import from types.ts
 import "./App.css";
 import API from "./API";
@@ -74,16 +74,34 @@ function App() {
     <>
       <CssBaseline />
       <Header onToggleDocumentList={toggleDocumentList} />
+
       <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
         <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
           {isDocumentListOpen && (
-            <Grid item xs={12} md={4}>
+            <Grid item xs={13} md={4}>
               <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
                pin={pin} setNewPin={setPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} />
             </Grid>
           )}
-
-          <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
+<Box
+      sx={{
+        position: 'relative',  // Imposta il contenitore come riferimento per il posizionamento
+        height: '100vh',  // Imposta l'altezza del contenitore alla finestra
+      }}
+    >
+      <Button
+        sx={{
+          position: 'absolute',
+          top: '50%',  // Posiziona il bottone al 50% della sua altezza
+          left: '50%',  // Posiziona il bottone al 50% della larghezza
+          transform: 'translate(-50%, -50%)',  // Centra il bottone esattamente a metà
+        }}
+      >
+        Centered Button
+      </Button>
+    </Box>
+          
+          <Grid item xs={12} md={isDocumentListOpen ? 8 : 12} style={{ height: "100vh" }}>
             <Map
               setCoordinates={setCoordinates}
               setBounds={setBounds}
