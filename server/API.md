@@ -182,7 +182,7 @@ Allows login for a user with the provided credentials.
   - `401` if credentials are wrong
   - `422` if formatting is wrong
 - Response Body Content: A **User** object that represents the logged in user
-  - Example: `{username: "Mario Rossi", type: "urban_planner", salt: "some_salt", hash: "some_hash"}`
+  - Example: `{username: "Mario Rossi", type: "urban_planner"}`
 - Access Constraints: None
 - Additional Constraints:
   - Returns a 401 error if the username does not exist
