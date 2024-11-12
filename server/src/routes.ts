@@ -34,8 +34,11 @@ function initRoutes(app: express.Application) {
     
 
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
+    console.log("doc routes initialized!");
     app.use(`${prefix}/linkDocuments`, linkDocumentRouter.getRouter());
+    console.log("link routes initialized!");
     app.use(`${prefix}/sessions`, authRoutes.getRouter());
+    console.log("auth routes initialized!");
 
     ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");
