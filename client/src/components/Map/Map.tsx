@@ -18,14 +18,14 @@ interface MapProps {
   setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
   fetchDocuments: () => Promise<void>;
   pin: number,
-  setPin: any;
+  setNewPin: any;
   coordMap?: Coordinates;
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
 }
 
-const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents,pin, setPin, fetchDocuments, coordMap, setCoordMap, adding, setAdding }) => {
+const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents,pin, setNewPin, fetchDocuments, coordMap, setCoordMap, adding, setAdding }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const [mapOptions, setMapOptions] = useState<MapOptions>({
@@ -123,6 +123,7 @@ const onMapClick = (e: MapMouseEvent) => {
    <APIProvider
     solutionChannel='GMP_devsite_samples_v3_rgmbasicmap'
     apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
+      <div style={{height: "100vh"}}>
     <Map
       defaultZoom={12}
       defaultCenter={center}
@@ -134,7 +135,7 @@ const onMapClick = (e: MapMouseEvent) => {
       {documents.map((doc) => {
           if (doc.coordinates && doc.coordinates.lat && doc.coordinates.lng) {
             return (
-              <AdvancedMarker position={doc.coordinates} onDragEnd={(e) => handleDrag(e,doc.id)} onClick={()=>{setPin(doc.id)}} >
+              <AdvancedMarker position={doc.coordinates} onDragEnd={(e) => handleDrag(e,doc.id)} onClick={()=>{setNewPin(doc.id)}} >
                 <Pin scale={doc.id != pin ? 1:1.5}/>
                 </AdvancedMarker>
             );
@@ -142,6 +143,7 @@ const onMapClick = (e: MapMouseEvent) => {
           return null; // Return null if coordinates are undefined or incomplete
         })}
     </Map>
+    </div>
   </APIProvider>
   );
 };

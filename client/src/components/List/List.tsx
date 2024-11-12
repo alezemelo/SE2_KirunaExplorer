@@ -1,5 +1,5 @@
 // List.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -82,7 +82,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
-  const[document, setDocument] = useState<any>(0);
+  const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
   const [docExpand, setDocExpand] = useState(0);
   
 
@@ -94,7 +94,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   useEffect(()=>{
     const t = documents.find((doc)=>doc.id==pin)
     if(t){setDocument(t)}
+    //setDocExpand(pin);
   },[pin])
+
 
 
   useEffect(()=> {
@@ -303,9 +305,16 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     closeLinkingDialog()
 
    }
-   
-   
+    
   };
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const itemRefs = useRef<(HTMLElement | null)[]>([]);
+  useEffect(() => {
+    if ( itemRefs.current[pin]) {
+        itemRefs.current[pin].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}, [pin]);
 
   return (
     <div className="container">
@@ -351,11 +360,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       </Dialog>
 
       {/* Scrollable document list */}
-      <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
+      <Box ref={containerRef} className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
         <Grid container spacing={3}>
-          {pin==0 ?  documents.map((document, i) => (
-            <Grid item xs={12} key={i}>
-              <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} onLink={() => openLinkingDialog(document)} />
+          {true ?  documents.map((document, i) => (
+            <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
+              <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} docExpand={docExpand} setDocExpand={setDocExpand} onLink={() => openLinkingDialog(document)} />
             </Grid>
           )): (document!=0?
           <Grid item xs={12} >

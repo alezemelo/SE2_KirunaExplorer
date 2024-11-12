@@ -33,6 +33,8 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
   const handleToggleExpand = () => setExpand(!expand);
 
+
+
   useEffect(() => {
     if (document.coordinates) {
       setLat(document.coordinates.lat.toString());
@@ -98,10 +100,18 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   };
 
   const setPin = (id:number) => {
-    console.log("click"+id)
-    setNewPin(id);
-    setDocExpand(id);
+    if(id==pin){
+      setNewPin(0);
+    }
+    else{
+      console.log("click"+id)
+      setNewPin(id);
+    }
   }
+
+  useEffect(() => {
+    console.log(pin)
+  }, [pin]);
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
     if (event.key === 'Enter') {
@@ -140,13 +150,13 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   };
 
   return (
-    <Card elevation={6} onClick={() => setPin(document.id)} style={{ margin: "20px 0", padding: "10px" }}>
+    <Card elevation={6} onClick={() => setPin(document.id)} style={{ margin: "5px", padding: "5px" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{document.title}
         </Typography>
 
-        {docExpand==0 ? <Box display="flex" flexDirection="column" gap={1}>
+        {pin==document.id ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
           <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date ? dayjs(document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
@@ -249,14 +259,14 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
-          {docExpand==0 && !editDescription && (
+          {pin==document.id && !editDescription && (
             <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={toggleDescription}>
               {showDescription ? "Hide Description" : "Show Description"}
             </Button>
           )}
 
           {/* Link Document or Edit Description Button */}
-          {docExpand ==0 && (!showDescription && !editDescription ? (
+          {pin==document.id && (!showDescription && !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
               Link Document
             </Button>

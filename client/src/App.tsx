@@ -6,8 +6,8 @@ import { Box, Button, CssBaseline, Grid } from "@mui/material";
 import { DocumentType, Coordinates } from "./type"  // Import from types.ts
 import "./App.css";
 import API from "./API";
-
-
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
-  const [pin, setPin] = useState(0);
+  const [pin, setNewPin] = useState(0);
   const [coordMap,setCoordMap] = useState<Coordinates|undefined>(undefined);//coordinates of the point choosen on the map
   const [adding, setAdding] = useState(false);//mode for taking coordinate from map
 
@@ -67,7 +67,7 @@ function App() {
 
   const toggleDocumentList = () => {
     setIsDocumentListOpen((prev) => !prev);
-    setPin(0)
+    setNewPin(0)
   };
 
   return (
@@ -80,28 +80,34 @@ function App() {
           {isDocumentListOpen && (
             <Grid item xs={13} md={4}>
               <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
-               pin={pin} setNewPin={setPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} />
+               pin={pin} setNewPin={setNewPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} />
             </Grid>
           )}
 <Box
       sx={{
-        position: 'relative',  // Imposta il contenitore come riferimento per il posizionamento
-        height: '100vh',  // Imposta l'altezza del contenitore alla finestra
+        position: 'relative', 
+        height: '100vh',  
       }}
     >
       <Button
         sx={{
           position: 'absolute',
-          top: '50%',  // Posiziona il bottone al 50% della sua altezza
-          left: '50%',  // Posiziona il bottone al 50% della larghezza
-          transform: 'translate(-50%, -50%)',  // Centra il bottone esattamente a metà
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(0%, -50%)',  
+          backgroundColor: "white",
+          zIndex: "10",
+          padding: "0",
+          minWidth: "6px",
+          height: "50px"
         }}
+        onClick={toggleDocumentList}
       >
-        Centered Button
+        {isDocumentListOpen?<ChevronLeftIcon />:<ChevronRightIcon/>}
       </Button>
     </Box>
           
-          <Grid item xs={12} md={isDocumentListOpen ? 8 : 12} style={{ height: "100vh" }}>
+          <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
             <Map
               setCoordinates={setCoordinates}
               setBounds={setBounds}
@@ -109,7 +115,7 @@ function App() {
               setDocuments={setDocuments}
               fetchDocuments={fetchDocuments}
               pin={pin}
-              setPin={setPin}
+              setNewPin={setNewPin}
               coordMap={coordMap}
               setCoordMap={setCoordMap}
               adding={adding} setAdding={setAdding}
