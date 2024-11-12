@@ -1,6 +1,6 @@
 import passport from "passport";
 import {Strategy as LocalStrategy} from "passport-local";
-import { User } from "../models/user";
+import { User, UserNoSensitive } from "../models/user";
 import { UserType } from "../models/user";
 import UserDAO from "../rcd/daos/userDAO";
 import express from "express";
@@ -32,7 +32,7 @@ class Authenticator {
         passport.use(new LocalStrategy(async function verify(username: string, password: string, callback: any) {
             //singleton obj userDao is used
             try {
-            const user: User | null = await copyThis.dao.findByCredentials(username, password);
+            const user: UserNoSensitive | null = await copyThis.dao.findByCredentials(username, password);
             if (!user) {
                 return callback(null, false, {message: 'Incorrect username or password'});
             }
@@ -53,7 +53,8 @@ class Authenticator {
                 if (!user) {
                     return callback(null, null);
                 }
-                callback(null, user);
+                const userNoSensitive = new UserNoSensitive(user.username, user.type);
+                callback(null, userNoSensitive);
             } catch (err) {
                 callback(err);
             }
@@ -63,10 +64,13 @@ class Authenticator {
     // logs out the user
     logout(req: any, res: any, next: any) {
         return new Promise((resolve, reject) => {
-            req.logout(() => resolve(null))
-        })
-    }
-
+            req.logout((err: any) => {
+                if (err) return reject(err); 
+                resolve(null);
+            });
+        });
+    } 
+    
     // logs in the user
     login(req: any, res: any, next: any): Promise<User> {
         return new Promise((resolve, reject) => {

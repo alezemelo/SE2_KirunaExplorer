@@ -177,8 +177,12 @@ Allows login for a user with the provided credentials.
   - `username`: a string that must not be empty
   - `password`: a string that must not be empty
   - Example: `{username: "MarioRossi", password: "MarioRossi"}`
+- Response Code:
+  - `200` if successfull
+  - `401` if credentials are wrong
+  - `422` if formatting is wrong
 - Response Body Content: A **User** object that represents the logged in user
-  - Example: `{username: "Mario Rossi", type: "urban_planner", salt: "some_salt", hash: "some_hash"}`
+  - Example: `{username: "Mario Rossi", type: "urban_planner"}`
 - Access Constraints: None
 - Additional Constraints:
   - Returns a 401 error if the username does not exist
@@ -191,6 +195,9 @@ Performs logout for the current user
 Performs logout for the currently logged in user.
 
 - Request Parameters: None
+- Response Code:
+  - `200` if successful
+  - `401` if not logged in before attempting logout
 - Request Body Content: None
 - Response Body Content: None
 - Access Constraints: Can only be called by a logged in User
@@ -201,6 +208,9 @@ Retrieves information about the currently logged in user.
 
 - Request Parameters: None
 - Request Body Content: None
+- Response Code:
+  - `200` if successful
+  - `401` if not logged in before attempting call
 - Response Body Content: A **User** object that represents the logged in user
   - Example: `{username: "Gianni Verdi", type: "resident"}`
 - Access Constraints: Can only be called by a logged in User
