@@ -24,7 +24,7 @@ to build an image, then to run a container from that image, run:
 If you want to add / delete a table, or make changes to fields of a table, navigate with your command line to `server/src/db`,
 then create a new migration file with
 `npx knex migrate:make your_modification_name --knexfile knexfile.ts`
-go to `server/src/db/src/db/migrations` and edit the migration file you just created, you can find examples on how to do it searching "knex migration" online.
+go to `server/src/db/migrations` and edit the migration file you just created, you can find examples on how to do it searching "knex migration" online.
 When you're done, go back to `server/src/db` and run:
 `npx knex migrate:latest --knexfile knexfile.ts`
 if you want to roll back run:
