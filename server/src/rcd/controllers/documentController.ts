@@ -140,6 +140,15 @@ class DocumentController {
             throw error;
         }
     }
+
+    async searchDocuments(query: { title: string }): Promise<Document[]> {
+        try {
+            const docs = await this.dao.searchDocuments(query.title);
+            return docs;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default DocumentController;

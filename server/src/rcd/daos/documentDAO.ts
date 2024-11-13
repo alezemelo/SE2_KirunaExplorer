@@ -51,6 +51,34 @@ class DocumentDAO {
         }
     }
 
+    public async searchDocuments(query: string): Promise<Document[]> {
+        try {
+            // gets readable format of coordinates directly from db instead of hex
+            // if this query does not work, copy the for loop approach used in the method above
+            const param = `%${query}%`;
+            const res = await pgdb.client.query(
+                `SELECT
+                id, title, issuance_date, language, pages, stakeholders, scale, description, type,
+                CASE WHEN coordinates IS NOT NULL
+                    THEN
+                        ST_AsText(ST_GeomFromWKB(coordinates))
+                    ELSE NULL
+                END as coordinates,
+                last_modified_by
+                FROM documents where title ILIKE $1`, [param]);
+            res.rows.map(row => {
+                if (row.coordinates) {
+                    const [long, lat] = row.coordinates.replace("POINT(", "").replace(")", "").split(" ");
+                    row.coordinates = {lat: parseFloat(lat), lng: parseFloat(long)}
+                }
+            })
+            return res.rows;
+       } catch (error) {
+           console.error(error);
+           throw error;
+       }
+    }
+
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
         try {
             const res = await db('documents')

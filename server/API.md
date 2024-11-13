@@ -76,7 +76,7 @@ Edits the coordinates of a document
 ```
 {
   lat: 100,
-  long: 200
+  lng: 200
 }
 ```
 - Response Status code:
