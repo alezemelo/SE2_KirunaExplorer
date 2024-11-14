@@ -99,6 +99,22 @@ class Document {
         };
     }
 
+    copy(): Document {
+        return new Document(
+            this.id,
+            this.title,
+            this.type,
+            this.lastModifiedBy,
+            this.issuanceDate,
+            this.language,
+            this.pages,
+            this.stakeholders,
+            this.scale,
+            this.description,
+            this.coordinates
+        );
+    }
+
     // Setters
     setIssuanceDate(issuanceDate: Dayjs) {
         this.issuanceDate = issuanceDate;
