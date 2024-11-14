@@ -66,12 +66,6 @@ class DocumentDAO {
                 END as coordinates,
                 last_modified_by
                 FROM documents where title ILIKE $1`, [param]);
-            res.rows.map(row => {
-                if (row.coordinates) {
-                    const [long, lat] = row.coordinates.replace("POINT(", "").replace(")", "").split(" ");
-                    row.coordinates = {lat: parseFloat(lat), lng: parseFloat(long)}
-                }
-            })
             return res.rows;
        } catch (error) {
            console.error(error);

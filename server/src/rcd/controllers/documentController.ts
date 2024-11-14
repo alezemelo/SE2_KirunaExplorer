@@ -144,6 +144,12 @@ class DocumentController {
     async searchDocuments(query: { title: string }): Promise<Document[]> {
         try {
             const docs = await this.dao.searchDocuments(query.title);
+            docs.map(doc => {
+                if (doc.coordinates) {
+                    const [long, lat] = doc.coordinates.replace("POINT(", "").replace(")", "").split(" ");
+                    doc.coordinates = {lat: parseFloat(lat), lng: parseFloat(long)}
+                }
+            })
             return docs;
         } catch (error) {
             throw error;
