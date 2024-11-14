@@ -6,6 +6,7 @@ import db from "../db/db";
 import {Document, DocumentType} from "../models/document";
 import { dbEmpty } from "../db/db_common_operations";
 import { Coordinates } from "../models/coordinates";
+import KirunaDate from "../models/kiruna_date";
 
 const complete_doc = new Document(
     15, // ID
@@ -56,7 +57,88 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         await dbEmpty();
     });
 
+    describe("date tests", () => {
+        it("testing the date timezone with Dayjs object", async () => {
+            // Setup
+            await insertAdmin();
+
+            const date1 = dayjs.utc("2023-01-01");
+
+            const my_obj = new Document(
+                15, // ID
+                "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
+                DocumentType.informative_doc, // Type
+                "admin", // Last modified by
+            );
+
+            const doc1: any = my_obj.copy().toObject();
+            doc1.issuance_date = date1;
+            delete doc1.id;
+
+            // Run
+            await db("documents").insert(doc1);
+
+            // Check that the dates are the same
+            const res1 = await db("documents").where({ id: 1 }).first();
+            expect(res1.issuance_date.toISOString()).toBe(date1.toISOString());
+        });
+
+        it("testing the date timezone with ISO string", async () => {
+            // Setup
+            await insertAdmin();
+
+            const date1 = dayjs.utc("2023-01-01");
+            const date2 = dayjs.utc("2023-01-01").toISOString();
+
+            const my_obj = new Document(
+                15, // ID
+                "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
+                DocumentType.informative_doc, // Type
+                "admin", // Last modified by
+            );
+
+            const doc2: any = my_obj.copy().toObject();
+            doc2.issuance_date = date2;
+            delete doc2.id;
+
+            // Run
+            await db("documents").insert(doc2);
+
+            // Check that the dates are the same
+            const res2 = await db("documents").where({ id: 1 }).first();
+            expect(res2.issuance_date.toISOString()).toBe(date1.toISOString());
+        });
+
+        it("testing the date timezone with custom format", async () => {
+            // Setup
+            await insertAdmin();
+
+            const date1 = dayjs.utc("2023-01-01");
+            const date3 = dayjs.utc("2023-01-01").format('YYYY-MM-DDTHH:mm:ss[Z]');
+
+            const my_obj = new Document(
+                15, // ID
+                "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
+                DocumentType.informative_doc, // Type
+                "admin", // Last modified by
+            );
+
+            const doc3: any = my_obj.copy().toObject();
+            doc3.issuance_date = date3;
+            delete doc3.id;
+
+            // Run
+            await db("documents").insert(doc3);
+
+            // Check that the dates are the same
+            const res3 = await db("documents").where({ id: 1 }).first();
+            expect(res3.issuance_date.toISOString()).toBe(date1.toISOString());
+        });
+
+    });
+
     describe("'documents' table", () => {
+
         /* ==================-------------- Success and main constraints tests --------------================== */
         it("should successfully insert a complete document", async () => {
             // Setup
