@@ -19,6 +19,16 @@ Navigate to the project folder and run
 to build an image, then to run a container from that image, run:
 `docker run -d --name kiruna-postgis-container -p 5432:5432 kiruna-postgis-img`
 
+# how to run the backend frontend and database as three connected containers
+(Angelo)
+If it is running, stop the db container from Docker desktop, as it occupies the localhost:5432 socket
+In the root dir of the project, run docker-compose up --build (docker compose is not functioning in macOS out of the box, instructions to fix are here `https://docs.docker.com/compose/install/`).
+This creates the required images in your docker, and automatically runs them.
+You should see a new container in docker desktop, click on it to see that it is split in the individual containers for server, client and db.
+Lastly remember to run the latest migration of the database: since the container for the db is something separate from our usual db container, it's not initialized and needs a migration to get all the tables.
+The three parts of the application running in containers should not be used to develop, they will probably just be used to deliver a functioning product to product owners.
+We can continue developing by running client and server in local, and the db inside the old container, like we did until now.
+
 # I want to modify the db structure
 (Angelo)  
 If you want to add / delete a table, or make changes to fields of a table, navigate with your command line to `server/src/db`,
