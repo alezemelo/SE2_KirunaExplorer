@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app, server } from '../../../index';
 import db from '../../db/db';
 import pgdb from '../../db/temp_db';
-import { dbEmpty } from '../../db/db_common_operations';
+import { dbDisconnect, dbEmpty } from '../../db/db_common_operations';
 
 beforeAll(async () => {
   await dbEmpty();
@@ -28,7 +28,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await dbEmpty();
-  await pgdb.disconnect();
+  await dbDisconnect();
   server.close();
   await db.destroy();
 });
@@ -136,3 +136,113 @@ describe('Authentication Tests', () => {
     });
   });
 });
+
+
+beforeAll(async () => {
+  await dbEmpty(); 
+
+  const users = [
+    { username: 'user1', hash: 'bf2df07b46d6a85cb229c06485763a5900e1a48692ed4963d1992d8bf02dcd1f', salt: '72d8722b20d83733b01e38b0b41798bf', type: 'resident' },
+    { username: 'user2', hash: '39fd45f2d36fa1e9b8b94d651d1c0f938de4f9ef2b4de99582de10a36f061c6e', salt: '94a045007210042ae5333a1d04a0494f', type: 'urban_developer' },
+    { username: 'user3', hash: 'd5a43cfbed4ef660d6449649c2599a35ecd1dcd74d67538a5695fbcb43d2dc8e', salt: '610dbce01d172d82fa4ad2d1005dfc5d', type: 'urban_planner' },
+  ];
+
+  for (const user of users) {
+    await db('users').insert(user);
+  }
+});
+
+afterAll(async () => {
+    try {
+      // Close database connections and cleanup
+      await dbEmpty();
+      await dbDisconnect();
+  
+      
+      await new Promise<void>((resolve, reject) => {
+        server.close((err) => {
+          if (err) {
+            console.error("Error closing server:", err);
+            reject(err);
+          } else {
+            console.log("Server closed successfully.");
+            resolve();
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+    }
+  });
+  
+
+describe('Authentication End-to-End Tests', () => {
+  let sessionCookie:any;
+
+  it('should log in successfully with correct credentials (user1)', async () => {
+    const response = await request(app)
+      .post('/kiruna_explorer/sessions')
+      .send({ username: 'user1', password: 'pass1' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('username', 'user1');
+    expect(response.body).toHaveProperty('type', 'resident');
+    expect(response.headers['set-cookie']).toBeDefined();
+
+    sessionCookie = response.headers['set-cookie'][0]; // Save session cookie
+  });
+
+  it('should return 401 for incorrect credentials (user2)', async () => {
+    const response = await request(app)
+      .post('/kiruna_explorer/sessions')
+      .send({ username: 'user2', password: 'wrongpass' });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('message', 'Incorrect username or password');
+  });
+
+  it('should return 401 for non-existent user', async () => {
+    const response = await request(app)
+      .post('/kiruna_explorer/sessions')
+      .send({ username: 'nonexistentuser', password: 'anyPassword' });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('message', 'Incorrect username or password');
+  });
+
+  it('should get the current user when logged in (user1)', async () => {
+    const response = await request(app)
+      .get('/kiruna_explorer/sessions/current')
+      .set('Cookie', sessionCookie);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('username', 'user1');
+    expect(response.body).toHaveProperty('type', 'resident');
+  });
+
+  it('should return 401 when trying to get current user without logging in', async () => {
+    const response = await request(app)
+      .get('/kiruna_explorer/sessions/current');
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('error', 'Unauthorized');
+  });
+
+  it('should log out successfully when logged in', async () => {
+    const response = await request(app)
+      .delete('/kiruna_explorer/sessions/current')
+      .set('Cookie', sessionCookie);
+
+    expect(response.status).toBe(200);
+  });
+
+  it('should return 401 when trying to log out without being logged in', async () => {
+    const response = await request(app)
+      .delete('/kiruna_explorer/sessions/current');
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('error', 'Unauthorized');
+  });
+});
+
+
