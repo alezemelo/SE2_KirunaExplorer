@@ -35,7 +35,7 @@ const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, set
   const [zoom, setZoom] = useState(12);
   const [open, setOpen] = useState(0);
 
-  const handleApiLoaded = (map: any, maps: any) => {
+  /*const handleApiLoaded = (map: any, maps: any) => {
     setMapOptions({
       fullscreenControl: false,
       mapTypeControl: true,
@@ -50,7 +50,7 @@ const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, set
     setCoordinates({ lat: e.center.lat, lng: e.center.lng });
     setBounds({ ne: e.marginBounds.ne, sw: e.marginBounds.sw });
     setZoom(e.zoom);
-  };
+  };*/
 
   const center = {lat: 67.85766491972178,lng: 20.22771266622486}
 
@@ -125,6 +125,7 @@ const onMapClick = (e: MapMouseEvent) => {
     apiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
       <div style={{height: "100vh"}}>
     <Map
+    mapTypeId="satellite"
       defaultZoom={12}
       defaultCenter={center}
       gestureHandling={'greedy'}

@@ -19,7 +19,7 @@ function App() {
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
   const [pin, setNewPin] = useState(0);
-  const [coordMap,setCoordMap] = useState<Coordinates|undefined>(undefined);//coordinates of the point choosen on the map
+  const [coordMap,setCoordMap] = useState<Coordinates|undefined>(undefined);//coordinates of the point choosen from the map
   const [adding, setAdding] = useState(false);//mode for taking coordinate from map
 
   const fetchDocuments = useCallback(async () => {
@@ -72,15 +72,17 @@ function App() {
 
   return (
     <>
+    <div className="container">
       <CssBaseline />
       <Header onToggleDocumentList={toggleDocumentList} />
-
+      
       <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
         <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
           {isDocumentListOpen && (
             <Grid item xs={13} md={4}>
               <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
-               pin={pin} setNewPin={setNewPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} />
+               pin={pin} setNewPin={setNewPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} 
+               />
             </Grid>
           )}
 <Box
@@ -130,7 +132,8 @@ function App() {
           </Grid>
         </Grid>
       </Grid>
-    </>
+      </div>
+      </>
   );
 }
 
