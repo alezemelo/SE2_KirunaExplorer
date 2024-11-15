@@ -69,6 +69,24 @@ export async function dbEmpty() {
     }
 }
 
+export async function dbDisconnect() {
+    try {
+        // Ensure all pending transactions or connections are released
+        if (knex && knex.destroy) {
+            await knex.destroy();
+            console.log("Knex connection pool closed successfully.");
+        }
+
+        if (db && db.destroy) {
+            await db.destroy();
+            console.log("Database connection closed successfully.");
+        }
+    } catch (error) {
+        console.error("Error disconnecting the database:", error);
+    }
+}
+
+
 
 
 
