@@ -38,7 +38,8 @@ const config: { [key: string]: Knex.Config } = {
   development: {
     client: 'pg',
     connection: {
-      host: '127.0.0.1',
+      //host: '127.0.0.1',
+      host: 'database',
       user: 'postgres',
       password: 'kiruna07',
       database: 'kirunadb',
@@ -51,7 +52,8 @@ const config: { [key: string]: Knex.Config } = {
   test: {
     client: 'pg',
     connection: {
-      host: '127.0.0.1',
+      //host: '127.0.0.1',
+      host: 'database',
       user: 'postgres',
       password: 'kiruna07',
       database: 'kirunadb', // Separate test database

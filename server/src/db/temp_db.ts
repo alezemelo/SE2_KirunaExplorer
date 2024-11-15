@@ -9,7 +9,9 @@ class my_pgDB {
     constructor() {
         this.client = new pg.Client({
             user: 'postgres',
-            host: '127.0.0.1',
+            // "database" instead of 127.0.0.1 to make it work with containers
+            host: 'database',
+            //host: '127.0.0.1',
             database: 'kirunadb',
             password: 'kiruna07',
             port: 5432,
