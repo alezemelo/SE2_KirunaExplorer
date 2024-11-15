@@ -115,7 +115,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
 
   useEffect(()=> {
-    if(coordMap && (adding || updating)){
+    console.log(adding)
+    console.log(updating)
+    if(coordMap && (adding || updating) ){
       setNewDocument((prev)=>{
         return{
           ...prev,
@@ -128,7 +130,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   },[coordMap])
 
 
-  const handleClickOpen = () => setOpen(true);
+  const handleClickOpen = () => {
+    setOpen(true);
+    setAdding(true);
+  };
   const handleClose = () => {
     setOpen(false);
     setUpdating(false);
@@ -165,7 +170,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
   const handleMapCoord = () => {
     setOpen(false);
-    setAdding(true);
+    //setAdding(true);
   }
 
   const handleAddDocument = async () => {
@@ -277,6 +282,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         }
         else{
           await API.addDocument(finalDocument);
+          setAdding(false)
         }
         await fetchDocuments();
   
@@ -349,7 +355,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       <Typography variant="h6">Documents</Typography>
 
       {/* Dialog for Adding New Document */}
-      <Dialog open={open} onClose={handleClose} className="custom-dialog">
+      <Dialog open={open} onClose={handleClose}  className="custom-dialog">
         <DialogTitle>Add a New Document</DialogTitle>
           <DialogContent>
             <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} disabled={updating?true:false} onChange={handleChange} />

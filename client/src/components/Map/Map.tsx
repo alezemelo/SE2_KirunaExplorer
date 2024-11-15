@@ -66,11 +66,12 @@ const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, set
 
 
 const onMapClick = (e: MapMouseEvent) => {
+  console.log(adding)
   if(adding){
     const c={lat: e.detail.latLng?.lat, lng: e.detail.latLng?.lng}
     setCoordMap(c)
     console.log(c);
-    setAdding(false);
+    //setAdding(false);
   }
 }
 
