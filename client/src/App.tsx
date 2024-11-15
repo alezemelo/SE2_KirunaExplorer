@@ -2,11 +2,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
-import { CssBaseline, Grid } from "@mui/material";
+import { Box, Button, CssBaseline, Grid } from "@mui/material";
 import { DocumentType, Coordinates } from "./type"  // Import from types.ts
 import "./App.css";
 import API from "./API";
-
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 
 function App() {
@@ -17,6 +18,9 @@ function App() {
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
+  const [pin, setNewPin] = useState(0);
+  const [coordMap,setCoordMap] = useState<Coordinates|undefined>(undefined);//coordinates of the point choosen from the map
+  const [adding, setAdding] = useState(false);//mode for taking coordinate from map
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -63,20 +67,48 @@ function App() {
 
   const toggleDocumentList = () => {
     setIsDocumentListOpen((prev) => !prev);
+    setNewPin(0)
   };
 
   return (
     <>
+    <div className="container">
       <CssBaseline />
       <Header onToggleDocumentList={toggleDocumentList} />
+      
       <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
         <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
           {isDocumentListOpen && (
-            <Grid item xs={12} md={4}>
-              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments} />
+            <Grid item xs={13} md={4}>
+              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
+               pin={pin} setNewPin={setNewPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} 
+               />
             </Grid>
           )}
-
+<Box
+      sx={{
+        position: 'relative', 
+        height: '100vh',  
+      }}
+    >
+      <Button
+        sx={{
+          position: 'absolute',
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(0%, -50%)',  
+          backgroundColor: "white",
+          zIndex: "10",
+          padding: "0",
+          minWidth: "6px",
+          height: "50px"
+        }}
+        onClick={toggleDocumentList}
+      >
+        {isDocumentListOpen?<ChevronLeftIcon />:<ChevronRightIcon/>}
+      </Button>
+    </Box>
+          
           <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
             <Map
               setCoordinates={setCoordinates}
@@ -84,6 +116,11 @@ function App() {
               coordinates={coordinates}
               setDocuments={setDocuments}
               fetchDocuments={fetchDocuments}
+              pin={pin}
+              setNewPin={setNewPin}
+              coordMap={coordMap}
+              setCoordMap={setCoordMap}
+              adding={adding} setAdding={setAdding}
               documents={documents.map((doc) => ({
                 ...doc,
                 coordinates: {
@@ -95,7 +132,8 @@ function App() {
           </Grid>
         </Grid>
       </Grid>
-    </>
+      </div>
+      </>
   );
 }
 

@@ -49,6 +49,7 @@ async function addDocument(finalDocument: any){
         body: JSON.stringify(finalDocument),
       });
 
+
       if (!response.ok) {
         throw new Error("Error: " + response.statusText);
       }
