@@ -6,4 +6,6 @@ body, #root {
     font-family: Arial, sans-serif; /* Optional: Customize the font */
     height: 100vh; /* Ensure full viewport height */
   }
-  
+  .container{
+    height: 100vh;
+  }
