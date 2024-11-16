@@ -1,0 +1,44 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_HOST_DEV=database
+    depends_on:
+      - database
+    #networks:
+    #  - kiruna-network 
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - RUNNING_ON_DOCKER=true
+    depends_on:
+      - server
+
+  database:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: kiruna07
+      POSTGRES_DB: kirunadb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    #networks:
+    #  - kiruna-network
+
+volumes:
+  postgres_data:
+
+#networks:
+#  kiruna-network:
+#    driver: bridge

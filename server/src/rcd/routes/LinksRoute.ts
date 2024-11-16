@@ -32,7 +32,7 @@ class LinkRouter {
                 res.status(200).json(links);
             })
             .catch((err: any) => {
-                if (err.message === "one of the documents does not exist") {
+                if (err.message === "one of the documents does not exist" || err.message === "you can link only different documents") {
                     return res.status(400).json({ error: err.message }).end(); // Not Found
                 }
                 next(err)
@@ -49,6 +49,9 @@ class LinkRouter {
                 .then((row) => res.status(201).json(row).end())
                 .catch((err: any) => {
                     if (err.message === "one of the documents does not exist") {
+                        return res.status(400).json({ error: err.message }).end(); // Not Found
+                    }
+                    if (err.message === "link already exists") {
                         return res.status(400).json({ error: err.message }).end(); // Not Found
                     }
                     next(err)

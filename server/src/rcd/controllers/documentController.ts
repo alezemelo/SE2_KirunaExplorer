@@ -1,8 +1,11 @@
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
+import { Coordinates } from "../../models/coordinates";
+
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
+
 
 /**
  * Represents a controller for handling document-related operations.
@@ -17,6 +20,58 @@ class DocumentController {
         this.dao = new DocumentDAO();
     }
 
+
+    /**
+     * Adds a new document to the database.
+     * 
+     * @param title - The title of the document.
+     * @param description - The description of the document.
+     * @param coordinates - The coordinates of the document.
+     * @param date - The date of the document.
+     * @returns The ID of the newly added document.
+     * @throws Error for generic errors.
+     * @throws Error if the document could not be added.
+     */
+
+    public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const {
+            title,
+            type,
+            lastModifiedBy,
+            issuanceDate,
+            language,
+            pages,
+            stakeholders,
+            scale,
+            description,
+            coordinates
+        } = req.body;
+
+        // Create a document data object with the necessary fields
+        const documentData = {
+            title,
+            type,
+            lastModifiedBy,
+            issuanceDate,
+            language,
+            pages,
+            stakeholders,
+            scale,
+            description,
+            coordinates,
+        };
+
+        try {
+            // Call DAO to add the document and retrieve the generated document ID
+            const documentId = await this.dao.addDocument(documentData);
+            res.status(201).json({ message: 'Document added successfully', documentId });
+        } catch (error) {
+            console.error('Failed to add document:', error);
+            next(error); // Pass the error to the error-handling middleware
+        }
+    };
+
+
     /**
      * Updates the description of a document. If the old description was empty, this will equate to an insertion. If the new description is empty, this will equate to a clearing.
      * 
@@ -27,9 +82,6 @@ class DocumentController {
      */
     async updateDescription(id: number, description: string): Promise<void> {
         try {
-            console.log("id: ", id);
-            console.log("description: ", description);
-
             const amount_updated = await this.dao.updateDescription(id, description);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
@@ -41,27 +93,18 @@ class DocumentController {
         }
     }
 
-    public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const doc: Document = new Document(
-            req.body.id,
-            req.body.title,
-            req.body.type,
-            req.body.lastModifiedBy,
-            req.body.issuanceDate,
-            req.body.language,
-            req.body.pages,
-            req.body.stakeholders,
-            req.body.scale,
-            req.body.description,
-            req.body.coordinates
-        );
-
+    async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
         try {
-            await this.dao.addDocument(doc);
-            res.status(201).json({ message: 'Document added successfully' });
+            // console.log("id: ", id);
+            // console.log("coordinates: ", coordinates);
+            const amount_updated = await this.dao.updateCoordinates(id, coordinates);
+            if (amount_updated === 0) {
+                throw new DocumentNotFoundError([id]);
+            } 
+            return;
         } catch (error) {
-            console.error('Failed to add document:', error);
-            next(error);
+            console.error("Error in DocumentController - updateCoordinates: ", error);
+            throw error;
         }
     }
 
@@ -81,8 +124,31 @@ class DocumentController {
             if (doc === null) {
                 throw new DocumentNotFoundError([id]);
             }
-            console.log(doc)
             return doc;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getDocuments(): Promise<Document[]> {
+        try {
+            const docs = await this.dao.getDocuments();
+            return docs;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async searchDocuments(query: { title: string }): Promise<Document[]> {
+        try {
+            const docs = await this.dao.searchDocuments(query.title);
+            docs.map(doc => {
+                if (doc.coordinates) {
+                    const [long, lat] = doc.coordinates.replace("POINT(", "").replace(")", "").split(" ");
+                    doc.coordinates = {lat: parseFloat(lat), lng: parseFloat(long)}
+                }
+            })
+            return docs;
         } catch (error) {
             throw error;
         }

@@ -10,12 +10,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.5",
+    "@mui/lab": "^6.0.0-beta.13",
+    "@mui/material": "^6.1.5",
+    "@mui/styles": "^6.1.5",
+    "@react-google-maps/api": "^2.20.3",
+    "@vis.gl/react-google-maps": "^1.4.0",
+    "dayjs": "^1.11.13",
+    "google-map-react": "^2.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0",
     "se-2-main": "file:"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "@types/google-map-react": "^2.1.10",
+    "@types/node": "^22.9.0",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",

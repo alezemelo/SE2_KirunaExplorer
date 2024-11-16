@@ -2,15 +2,16 @@ import { describe, beforeEach, beforeAll, afterAll, test, expect } from "@jest/g
 import request from 'supertest';
 
 import { app, server } from '../../../index';
-import dbpg from '../../db/temp_db';
+import pgdb from '../../db/temp_db';
 import {Document} from '../../models/document';
 
 import DocumentController from '../../rcd/controllers/documentController';
 import DocumentDAO from "../../rcd/daos/documentDAO";
 import { DocumentNotFoundError } from '../../errors/documentErrors';
 
-import temp_emptyDB from "../../db/temp_db_empty";
-import temp_populateDB from "../../db/temp_db_population";
+import { dbEmpty } from '../../db/db_common_operations';
+import { populate } from '../populate_for_some_tests';
+import db from '../../db/db';
 
 describe('update_description Integration Tests', () => {
   let documentDAO: DocumentDAO;
@@ -20,29 +21,26 @@ describe('update_description Integration Tests', () => {
     // Initialize test structures
     documentDAO = new DocumentDAO();
     documentController = new DocumentController();
-
-    // TODO Empty the db
-    await temp_emptyDB();
-    await temp_populateDB();
   });
 
   afterAll(async () => {
-    await temp_emptyDB();
+    await dbEmpty();
 
-    await dbpg.disconnect();
+    await pgdb.disconnect();
     server.close();
+    await db.destroy();
   });
 
   beforeEach(async () => {
-    await temp_emptyDB();
+    await dbEmpty();
   });
 
   // ================================---------------+++++++++++++++++++++-----------------================================
 
   describe('DAO Tests', () => {
-    test('OK successful update', async () => {
+    it('OK successful update', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       const amt = await documentDAO.updateDescription(15, "new description");
@@ -58,9 +56,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('OK successful update with former empty description', async () => {
+    it('OK successful update with former empty description', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
       await documentDAO.updateDescription(15, "");
 
       // Running test target function(s)
@@ -77,9 +75,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('OK successful update emptying the description', async () => {
+    it('OK successful update emptying the description', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       const amt = await documentDAO.updateDescription(15, "");
@@ -95,9 +93,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('ERROR document not found', async () => {
+    it('ERROR document not found', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       const amt = await documentDAO.updateDescription(1, "new description");
@@ -110,9 +108,9 @@ describe('update_description Integration Tests', () => {
   // ================================---------------+++++++++++++++++++++-----------------================================
 
   describe('Controller Tests', () => {
-    test('OK successful update', async () => {
+    it('OK successful update', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       await documentController.updateDescription(15, "new description");
@@ -126,9 +124,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('OK successful update with former empty description', async () => {
+    it('OK successful update with former empty description', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
       await documentDAO.updateDescription(15, "");
       
       // Running test target function(s)
@@ -143,9 +141,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('OK successful update emptying description', async () => {
+    it('OK successful update emptying description', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
       
       // Running test target function(s)
       await documentController.updateDescription(15, "");
@@ -159,9 +157,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('ERROR document not found', async () => {
+    it('ERROR document not found', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
 
       // Running test target function(s)
       await expect(documentController.updateDescription(1, "new description"))
@@ -174,9 +172,9 @@ describe('update_description Integration Tests', () => {
   // ================================---------------+++++++++++++++++++++-----------------================================
 
   describe('Route Tests', () => {
-    test('OK successful update', async () => {
+    it('OK successful update', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
       // TODO login as Urban Planner
 
       // Running test target function
@@ -194,9 +192,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('OK successful update with former empty description', async () => {
+    it('OK successful update with former empty description', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
       await documentDAO.updateDescription(15, "");
       // TODO login as Urban Planner
 
@@ -214,9 +212,9 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('OK successful update emptying description', async () => {
+    it('OK successful update emptying description', async () => {
       // Setting data
-      await temp_populateDB();
+      await populate();
       // TODO login as Urban Planner
 
       // Running test target function
@@ -233,7 +231,7 @@ describe('update_description Integration Tests', () => {
       }
     });
 
-    test('ERROR document not found', async () => {
+    it('ERROR document not found', async () => {
       // Setting data
       // TODO login as Urban Planner
 
@@ -246,7 +244,7 @@ describe('update_description Integration Tests', () => {
       // expect(res.body).toEqual({ message: "Document not found" });
     });
 
-    test('ERROR - Format: invalid id', async () => {
+    it('ERROR - Format: invalid id', async () => {
       // Setting data
       // TODO login as Urban Planner
 
@@ -258,10 +256,10 @@ describe('update_description Integration Tests', () => {
       expect(res.status).toBe(422);
     });
 
-    test('ERROR - Format: invalid description - it has more than 2k chars', async () => {
+    it('ERROR - Format: invalid description - it has more than 2.5k chars', async () => {
       // Setting data
       // TODO login as Urban Planner
-      const more_than_2000_chars = "a".repeat(2001);
+      const more_than_2000_chars = "a".repeat(2501);
 
       // Running test target function
       const res = await request(app).post(`/kiruna_explorer/documents/15/description`)
@@ -272,7 +270,7 @@ describe('update_description Integration Tests', () => {
     });
 
     // // TODO when we have a function db
-    // test('ERRROR - generic', async () => {
+    // it('ERRROR - generic', async () => {
     //   // Setting data
     //   // TODO close db connection
     //   // TODO login as Urban Planner
@@ -286,9 +284,9 @@ describe('update_description Integration Tests', () => {
     // });
 
     // // TODO when we have authentication
-    // test('ERROR - Unauthenticated', async () => {
+    // it('ERROR - Unauthenticated', async () => {
     //   // Setting data
-    //   await temp_populateDB();
+    //   await populate();
 
     //   // Running test target function
     //   const res = await request(app).post('/kiruna_explorer/documents/15/description')

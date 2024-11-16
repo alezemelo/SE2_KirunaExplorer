@@ -1,14 +1,13 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-
 import { Document, DocumentType } from "../../models/document";
 
 const doc_15 = new Document(
   15, // ID
   "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
   DocumentType.informative_doc, // Type
-  "admin", // Last modified by
+  "user1", // Last modified by
 
   dayjs.utc("2005"), // Issuance date
   "Swedish", // Language
@@ -24,14 +23,14 @@ const doc_15 = new Document(
     `value to the population. The municipality views the ` +
     `experience of this survey positively, to the extent ` +
     `that over the years it will propose various consultation opportunities`, // Description
-  undefined // Coordinates
+    undefined // Coordinates
 );
 
 const doc_18 = new Document(
   18, // 1: ID
   "Detail plan for Bolagsomradet Gruvstad spark (18)", // 2: Title
   DocumentType.prescriptive_doc, // 3: Type
-  "admin", // 4: Last modified by
+  "user1", // 4: Last modified by
 
   dayjs.utc("2014-03-17"), // 5: Issuance date
   "Swedish", // 6: Language
@@ -51,7 +50,7 @@ const doc_41 = new Document(
   41, // 1: ID
   "Development Plan (41)", // 2: Title
   DocumentType.design_doc, // 3: Type
-  "admin", // 4: Last modified by
+  "user1", // 4: Last modified by
 
   dayjs.utc("2014-03-17"), // 5: Issuance date
   "Swedish", // 6: Language

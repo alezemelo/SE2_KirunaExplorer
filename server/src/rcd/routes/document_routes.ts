@@ -1,9 +1,12 @@
-import express, { Router } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
 import ErrorHandler from "./helper";
-import { body, param } from "express-validator";
+import { body, param,validationResult, query } from "express-validator";
+import Authenticator from "../../authentication/auth";
+import { UserType } from "../../models/user";
 
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentController from "../controllers/documentController";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 
 /**
  * Represents a class that defines the routes for handling document-related operations.
@@ -15,11 +18,13 @@ class DocumentRoutes {
     private controller: DocumentController;
     private router: Router;
     private errorHandler: ErrorHandler;
+    private authenticator: Authenticator;
 
     /**
      * Constructs a new instance of the DocumentRoutes class.
      */
-    constructor() {
+    constructor(authenticator: Authenticator) {
+        this.authenticator = authenticator;
         this.controller = new DocumentController();
         this.router = express.Router();
         this.errorHandler = new ErrorHandler();
@@ -52,14 +57,44 @@ class DocumentRoutes {
             // TODO remember to enable when there's the authenticator plss
             // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
             // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
+            //this.authenticator.isLoggedIn,
+            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
-            body('description').isString().isLength({ max: 2000 }),
+            body('description').isString().isLength({ max: 2500 }),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.updateDescription(req.params.id, req.body.description)   
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)
                 })
+        );
+
+
+        /*
+        * GET /documents/search
+        * API for searching a doc with a specific title
+        * performs case insensitive search
+        * PLEASE NOTE: DO NOT move this below the GET /documents/:id route,
+        * otherwise the "search" in the url will be matched by the GET /documents/:id route
+        * thanks <3
+        */
+        this.router.get(
+            '/search',
+            query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            this.errorHandler.validateRequest,
+            (req: any, res: any, next: any) => {
+                try {
+                    this.controller.searchDocuments(req.query)
+                        .then((documents: any) => res.status(200).json(documents))
+                        .catch((err: any) => {
+                            console.log("an error while searching for documents!", err);
+                            next(err)
+                        });
+                } catch (error) {
+                    console.error("Unexpected error in /search route:", error);
+                    res.status(500).json({ error: "Internal server error" });
+                }
+            }
         );
 
         /* 
@@ -77,7 +112,7 @@ class DocumentRoutes {
         */
         this.router.get(
             `/:id`,
-            param('id').isInt().toInt(),
+            param('id').isInt().withMessage("id must be an integer").toInt(),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.getDocument(req.params.id)
                 .then((document: any) => res.status(200).json(document))
@@ -85,24 +120,92 @@ class DocumentRoutes {
                     next(err)
                 })
         )
+
+        this.router.get(
+            `/`,
+            (req: any, res: any, next: any) => this.controller.getDocuments()
+                .then((documents: any) => {res.status(200).json(documents)
+                })
+                .catch((err: any) => {
+                    next(err)
+                })
+        )
+
         this.router.post(
             '/',
-    // TODO remember to enable when there's the authenticator plss
-    // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-    // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-    body('id').isInt(),
-    body('title').isString(),
-    body('type').isString(),
-    body('lastModifiedBy').isString(),
-    body('issuanceDate').optional().isISO8601(),
-    body('language').optional().isString(),
-    body('pages').optional().isInt(),
-    body('stakeholders').optional().isString(),
-    body('scale').optional().isString(),
-    body('description').optional().isString(),
-    body('coordinates').optional().isString(),
-    (req: any, res: any, next: any) => this.controller.addDocument(req, res, next)
-);
+            // TODO remember to enable when there's the authenticator plss
+            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
+            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
+
+            body('title').isString(),
+            body('type').isString(),
+            //body('lastModifiedBy').isString(),
+            body('issuanceDate').optional().isISO8601(),
+            body('language').optional().isString(),
+            body('pages').optional().isInt(),
+            body('stakeholders').optional().isString(),
+            body('scale').optional().isString(),
+            body('description').optional().isString(),
+            body('coordinates').optional().custom(coordinates => {
+                if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
+                    console.log("invalid coordinates");
+                    throw new Error('coordinates are not valide.');
+                }
+                return true;
+            }),
+            async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+                const errors = validationResult(req);
+                if (!errors.isEmpty()) {
+                    console.log(errors)
+                    res.status(400).json({ errors: errors.array() });
+                    return;
+                }
+    
+                // Call controller to add the document
+                try {
+                    await this.controller.addDocument(req, res, next);
+                } catch (error) {
+                    next(error);
+                }
+            }
+        );
+
+        /*
+        * PATCH `/documents/:id/coordinates`
+        * Updates the coordinates of a document.
+        */
+        this.router.patch('/:id/coordinates',
+            // TODO: CHECK IF AUTH MIDDLEWARE WORKS
+            //this.authenticator.isLoggedIn,
+            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
+            param('id').isInt().toInt(),
+            body('type').isIn([CoordinatesType.POINT, CoordinatesType.POLYGON, CoordinatesType.MUNICIPALITY]).withMessage('Invalid coordinates type'),
+            body('coords').custom((value, { req }) => {
+                if (req.body.type !== CoordinatesType.MUNICIPALITY) {
+                    if (!value || typeof value.lat !== 'number' || typeof value.long !== 'number') {
+                        throw new Error('Invalid coordinates');
+                    }
+                }
+                return true;
+            }),
+            this.errorHandler.validateRequest,
+            async (req: any, res: any, next: any) => {
+                //TODO: call controller
+                let {type, coords} = req.body;
+                if (type === CoordinatesType.MUNICIPALITY) {
+                    coords = null;
+                } else if (type === CoordinatesType.POINT) {
+                    coords = new Coordinates(type, new CoordinatesAsPoint(coords.lat, coords.long));
+                } else if (type === CoordinatesType.POLYGON) {
+                    coords = new Coordinates(type, new CoordinatesAsPolygon(coords));
+                }
+                this.controller.updateCoordinates(req.params.id, new Coordinates(type, coords))
+                .then(() => res.status(200).end())
+                .catch((err: any) => {
+                    next(err)
+                })
+            }
+        );
     }
 
     /**
