@@ -6,6 +6,7 @@ import { UserType } from "../../models/user";
 
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentController from "../controllers/documentController";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 
 /**
  * Represents a class that defines the routes for handling document-related operations.
@@ -149,13 +150,27 @@ class DocumentRoutes {
             //this.authenticator.isLoggedIn,
             //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
-            body('lat').isFloat().withMessage('Latitude must be a number'),
-            body('lng').isFloat().withMessage('Longitude must be a number'),
+            body('type').isIn([CoordinatesType.POINT, CoordinatesType.POLYGON, CoordinatesType.MUNICIPALITY]).withMessage('Invalid coordinates type'),
+            body('coords').custom((value, { req }) => {
+                if (req.body.type !== CoordinatesType.MUNICIPALITY) {
+                    if (!value || typeof value.lat !== 'number' || typeof value.long !== 'number') {
+                        throw new Error('Invalid coordinates');
+                    }
+                }
+                return true;
+            }),
             this.errorHandler.validateRequest,
             async (req: any, res: any, next: any) => {
                 //TODO: call controller
-                const {lat, lng} = req.body;
-                this.controller.updateCoordinates(req.params.id, {lat, lng})
+                let {type, coords} = req.body;
+                if (type === CoordinatesType.MUNICIPALITY) {
+                    coords = null;
+                } else if (type === CoordinatesType.POINT) {
+                    coords = new Coordinates(type, new CoordinatesAsPoint(coords.lat, coords.long));
+                } else if (type === CoordinatesType.POLYGON) {
+                    coords = new Coordinates(type, new CoordinatesAsPolygon(coords));
+                }
+                this.controller.updateCoordinates(req.params.id, new Coordinates(type, coords))
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)

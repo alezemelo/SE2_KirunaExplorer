@@ -1,13 +1,11 @@
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
+import { Coordinates } from "../../models/coordinates";
+
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
 
-export interface Coordinates {
-    lat: number;
-    lng: number;
-}
 
 /**
  * Represents a controller for handling document-related operations.
@@ -97,8 +95,8 @@ class DocumentController {
 
     async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
         try {
-            console.log("id: ", id);
-            console.log("coordinates: ", coordinates);
+            // console.log("id: ", id);
+            // console.log("coordinates: ", coordinates);
             const amount_updated = await this.dao.updateCoordinates(id, coordinates);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
