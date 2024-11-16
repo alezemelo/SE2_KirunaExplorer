@@ -40,8 +40,11 @@ Creates a new document
     "scale": "1:1000",
     "description": "Document Description",
     "coordinates": {
-      "lat": 59.3293,
-      "long": 18.0686
+      "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
+      "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
+        "lat": 59.3293,
+        "long": 18.0686
+      }
     }
   }
 - Response Status code:
@@ -73,10 +76,13 @@ Edits the coordinates of a document
 
 - Request Parameters: `:id`, the doc id
 - Request Body Content:
-```
+```json
 {
-  lat: 100,
-  lng: 200
+  "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
+  "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
+    "lat": 59.3293,
+    "long": 18.0686
+  }
 }
 ```
 - Response Status code:
@@ -152,19 +158,25 @@ Fetches a `Document` object.
 - **Request Body Content:** `None`
 - **Response Body Content:** a `Document` object
   - **Example:**
-    ```
+    ```json
     {
-      'id': 1,
-      'title': 'Compilation of responses “So what the people of Kiruna think?” (15)',
-      'issuanceDate': '2007-01-01T00:00:00Z',
-      'language': 'Swedish',
-      'pages': ,
-      'stakeholders': 'Kiruna commun/Residents',
-      'scale': 'Text',
-      'description': 'This document is a compilation of the responses to the survey What is ...',
-      'type': 'Informative document',
-      'coordinates': '',
-      'lastModifiedBy': 'user123'
+      "id": 1,
+      "title": "Compilation of responses “So what the people of Kiruna think?” (15)",
+      "issuanceDate": "2007-01-01T00:00:00Z",
+      "language": "Swedish",
+      "pages": ,
+      "stakeholders": "Kiruna commun/Residents",
+      "scale": "Text",
+      "description": "This document is a compilation of the responses to the survey What is ...",
+      "type": "Informative document",
+      "lastModifiedBy": "user123",
+      "coordinates": {
+        "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
+        "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
+          "lat": 59.3293,
+          "long": 18.0686
+        }
+      }
     }
     ```
 - **Access Constraints:** `None`

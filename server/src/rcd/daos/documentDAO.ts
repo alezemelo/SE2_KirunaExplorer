@@ -1,10 +1,10 @@
 import {Client} from 'pg';
 import pgdb from '../../db/temp_db';
-import {Document} from '../../models/document';
-import { Coordinates } from '../controllers/documentController';
 import { dbUpdate } from '../../db/db_common_operations';
-
 import db from '../../db/db';
+
+import {Document} from '../../models/document';
+import {Coordinates, CoordinatesType} from '../../models/coordinates';
 
 class DocumentDAO {
     private db: any;
@@ -19,7 +19,7 @@ class DocumentDAO {
             if (!res) {
                 return null;
             } else {
-                return Document.fromJSON(res);
+                return Document.fromJSON(res, db);
             }
         } catch (error) {
             console.error(error);
@@ -89,13 +89,19 @@ class DocumentDAO {
 
     public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
         try {
-            const lat = newCoordinates.lat;
-            const long = newCoordinates.lng;
-            // console.log(newCoordinates)
-            const coordInfo = `SRID=4326;POINT(${long} ${lat})`;
-            const updatedRows = await dbUpdate('documents', { id: docId }, { coordinates: coordInfo });
-            //const res = await pgdb.client.query('UPDATE documents SET coordinates = $1 WHERE id = $2', [coordInfo, docId]);
-            return updatedRows;
+            let update_count;
+            if (newCoordinates.getType() === CoordinatesType.MUNICIPALITY){
+                update_count = await dbUpdate('documents', {id: docId}, {coordinates_type: CoordinatesType.MUNICIPALITY, coordinates: null});
+            } else {
+                if (newCoordinates.getType() !== CoordinatesType.POINT && newCoordinates.getType() !== CoordinatesType.POLYGON) {
+                    throw new Error("Invalid coordinates type. Shouldn't be possible");
+                }
+                const newType = newCoordinates.getType();
+                const newWktCoords = newCoordinates.toGeographyString();
+                update_count = await dbUpdate('documents', {id: docId}, {coordinates_type: newType, coordinates: newWktCoords});
+            }
+
+            return update_count;
         } catch (error) {
             console.error(error);
             throw error;
