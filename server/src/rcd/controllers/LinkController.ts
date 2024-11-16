@@ -1,20 +1,9 @@
 import { LinksDAO } from "../daos/LinksDAO";
-<<<<<<< HEAD
-=======
 import DocumentDAO from "../daos/documentDAO";
->>>>>>> 1092080c56aa354756e5e26d780183b44becfd98
 import { DocumentLink, LinkType } from "../../models/document";
 
 class LinkController {
     private dao: LinksDAO;
-<<<<<<< HEAD
-
-    constructor() {
-        this.dao = new LinksDAO();
-    }
-
-    async getLinks(id: number): Promise<DocumentLink[]>{
-=======
     private document_dao: DocumentDAO;
 
     constructor() {
@@ -26,7 +15,6 @@ class LinkController {
         if(await this.document_dao.getDocument(id) == null){
             throw new Error("one of the documents does not exist");
         }
->>>>>>> 1092080c56aa354756e5e26d780183b44becfd98
         return this.dao.getLinks(id);
     }
 
@@ -38,7 +26,7 @@ class LinkController {
             throw new Error("one of the documents does not exist");
         }
         return await this.dao.createLink(doc_id1,doc_id2,link_type);
->>>>>>> 1092080c56aa354756e5e26d780183b44becfd98
+
     }
 }
 
