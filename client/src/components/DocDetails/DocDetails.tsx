@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Box, Typography, Card, CardContent, TextField, IconButton } from "@mui/material";
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -15,9 +15,17 @@ interface DocDetailsProps {
   document: DocumentType;
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
+  pin: number;
+  setNewPin: any;
+  /*docExpand?: number;
+  setDocExpand?:any;*/
+  updating: boolean,
+  setUpdating: any;
+  newDocument: any;
+  setNewDocument: any;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments }) => {
+const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, pin, setNewPin/*, docExpand, setDocExpand*/, updating, setUpdating, newDocument, setNewDocument }) => {
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
@@ -28,6 +36,15 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const [expand, setExpand] = useState(false);
 
   const handleToggleExpand = () => setExpand(!expand);
+
+
+
+  useEffect(() => {
+    if (document.coordinates) {
+      setLat(document.coordinates.lat.toString());
+      setLng(document.coordinates.lng.toString());
+    }
+  }, [document.coordinates]);
 
   const connections = document.connection || []; 
   const displayedConnections = expand ? connections : connections.slice(0, 3);
@@ -86,6 +103,20 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
     }
   };
 
+  const setPin = (id:number) => {
+    if(id==pin){
+      setNewPin(0);
+    }
+    else{
+      console.log("click"+id)
+      setNewPin(id);
+    }
+  }
+
+  useEffect(() => {
+    console.log(pin)
+  }, [pin]);
+
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
     if (event.key === 'Enter') {
       handleSaveCoordinates();
@@ -95,15 +126,37 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
-  const toggleDescription = () => setShowDescription(!showDescription);
+  const toggleDescription = (e: React.MouseEvent) => {
+    //setShowDescription(!showDescription);
+    e.stopPropagation();
+    if (document) {
+      setUpdating(true);
+      console.log(updating)
+      const convertedDocument = {
+        id: document.id,
+        title: document.title,
+        stakeholders: document.stakeholders,
+        scale: document.scale,
+        issuanceDate: document.issuance_date,
+        type: document.type,
+        connection: document.connection,
+        language: document.language,
+        pages: document.pages,
+        description: document.description,
+        lat: document.coordinates?.lat,
+        lng: document.coordinates?.lng,
+      };
+      setNewDocument(convertedDocument);
+    }
+  }
   const toggleEditDescription = () => setEditDescription(true);
   const closeEditDescription = () => {
     setEditDescription(false);
     setDescription(document.description)
   }
 
-  const saveDescription = async () => {
-    /*try {
+  /*const saveDescription = async () => {
+    try {
       const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/description`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,20 +169,20 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
       await fetchDocuments();
     } catch (error) {
       console.error("Error:", error);
-    }*/
+    }
    await API.updateDescription(document.id, description);
    setEditDescription(false);
     await fetchDocuments();
-  };
+  };*/
 
   return (
-    <Card elevation={6} style={{ margin: "20px 0", padding: "10px" }}>
+    <Card elevation={6} onClick={() => setPin(document.id)} style={{ margin: "5px", padding: "5px" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{document.title}
         </Typography>
 
-        <Box display="flex" flexDirection="column" gap={1}>
+        {pin==document.id ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
           <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date ? dayjs(document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
@@ -146,6 +199,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
               {editLat ? (
                 <TextField
+                disabled={true}
                   value={lat}
                   onChange={handleLatChange}
                   onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
@@ -172,6 +226,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
               {editLng ? (
                 <TextField
+                disabled={true}
                   value={lng}
                   onChange={handleLngChange}
                   onBlur={() => { setEditLng(false); handleSaveCoordinates(); }}
@@ -193,20 +248,23 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               )}
             </Box>
           </Box>
-        </Box>
+        </Box>: <></>}
 
         {/* Description Section */}
-        {!editDescription && showDescription && (
-          <Typography variant="body2" style={{ marginTop: "10px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
+        {/*!editDescription && showDescription && (
+          <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
             <strong>Description:</strong> {description}
           </Typography>
-        )}
+        )*/}
+        {pin==document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
+            <strong>Description:</strong> {description}
+          </Typography>:<></>}
 
-        {editDescription ? (
+        {/* editDescription ? (
           <>
             <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
             <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
-              {/* Save Button */}
+              { Save Button }
               <Button
                 variant="contained"
                 color="primary"
@@ -216,7 +274,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
                 Save
               </Button>
 
-              {/* Cancel Button */}
+              { Cancel Button }
               <Button
                 variant="contained"
                 color="error"
@@ -227,19 +285,29 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               </Button>
             </Box>
           </>
-        ) : null}
+        ) : null*/}
 
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
-          {!editDescription && (
-            <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={toggleDescription}>
-              {showDescription ? "Hide Description" : "Show Description"}
+          {pin==document.id && /*!editDescription &&*/ (
+            <>
+            <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={(e)=>{
+              e.stopPropagation();
+              toggleDescription(e)}}>
+              {/*showDescription ? "Hide Description" : "Show Description"*/}
+              Edit
             </Button>
+            <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e)=>{
+              e.stopPropagation();
+              onLink()}}>
+            Link Document
+          </Button>
+          </>
           )}
 
           {/* Link Document or Edit Description Button */}
-          {!showDescription && !editDescription ? (
+          {/*pin==document.id && (!showDescription && !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
               Link Document
             </Button>
@@ -247,7 +315,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={toggleEditDescription}>
               Edit Description
             </Button>
-          ) : null}
+          ) : null)*/}
         </Box>
       </CardContent>
     </Card>

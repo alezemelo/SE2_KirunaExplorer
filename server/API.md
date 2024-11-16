@@ -61,7 +61,7 @@ Creates a new document
   - Title and coordinates are required fields
   - May return errors specified in the head of this file
 
-### Explanation:
+#### Explanation:
 1. **Request Body Content**: Specifies the JSON structure expected in the request body when creating a new document.
 2. **Response Status Code**: Lists the possible HTTP status codes returned by the endpoint.
 3. **Response Body Content**: Provides an example of the JSON structure returned in the response body upon successful creation.
@@ -105,6 +105,50 @@ Adds or updates a description for an existing document, the latter being sent th
 - Additional Constraints:
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
   - May return errors specified in the head of this file or any other generic error
+
+#### GET `/kiruna_explorer/documents/search?title=mytitle`
+
+Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
+- Request query: the string to match with the title, it is required.
+  - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
+- Response Body Content: list of matching docs
+  - Example: 
+  ```
+  [
+    {
+      'id': 1,
+      'title': 'Compilation of responses “So what the people of Kiruna think?” (15)',
+      'issuanceDate': '2007-01-01T00:00:00Z',
+      'language': 'Swedish',
+      'pages': ,
+      'stakeholders': 'Kiruna commun/Residents',
+      'scale': 'Text',
+      'description': 'This document is a compilation of the responses to the survey What is ...',
+      'type': 'Informative document',
+      'coordinates': '',
+      'lastModifiedBy': 'user123'
+    },
+    {
+      'id': 2,
+      'title': 'another doc',
+      'issuanceDate': '2007-01-01T00:00:00Z',
+      'language': 'Engglish',
+      'pages': 20,
+      'stakeholders': 'Kiruna commun/Residents',
+      'scale': 'Text',
+      'description': 'desc',
+      'type': 'Informative document',
+      'coordinates': '',
+      'lastModifiedBy': 'user123'
+    },
+  ]
+  ```
+- Response status code:
+  - `200` if successful
+  - `400` if bad format of request
+- Access Constraints: `Urban Planner` only
+
+
 
 #### GET `/kiruna_explorer/documents/:id`
 

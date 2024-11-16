@@ -1,6 +1,6 @@
 import express, { Router, Request, Response, NextFunction } from "express";
 import ErrorHandler from "./helper";
-import { body, param,validationResult } from "express-validator";
+import { body, param,validationResult, query } from "express-validator";
 import Authenticator from "../../authentication/auth";
 import { UserType } from "../../models/user";
 
@@ -69,6 +69,34 @@ class DocumentRoutes {
                 })
         );
 
+
+        /*
+        * GET /documents/search
+        * API for searching a doc with a specific title
+        * performs case insensitive search
+        * PLEASE NOTE: DO NOT move this below the GET /documents/:id route,
+        * otherwise the "search" in the url will be matched by the GET /documents/:id route
+        * thanks <3
+        */
+        this.router.get(
+            '/search',
+            query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            this.errorHandler.validateRequest,
+            (req: any, res: any, next: any) => {
+                try {
+                    this.controller.searchDocuments(req.query)
+                        .then((documents: any) => res.status(200).json(documents))
+                        .catch((err: any) => {
+                            console.log("an error while searching for documents!", err);
+                            next(err)
+                        });
+                } catch (error) {
+                    console.error("Unexpected error in /search route:", error);
+                    res.status(500).json({ error: "Internal server error" });
+                }
+            }
+        );
+
         /* 
         * GET /documents/:id
         * Retrieves a document by its ID.
@@ -84,7 +112,7 @@ class DocumentRoutes {
         */
         this.router.get(
             `/:id`,
-            param('id').isInt().toInt(),
+            param('id').isInt().withMessage("id must be an integer").toInt(),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.getDocument(req.params.id)
                 .then((document: any) => res.status(200).json(document))
@@ -96,7 +124,8 @@ class DocumentRoutes {
         this.router.get(
             `/`,
             (req: any, res: any, next: any) => this.controller.getDocuments()
-                .then((documents: any) => res.status(200).json(documents))
+                .then((documents: any) => {res.status(200).json(documents)
+                })
                 .catch((err: any) => {
                     next(err)
                 })

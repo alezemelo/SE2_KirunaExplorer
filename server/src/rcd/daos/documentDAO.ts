@@ -37,6 +37,7 @@ class DocumentDAO {
                         'SELECT ST_AsText(ST_GeomFromWKB($1::bytea)) as geom_text',
                         [coordinatesHex]
                       );
+                      console.log(c)
                       const [long, lat] = c.rows[0].geom_text.replace("POINT(", "").replace(")", "").split(" ");
                       res.rows[i].coordinates = {
                         lat: parseFloat(lat),
@@ -49,6 +50,28 @@ class DocumentDAO {
             console.error(error);
             throw error;
         }
+    }
+
+    public async searchDocuments(query: string): Promise<Document[]> {
+        try {
+            // gets readable format of coordinates directly from db instead of hex
+            // if this query does not work, copy the for loop approach used in the method above
+            const param = `%${query}%`;
+            const res = await pgdb.client.query(
+                `SELECT
+                id, title, issuance_date, language, pages, stakeholders, scale, description, type,
+                CASE WHEN coordinates IS NOT NULL
+                    THEN
+                        ST_AsText(ST_GeomFromWKB(coordinates))
+                    ELSE NULL
+                END as coordinates,
+                last_modified_by
+                FROM documents where title ILIKE $1`, [param]);
+            return res.rows;
+       } catch (error) {
+           console.error(error);
+           throw error;
+       }
     }
 
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
@@ -107,9 +130,11 @@ class DocumentDAO {
             doc.stakeholders,
             doc.scale,
             doc.description,
-            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lat} ${doc.coordinates.lng})`: null,
+            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lng} ${doc.coordinates.lat})`: null,
             "admin"
         ];
+
+        console.log(doc.coordinates)
 
         try {
             const res = await pgdb.client.query(query, values);
