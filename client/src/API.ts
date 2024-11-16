@@ -1,6 +1,63 @@
+import { User } from "./type";
+async function checkAuth(): Promise<User | null> {
+  try {
+      const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+          },
+      });
+      if (response.ok) {
+          return await response.json(); // Returns user info if logged in
+      } else {
+          throw new Error("User not authenticated");
+      }
+  } catch (error) {
+      console.error("Error checking authentication:", error);
+      return null;
+  }
+}
 
+// Log in the user with username and password
+async function login(username: string, password: string): Promise<User | null> {
+  try {
+      const response = await fetch("http://localhost:3000/kiruna_explorer/sessions", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+      });
 
+      if (!response.ok) throw new Error("Login failed");
 
+      const user: User = await response.json(); // Assuming the backend returns user data upon successful login
+      console.log("Logged in:", user);
+      return user;
+  } catch (error) {
+      console.error("Login error:", error);
+      return null;
+  }
+}
+
+// Log out the user
+async function logout(): Promise<boolean> {
+  try {
+      const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
+          method: "POST",
+      });
+
+      if (response.ok) {
+          console.log("Logged out successfully");
+          return true;
+      } else {
+          throw new Error("Logout failed");
+      }
+  } catch (error) {
+      console.error("Logout error:", error);
+      return false;
+  }
+}
 
 async function getDocuments() {
     const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
@@ -94,7 +151,10 @@ const API = {
     createLink,
     addDocument,
     updateCoordinates,
-    updateDescription
+    updateDescription, 
+    login,
+    logout,
+    checkAuth
 }
 
 export default API 
