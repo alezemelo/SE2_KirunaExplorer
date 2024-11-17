@@ -108,7 +108,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if(updating){
       setOldForm(newDocument);
       setOpen(true);
-      console.log(open)
     }
   },[updating])
 

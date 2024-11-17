@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import './Login.css';
 import { Container, TextField, Button, Grid, Typography, Alert, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import "@fontsource/anton"; // Defaults to weight 400
 import 'animate.css';
+import WebFont from 'webfontloader';
+
+WebFont.load({
+  google: {
+    families: ['Anton', 'sans-serif'], // Anton font loaded
+  },
+});
 
 interface LoginPageProps {
-  login: (credentials: { username: string; password: string }) => void;
+  login: (credentials: { username: string; password: string } ) => void;
   message: { msg: string; type: string } | null;
   setMessage: (message: { msg: string; type: string } | null) => void;
 }
@@ -44,12 +50,11 @@ const Login: React.FC<LoginPageProps> = (props) => {
                 variant="h4"
                 gutterBottom
                 sx={{
-                  fontFamily: '"Anton", sans-serif',
+                  fontFamily: '"Anton", sans-serif', // Updated to use Anton font
                   fontWeight: 400,
-                  fontSize: '2.5rem',
-                  letterSpacing: '0.1em',
+                  fontSize: '3.5rem',
                   lineHeight: 1.2,
-                  color: 'white', // Make "Kiruna" white
+                  color: 'white',
                 }}
               >
                 Kiruna
@@ -57,19 +62,25 @@ const Login: React.FC<LoginPageProps> = (props) => {
             </div>
           </Grid>
 
-          {props.message && (
-            <Grid item>
-              <Alert
-                severity={props.message.type as 'error' | 'info' | 'success' | 'warning'}
-                sx={{ width: '100%', mb: 2 }}
-                onClose={() => props.setMessage(null)}
-              >
-                {props.message.msg}
-              </Alert>
-            </Grid>
-          )}
-
           <Grid item xs={12}>
+            {props.message && props.message.type === 'danger' && (
+              <Grid item xs={12}>
+                <Box
+                  sx={{
+                    mt: 0,
+                    p: 2,
+                    backgroundColor: 'rgba(255, 0, 0, 0.1)', // Light red background
+                    border: '1px solid rgba(255, 0, 0, 0.4)', // Red border
+                    borderRadius: 2,
+                    color: 'red',
+                    textAlign: 'center',
+                  }}
+                >
+                  {props.message.msg}
+                </Box>
+              </Grid>
+            )}
+
             <form onSubmit={handleSubmit}>
               <TextField
                 fullWidth
@@ -91,10 +102,18 @@ const Login: React.FC<LoginPageProps> = (props) => {
                 margin="normal"
                 variant="outlined"
               />
+
               <Box mt={2} display="flex" justifyContent="space-between">
-                <Button variant="contained" color="error" onClick={() => navigate('../')}>
-                  Back
-                </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => {
+                  props.setMessage(null); // Clear the message
+                  navigate('../'); // Navigate back
+                }}
+              >
+                Back
+              </Button>
                 <Button variant="contained" color="success" type="submit">
                   Enter
                 </Button>
@@ -108,6 +127,8 @@ const Login: React.FC<LoginPageProps> = (props) => {
 };
 
 export default Login;
+
+
 
 
 

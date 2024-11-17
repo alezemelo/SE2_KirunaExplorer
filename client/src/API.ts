@@ -3,12 +3,11 @@ async function checkAuth(): Promise<User | null> {
   try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
           method: "GET",
-          headers: {
-              "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Include session cookies
       });
       if (response.ok) {
-          return await response.json(); // Returns user info if logged in
+          return await response.json();
       } else {
           throw new Error("User not authenticated");
       }
@@ -18,20 +17,17 @@ async function checkAuth(): Promise<User | null> {
   }
 }
 
-// Log in the user with username and password
 async function login(username: string, password: string): Promise<User | null> {
   try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/sessions", {
           method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Include session cookies
           body: JSON.stringify({ username, password }),
       });
-
       if (!response.ok) throw new Error("Login failed");
 
-      const user: User = await response.json(); // Assuming the backend returns user data upon successful login
+      const user: User = await response.json();
       console.log("Logged in:", user);
       return user;
   } catch (error) {
@@ -40,11 +36,11 @@ async function login(username: string, password: string): Promise<User | null> {
   }
 }
 
-// Log out the user
 async function logout(): Promise<boolean> {
   try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
-          method: "POST",
+          method: "DELETE",
+          credentials: "include", // Include session cookies
       });
 
       if (response.ok) {
@@ -60,10 +56,15 @@ async function logout(): Promise<boolean> {
 }
 
 async function getDocuments() {
-    const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
-      if (!response.ok) throw new Error("Error fetching documents");
-      return await response.json();
+  const response = await fetch("http://localhost:3000/kiruna_explorer/documents/", {
+      credentials: "include", // Include session cookies
+  });
+  if (!response.ok) throw new Error("Error fetching documents");
+  return await response.json();
 }
+
+
+
 
 async function getLinks(id: number){
     const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${id}`);
@@ -100,7 +101,7 @@ async function createLink(doc_id1: number, doc_id2: number, link_type: string) {
 }
 
 async function addDocument(finalDocument: any){
-    const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
+    const response = await fetch('http://localhost:3000/kiruna_explorer/documents', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalDocument),

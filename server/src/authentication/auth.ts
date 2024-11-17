@@ -26,6 +26,7 @@ class Authenticator {
         this.app.use(passport.initialize()) // Initialize passport
         this.app.use(passport.session()) // Initialize passport session
 
+
         const copyThis = this
 
 // configures local strategy
@@ -43,11 +44,12 @@ class Authenticator {
         }));
 
         passport.serializeUser((user, callback) => {
-            const userInfo = {username: (user as User).username, type: (user as User).type};
+            const userInfo = { username: (user as User).username, type: (user as User).type };
             callback(null, userInfo);
         });
-
-        passport.deserializeUser(async (userInfo: {username: string, type: string}, callback) => {
+        
+        passport.deserializeUser(async (userInfo: { username: string, type: string }, callback) => {
+            console.log("Deserializing user:", userInfo); // Add this log
             try {
                 const user = await this.dao.getUserByUsername(userInfo.username);
                 if (!user) {
@@ -56,6 +58,7 @@ class Authenticator {
                 const userNoSensitive = new UserNoSensitive(user.username, user.type);
                 callback(null, userNoSensitive);
             } catch (err) {
+                console.error("Error in deserializing user:", err); // Add this log
                 callback(err);
             }
         });

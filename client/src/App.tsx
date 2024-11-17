@@ -26,12 +26,10 @@ function App() {
   const [adding, setAdding] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false); 
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [message, setMessage] = useState<{ msg: string; type: string } | null>({ msg: '', type: '' });
   const navigate = useNavigate(); // Use navigate hook
 
 
-
-  // State for login message
-  const [message, setMessage] = useState<{ msg: string; type: string } | null>(null);
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -69,26 +67,68 @@ function App() {
   
   useEffect(() => {
     const checkAuth = async () => {
-      const user = await API.checkAuth(); 
-      setLoggedIn(true);
-      setUser(user || undefined);
+      try {
+        const user = await API.checkAuth();
+        if (user) { // Proceed only if user data is returned
+          setLoggedIn(true);
+          setUser(user);
+          console.log("User authenticated:", user);
+        } else {
+          setLoggedIn(false); // User not authenticated
+          console.log("User not authenticated");
+          setUser(undefined);
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      }
     };
+  
     checkAuth();
   }, []);
+  
+  useEffect(() => {
+    console.log("LoggedIn:", loggedIn);
+  }, [loggedIn]);
+  
 
   // NEW
   const handleLogin = async (credentials:any) => {
     try {
       const user = await API.login(credentials.username, credentials.password);
-      setLoggedIn(true);
-      setUser(user || undefined);
-      navigate("/"); // Redirect to the home page
-      console.log("Logged in:", user?.type);
+      if (user) {
+
+        setLoggedIn(true);
+
+        setUser(user || undefined);
+        setMessage(null);
+        navigate("/"); // Redirect to the home page
+        console.log("Logged in:", user?.type);
+      }else {
+        console.error("Login failed");
+        setMessage({ msg: 'Invalid credentials. Please try again.', type: 'danger' });
+      }
+
     }catch(err) {
-      setMessage({ msg: 'Invalid credentials. Please try again.', type: 'danger' });
-      
+      console.error("An error occurred during login:", err);
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      const success = await API.logout();
+      if (success) {
+        setLoggedIn(false); // Update the loggedIn state
+        setUser(undefined); // Clear the user state
+        navigate("/login"); // Redirect to the login page
+        console.log("Logged out successfully");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (err) {
+      console.error("An error occurred during logout:", err);
+    }
+  };
+  
 
   return (
     <>
@@ -98,7 +138,7 @@ function App() {
           path="/"
           element={
             <div className="container">
-              <Header onToggleDocumentList={toggleDocumentList} />
+              <Header onToggleDocumentList={toggleDocumentList} loggedIn={loggedIn} logOut={handleLogout}/>
               <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
                 {isDocumentListOpen && (
                   <Grid item xs={13} md={4}>
