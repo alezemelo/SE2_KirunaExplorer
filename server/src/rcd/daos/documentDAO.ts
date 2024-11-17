@@ -126,50 +126,61 @@ class DocumentDAO {
         }
     }
 
-    public async addDocument(doc: any): Promise<void> {
-        // console.log("dao")
-        // console.log(doc)
-
+    
+    public async addDocument(doc: any): Promise<number> {
         let coordinates = null;
-        if(doc.coordinates.type==CoordinatesType.POINT){
-            coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(doc.coordinates.coords.lat,doc.coordinates.coords.lng))
+    
+        if (doc.coordinates?.type === 'POINT') {
+            if (!doc.coordinates.coords?.lat || !doc.coordinates.coords?.lng) {
+                throw new Error('Invalid POINT coordinates: lat and lng are required');
+            }
+            coordinates = new Coordinates(
+                CoordinatesType.POINT,
+                new CoordinatesAsPoint(doc.coordinates.coords.lat, doc.coordinates.coords.lng)
+            );
+        } else if (doc.coordinates?.type === 'MUNICIPALITY') {
+            coordinates = new Coordinates(CoordinatesType.MUNICIPALITY, null);
+        } else {
+            throw new Error('Invalid coordinates type');
         }
-        else if(doc.coordinates.type==CoordinatesType.MUNICIPALITY){
-            coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null)
-        }
-
+    
         const query = `
             INSERT INTO documents 
-            ( title, type, issuance_date, language, pages, stakeholders, scale, description,coordinates_type, coordinates, last_modified_by) 
-            VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11)
+            (title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates_type, coordinates, last_modified_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING id;
         `;
         const values = [
             doc.title,
             doc.type,
-            doc.issuanceDate ? doc.issuanceDate : null,
+            doc.issuanceDate || null,
             doc.language,
             doc.pages,
             doc.stakeholders,
             doc.scale,
             doc.description,
-            coordinates?.getType(),
-            coordinates?.getCoords()?.toGeographyString(),
-            doc.lastModifiedBy
+            coordinates.getType(),
+            coordinates.getCoords()?.toGeographyString(),
+            doc.lastModifiedBy,
         ];
-
-        console.log(values)
-
+    
         try {
             const res = await pgdb.client.query(query, values);
             if (res.rowCount !== 1) {
                 throw new Error('Error adding document to the database');
             }
+            return res.rows[0].id;
         } catch (error) {
             console.error('Error adding document to the database:', error);
-            throw new Error('Database Error: Unable to add document');
+            if (error instanceof Error && (error as any).code === 'XX000') {
+                throw new Error('Invalid geometry: Ensure coordinates are valid and formatted correctly.');
+            } else {
+                throw new Error('Database Error: Unable to add document');
+            }
         }
     }
+    
+    
 }
 
 export default DocumentDAO;
