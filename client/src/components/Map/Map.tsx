@@ -2,30 +2,30 @@ import React, { useEffect, useState, useCallback } from "react";
 import  { ChangeEventValue, MapOptions } from "google-map-react";
 import { useMediaQuery } from "@mui/material";
 import DocumentMarker from "./DocMarkers";
-import { DocumentType, Coordinates } from "../../type" // Import from types.ts
 import "./Map.css";
 import {AdvancedMarker, APIProvider, InfoWindow, Map, MapCameraChangedEvent, MapControl, MapMouseEvent, Pin} from "@vis.gl/react-google-maps";
 import API from "../../API";
 import { Padding, Style } from "@mui/icons-material";
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 
 
 
 interface MapProps {
-  setCoordinates: (coordinates: Coordinates) => void;
-  setBounds: (bounds: { ne: Coordinates; sw: Coordinates } | null) => void;
-  coordinates: Coordinates;
-  documents: DocumentType[];
-  setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
+  //setCoordinates: (coordinates: Coordinates) => void;
+  /*setBounds: (bounds: { ne: Coordinates; sw: Coordinates } | null) => void;
+  coordinates: Coordinates;*/
+  documents: any[];
+  //setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
   fetchDocuments: () => Promise<void>;
   pin: number,
   setNewPin: any;
-  coordMap?: Coordinates;
+  //coordMap?: Coordinates;
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
 }
 
-const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, setDocuments, documents,pin, setNewPin, fetchDocuments, coordMap, setCoordMap, adding, setAdding }) => {
+const MyMap: React.FC<MapProps> = ({/* setCoordinates,*//* setBounds, coordinates, setDocuments,*/ documents,pin, setNewPin, fetchDocuments, /*coordMap,*/ setCoordMap, adding, setAdding }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const [mapOptions, setMapOptions] = useState<MapOptions>({
@@ -58,8 +58,8 @@ const MyMap: React.FC<MapProps> = ({ setCoordinates, setBounds, coordinates, set
     const lat = e.latLng?.lat();
     const lng = e.latLng?.lng();
     if (lat !== undefined && lng !== undefined) {
-      setCoordinates({ lat, lng });
-      await API.updateCoordinates(id, lat.toString(), lng.toString())
+      //setCoordinates({ lat, lng });
+      await API.updateCoordinates(id, new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(lat,lng)))
       await fetchDocuments();
     }
   }
@@ -135,9 +135,9 @@ const onMapClick = (e: MapMouseEvent) => {
       mapId="590615088799a724"
     >
       {documents.map((doc) => {
-          if (doc.coordinates && doc.coordinates.lat && doc.coordinates.lng) {
+          if (doc.coordinates.coords && doc.coordinates.coords.lat && doc.coordinates.coords.lng) {
             return (
-              <AdvancedMarker position={doc.coordinates} onDragEnd={(e) => handleDrag(e,doc.id)} onClick={()=>{setNewPin(doc.id)}} >
+              <AdvancedMarker position={doc.coordinates.coords} onDragEnd={(e) => handleDrag(e,doc.id)} onClick={()=>{setNewPin(doc.id)}} >
                 <Pin scale={doc.id != pin ? 1:1.5}/>
                 </AdvancedMarker>
             );

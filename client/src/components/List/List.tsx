@@ -30,21 +30,24 @@ import {
   IconButton,
   createTheme
 } from "@mui/material";
-import { DocumentType } from "../../type";
-import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
+import DocDetails from "../DocDetails/DocDetails";
 import "./List.css";
 import API from "../../API";
 import CloseIcon from '@mui/icons-material/Close';
+import { Document, DocumentType } from "../../models/document";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
+import { CoordinateLocal } from "../../App";
+import { title } from "process";
 
 
 
 interface DocumentListProps {
-  documents: DocumentType[];
-  setDocuments: React.Dispatch<React.SetStateAction<DocumentType[]>>;
+  documents: Document[];
+  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
   fetchDocuments:() => Promise<void>;
   pin: number,
   setNewPin: any;
-  coordMap?: Coordinates;
+  coordMap?: CoordinateLocal|null;
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
@@ -56,34 +59,51 @@ interface DocumentLocal {
   stakeholders: string;
   scale: string;
   issuanceDate: any;
+  lastModifiedBy: string;
   type: string;
   connection: string[];
   language: string;
   pages: number;
   description: string;
-  lat?: number,
-  lng?: number
+  coordinates: any;
 }
 
+
 const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin, coordMap, setCoordMap, adding, setAdding }) => {
+  const reset = () => {
+    /*return new Document(
+      0,
+      "",
+      DocumentType.informative_doc,
+      "admin",
+      undefined,
+      "",
+      1,
+      "",
+      "",
+      "",
+      new Coordinates(CoordinatesType.MUNICIPALITY,null)
+    )*/
+      return {
+        id: 0,
+        title: "",
+        stakeholders: "",
+        scale: "",
+        lastModifiedBy: "admin",
+        issuanceDate: "",
+        type: "informative_doc",
+        connection: [],
+        language: "",
+        pages: 1,
+        description: "",
+        coordinates: null
+      }
+  }
   const [open, setOpen] = useState(false);
-  const [newDocument, setNewDocument] = useState<DocumentLocal>({
-    id: 0,
-    title: "",
-    stakeholders: "",
-    scale: "",
-    issuanceDate: "",
-    type: "informative_doc",
-    connection: [],
-    language: "",
-    pages: 1,
-    description: "",
-    lat: undefined,
-    lng: undefined
-  });
+  const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
 
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
-  const [currentDocument, setCurrentDocument] = useState<DocumentType | null>(null);
+  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
@@ -118,13 +138,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     console.log(adding)
     console.log(updating)
     if(coordMap && (adding || updating) ){
-      setNewDocument((prev)=>{
-        return{
-          ...prev,
-          lat: coordMap?.lat,
-          lng: coordMap?.lng
-        }
-      })
+      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(coordMap.lat,coordMap.lng)))
       setOpen(true);
     }
   },[coordMap])
@@ -137,24 +151,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const handleClose = () => {
     setOpen(false);
     setUpdating(false);
-    setNewDocument({
-      id: 0,
-      title: "",
-      stakeholders: "",
-      scale: "",
-      issuanceDate: "",
-      type: "informative_doc",
-      connection: [],
-      language: "",
-      pages: 1,
-      description: "",
-      lat: undefined,
-      lng: undefined
-    });
+    setNewDocument(reset());
     setErrors([]);
   }
 
-  const openLinkingDialog = (document: DocumentType) => {
+  const openLinkingDialog = (document: Document) => {
     setCurrentDocument(document);
     setOpenLinkDialog(true);
     
@@ -165,8 +166,34 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if(e.target.name=="lat"){
+      setNewDocument({
+        ...newDocument,
+        coordinates: {
+          ...newDocument.coordinates, 
+          coords: {
+            ...newDocument.coordinates?.coords, 
+            lat: e.target.value
+          }
+        }
+      });
+    }
+    else if(e.target.name=="lng"){
+      setNewDocument({
+        ...newDocument,
+        coordinates: {
+          ...newDocument.coordinates, 
+          coords: {
+            ...newDocument.coordinates?.coords, 
+            lng: e.target.value
+          }
+        }
+      });
+  }
+  else {
     setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
-  };
+  }
+}
 
   const handleMapCoord = () => {
     setOpen(false);
@@ -209,10 +236,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
-    if (((!newDocument.lat && newDocument.lng) || (newDocument.lat && !newDocument.lng))) {
+    if (((!newDocument.coordinates.coords.lat && newDocument.coordinates.coords.lng) || (newDocument.coordinates.coords.lat && !newDocument.coordinates.coords.lng))) {
       newErrors.push("Latitude and Longitude must be defined."); 
     }
-    if ((Number(newDocument.lat) < -90 || Number(newDocument.lat) > 90) || (Number(newDocument.lng) < -180 || Number(newDocument.lng) > 180)) {
+    if ((Number(newDocument.coordinates.coords.lat) < -90 || Number(newDocument.coordinates.coords.lat) > 90) || (Number(newDocument.coordinates.coords.lng) < -180 || Number(newDocument.coordinates.coords.lng) > 180)) {
       newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
     }
     /*
@@ -231,7 +258,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       try {
         // Conversione della data
         let date;
-        if(newDocument.issuanceDate == ""){
+        /*if(newDocument.issuanceDate == ""){
           date = undefined;
         }
         else {
@@ -240,24 +267,35 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         setNewDocument(prevDocument => ({
           ...prevDocument,
           issuanceDate: date
-        }));
-  
+        }));*/
+
+        function isValidDocumentType(type: string): type is DocumentType {
+          return Object.values(DocumentType).includes(type as DocumentType);
+      }
+      if(isValidDocumentType(newDocument.type)){
+
+        const latLng = newDocument.coordinates.coords;
+        const coordinates1 = latLng && latLng.lat !== null && latLng.lng !== null
+          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
+          : new Coordinates(CoordinatesType.MUNICIPALITY, null);
+
+
         // Creazione dell'oggetto finale
-        const finalDocument = {
-          id: newDocument.id,
-          title: newDocument.title,
-          stakeholders: newDocument.stakeholders,
-          scale: newDocument.scale,
-          issuanceDate: date,
-          type: newDocument.type,
-          connection: newDocument.connection,
-          language: newDocument.language,
-          pages: Number(newDocument.pages),
-          description: newDocument.description,
-          coordinates: newDocument.lat !== undefined && newDocument.lng !== undefined 
-            ? { lat: Number(newDocument.lat), lng: Number(newDocument.lng) }
-            : undefined 
-        };
+        const finalDocument:Document = new Document(
+          0,
+          newDocument.title,
+          newDocument.type,
+          'admin', //to change when we have cookies
+          dayjs(date),
+          newDocument.language,
+          Number(newDocument.pages),
+          newDocument.stakeholders,
+          newDocument.scale,
+          newDocument.description,
+          coordinates1
+        );
+
+        console.log(finalDocument)
   
         if(updating){
           if(newDocument.description!=oldForm?.description){
@@ -265,8 +303,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
             console.log(newDocument.description)
             console.log("vecchio")
             console.log(oldForm?.description)
-            await API.updateDescription(newDocument.id,newDocument.description);
-            //await fetchDocuments();
+            if(newDocument.description){
+              await API.updateDescription(newDocument.id,newDocument.description);
+              await fetchDocuments();
+            }
             /*setDocuments((prev) => 
               prev.map((doc) => 
                 doc.id == newDocument.id
@@ -275,8 +315,18 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
               )
             );*/
           }
-          if(newDocument.lat && newDocument.lng && (newDocument.lat!=oldForm?.lat || newDocument.lng!=oldForm?.lng)){
-            await API.updateCoordinates(newDocument.id,newDocument.lat.toString(),newDocument.lng?.toString())
+          const latLng = newDocument.coordinates.coords;
+
+          if (
+              latLng?.lat != null && 
+              latLng?.lng != null && 
+              (latLng.lat !== oldForm?.coordinates.coords.lat || 
+               latLng.lng !== oldForm?.coordinates.coords.lng)
+          ) {
+              await API.updateCoordinates(
+                  newDocument.id,
+                  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
+              );
           }
           setUpdating(false);
         }
@@ -287,21 +337,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         await fetchDocuments();
   
         handleClose();
-        setNewDocument({
-          id: 0,
-          title: "",
-          stakeholders: "",
-          scale: "",
-          issuanceDate: "",
-          type: "informative_doc",
-          connection: [],
-          language: "",
-          pages: 1,
-          description: "",
-          lat: undefined,
-          lng: undefined
-        });
-  
+        setNewDocument(reset());
+      }
       } catch (error) {
         console.error("Error:", error);
       }
@@ -394,8 +431,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     </FormControl>
             <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} disabled={updating?true:false} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument?.lat} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument?.lng} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.coordinates && newDocument.coordinates.coords ? newDocument.coordinates.coords.lat : ""}  onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.coordinates && newDocument.coordinates.coords ? newDocument.coordinates.coords.lng : ""}  onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button>
             <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
           </DialogContent>

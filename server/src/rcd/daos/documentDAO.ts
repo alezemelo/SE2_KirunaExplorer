@@ -1,10 +1,11 @@
+
 import {Client} from 'pg';
 import pgdb from '../../db/temp_db';
 import { dbUpdate } from '../../db/db_common_operations';
 import db from '../../db/db';
 
 import {Document} from '../../models/document';
-import {Coordinates, CoordinatesType} from '../../models/coordinates';
+import {Coordinates, CoordinatesAsPoint, CoordinatesType} from '../../models/coordinates';
 
 class DocumentDAO {
     private db: any;
@@ -29,7 +30,7 @@ class DocumentDAO {
 
     public async getDocuments(): Promise<Document[]> {
         try {
-            const res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
+            /*let res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
             for(let i=0;i<res.rows.length;i++){
                 if(res.rows[i].coordinates){
                     const coordinatesHex = Buffer.from(res.rows[i].coordinates, 'hex');
@@ -45,7 +46,15 @@ class DocumentDAO {
                     };
                 }
             }
-            return res.rows;
+            return res.rows;*/
+            let res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
+            let documents:Document[] = []
+            for(let i=0;i<res.rows.length;i++){
+                let doc = await Document.fromJSON(res.rows[i],db)
+                documents.push(doc)
+            }
+   
+            return documents;
         } catch (error) {
             console.error(error);
             throw error;
@@ -56,7 +65,7 @@ class DocumentDAO {
         try {
             // gets readable format of coordinates directly from db instead of hex
             // if this query does not work, copy the for loop approach used in the method above
-            const param = `%${query}%`;
+            /*const param = `%${query}%`;
             const res = await pgdb.client.query(
                 `SELECT
                 id, title, issuance_date, language, pages, stakeholders, scale, description, type,
@@ -67,7 +76,16 @@ class DocumentDAO {
                 END as coordinates,
                 last_modified_by
                 FROM documents where title ILIKE $1`, [param]);
-            return res.rows;
+            return res.rows;*/
+            const param = `%${query}%`;
+            const res = await pgdb.client.query(
+                `SELECT * FROM documents where title ILIKE $1`, [param]);
+                const documents: Document[] = await Promise.all(
+                    res.rows.map(async (doc) => {
+                        return await Document.fromJSON(doc, db);
+                    })
+                );
+            return documents;
        } catch (error) {
            console.error(error);
            throw error;
@@ -112,14 +130,19 @@ class DocumentDAO {
         // console.log("dao")
         // console.log(doc)
 
-
         let coordinates = null;
+        if(doc.coordinates.type==CoordinatesType.POINT){
+            coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(doc.coordinates.coords.lat,doc.coordinates.coords.lng))
+        }
+        else if(doc.coordinates.type==CoordinatesType.MUNICIPALITY){
+            coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null)
+        }
 
         const query = `
             INSERT INTO documents 
-            ( title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates, last_modified_by) 
+            ( title, type, issuance_date, language, pages, stakeholders, scale, description,coordinates_type, coordinates, last_modified_by) 
             VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11)
         `;
         const values = [
             doc.title,
@@ -130,11 +153,12 @@ class DocumentDAO {
             doc.stakeholders,
             doc.scale,
             doc.description,
-            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lng} ${doc.coordinates.lat})`: null,
-            "admin"
+            coordinates?.getType(),
+            coordinates?.getCoords()?.toGeographyString(),
+            doc.lastModifiedBy
         ];
 
-        console.log(doc.coordinates)
+        console.log(values)
 
         try {
             const res = await pgdb.client.query(query, values);

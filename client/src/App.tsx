@@ -3,23 +3,29 @@ import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
-import { DocumentType, Coordinates } from "./type"  // Import from types.ts
+import { Coordinates } from "./models/coordinates"
 import "./App.css";
 import API from "./API";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { Document } from "./models/document";
 
+export interface CoordinateLocal {
+  lat: number,
+  lng: number
+}
 
 function App() {
-  const [coordinates, setCoordinates] = useState<Coordinates>({
+
+  const [coordinates, setCoordinates] = useState<CoordinateLocal>({
     lat: 67.85572,
     lng: 20.22513,
   });
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
-  const [documents, setDocuments] = useState<DocumentType[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
   const [pin, setNewPin] = useState(0);
-  const [coordMap,setCoordMap] = useState<Coordinates|undefined>(undefined);//coordinates of the point choosen from the map
+  const [coordMap,setCoordMap] = useState<CoordinateLocal|null>(null);//coordinates of the point choosen from the map
   const [adding, setAdding] = useState(false);//mode for taking coordinate from map
 
   const fetchDocuments = useCallback(async () => {
@@ -27,7 +33,7 @@ function App() {
       /*const response = await fetch("http://localhost:3000/kiruna_explorer/documents/");
       if (!response.ok) throw new Error("Error fetching documents");
       const data = await response.json();*/
-      const data = await API.getDocuments();
+      const data:Document[] = await API.getDocuments();
 
       for (let i = 0; i < data.length; i++) {
         /*const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
@@ -49,7 +55,6 @@ function App() {
         }
         data[i].connection = c;
       }
-
       setDocuments(data);
       console.log("Documents fetched:", data);
     } catch (error) {
@@ -111,23 +116,17 @@ function App() {
           
           <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
             <Map
-              setCoordinates={setCoordinates}
-              setBounds={setBounds}
-              coordinates={coordinates}
-              setDocuments={setDocuments}
+              //setCoordinates={setCoordinates}
+              //setBounds={setBounds}
+              //coordinates={coordinates}
+              //setDocuments={setDocuments}
               fetchDocuments={fetchDocuments}
               pin={pin}
               setNewPin={setNewPin}
-              coordMap={coordMap}
+              //coordMap={coordMap}
               setCoordMap={setCoordMap}
               adding={adding} setAdding={setAdding}
-              documents={documents.map((doc) => ({
-                ...doc,
-                coordinates: {
-                  lat: doc.coordinates?.lat ?? 0,
-                  lng: doc.coordinates?.lng ?? 0,
-                },
-              }))}
+              documents={documents}
             />
           </Grid>
         </Grid>

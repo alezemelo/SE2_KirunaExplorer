@@ -146,13 +146,13 @@ class DocumentRoutes {
             body('stakeholders').optional().isString(),
             body('scale').optional().isString(),
             body('description').optional().isString(),
-            body('coordinates').optional().custom(coordinates => {
+            /*body('coordinates').optional().custom(coordinates => {
                 if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
                     console.log("invalid coordinates");
                     throw new Error('coordinates are not valide.');
                 }
                 return true;
-            }),
+            }),*/
             async (req: Request, res: Response, next: NextFunction): Promise<void> => {
                 const errors = validationResult(req);
                 if (!errors.isEmpty()) {
@@ -182,7 +182,7 @@ class DocumentRoutes {
             body('type').isIn([CoordinatesType.POINT, CoordinatesType.POLYGON, CoordinatesType.MUNICIPALITY]).withMessage('Invalid coordinates type'),
             body('coords').custom((value, { req }) => {
                 if (req.body.type !== CoordinatesType.MUNICIPALITY) {
-                    if (!value || typeof value.lat !== 'number' || typeof value.long !== 'number') {
+                    if (!value || typeof value.lat !== 'number' || typeof value.lng !== 'number') {
                         throw new Error('Invalid coordinates');
                     }
                 }
@@ -195,11 +195,11 @@ class DocumentRoutes {
                 if (type === CoordinatesType.MUNICIPALITY) {
                     coords = null;
                 } else if (type === CoordinatesType.POINT) {
-                    coords = new Coordinates(type, new CoordinatesAsPoint(coords.lat, coords.long));
+                    coords = new CoordinatesAsPoint(coords.lat, coords.lng);
                 } else if (type === CoordinatesType.POLYGON) {
-                    coords = new Coordinates(type, new CoordinatesAsPolygon(coords));
+                    coords = new CoordinatesAsPolygon(coords);
                 }
-                this.controller.updateCoordinates(req.params.id, new Coordinates(type, coords))
+                this.controller.updateCoordinates(req.params.id, new Coordinates(type,coords))
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)

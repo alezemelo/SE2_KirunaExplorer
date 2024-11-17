@@ -1,7 +1,7 @@
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
-import { Coordinates } from "../../models/coordinates";
+import { Coordinates, CoordinatesAsPoint } from "../../models/coordinates";
 
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
@@ -35,6 +35,7 @@ class DocumentController {
 
     public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
         const {
+            id,
             title,
             type,
             lastModifiedBy,
@@ -48,7 +49,8 @@ class DocumentController {
         } = req.body;
 
         // Create a document data object with the necessary fields
-        const documentData = {
+        const documentData = new Document(
+            id,
             title,
             type,
             lastModifiedBy,
@@ -59,7 +61,7 @@ class DocumentController {
             scale,
             description,
             coordinates,
-        };
+        );
 
         try {
             // Call DAO to add the document and retrieve the generated document ID
@@ -97,6 +99,7 @@ class DocumentController {
         try {
             // console.log("id: ", id);
             // console.log("coordinates: ", coordinates);
+            console.log(coordinates)
             const amount_updated = await this.dao.updateCoordinates(id, coordinates);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
@@ -141,13 +144,15 @@ class DocumentController {
 
     async searchDocuments(query: { title: string }): Promise<Document[]> {
         try {
-            const docs = await this.dao.searchDocuments(query.title);
+            /*const docs = await this.dao.searchDocuments(query.title);
             docs.map(doc => {
                 if (doc.coordinates) {
                     const [long, lat] = doc.coordinates.replace("POINT(", "").replace(")", "").split(" ");
                     doc.coordinates = {lat: parseFloat(lat), lng: parseFloat(long)}
                 }
             })
+            return docs;*/
+            const docs = await this.dao.searchDocuments(query.title);
             return docs;
         } catch (error) {
             throw error;

@@ -1,4 +1,4 @@
-export interface Coordinates {
+/*export interface Coordinates {
     lat: number;
     lng: number;
   }
@@ -15,5 +15,5 @@ export interface Coordinates {
     pages: number;
     description: string;
     coordinates?: Coordinates;
-  }
+  }*/
   

@@ -3,16 +3,14 @@ import { Button, Box, Typography, Card, CardContent, TextField, IconButton } fro
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import dayjs from "dayjs";
-import { DocumentType } from "../../type";
+import { Document } from "../../models/document";
 import API from "../../API";
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 
-export interface Coordinates {
-  lat: number;
-  lng: number;
-}
+
 
 interface DocDetailsProps {
-  document: DocumentType;
+  document: any;
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
   pin: number;
@@ -31,23 +29,34 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   const [editLat, setEditLat] = useState(false);
   const [editLng, setEditLng] = useState(false);
   const [description, setDescription] = useState(document.description);
-  const [lat, setLat] = useState<string>(document.coordinates?.lat.toString() || '');
-  const [lng, setLng] = useState<string>(document.coordinates?.lng.toString() || '');
+  const [lat, setLat] = useState<string>('');
+  const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
 
   const handleToggleExpand = () => setExpand(!expand);
 
+  useEffect(()=>{
+    if(document.coordinates.type==CoordinatesType.POINT){
+      const s = document.coordinates.coords;
+      if(s){
+        setLat(s.lat);
+        setLng(s.lng);
+      }
+    }
+  });
 
 
-  useEffect(() => {
+
+
+  /*useEffect(() => {
     if (document.coordinates) {
       setLat(document.coordinates.lat.toString());
       setLng(document.coordinates.lng.toString());
     }
-  }, [document.coordinates]);
+  }, [document.coordinates]);*/
 
-  const connections = document.connection || []; 
-  const displayedConnections = expand ? connections : connections.slice(0, 3);
+  //const connections = document.connection || []; 
+  //const displayedConnections = expand ? connections : connections.slice(0, 3);
 
   const renderConnections = () => (
     <Box marginTop={1}>
@@ -55,7 +64,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         <strong>Connections:</strong>
       </Typography>
       <Box display="flex" flexDirection="column" marginTop={1}>
-        {connections.length > 0 ? (
+        {/*connections.length > 0 ? (
           displayedConnections.map((conn, index) => (
             <Typography key={index} variant="body2">
               {conn}
@@ -65,43 +74,30 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
           <Typography variant="body2" color="textSecondary">
             No connections available.
           </Typography>
-        )}
+        )*/}
 
-        {connections.length > 3 && (
+        {/*connections.length > 3 && (
           <IconButton onClick={handleToggleExpand} aria-label="expand">
             {expand ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
           </IconButton>
-        )}
+        )*/}
       </Box>
     </Box>
   );
 
-  const handleLatChange = (event: React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
-  const handleLngChange = (event: React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);
+  /*const handleLatChange = (event: React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
+  const handleLngChange = (event: React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);*/
 
-  const handleSaveCoordinates = async () => {
+  /*const handleSaveCoordinates = async () => {
     if(lat && lng){
       if (Number(lat) < -90 || Number(lat) > 90 || Number(lng) < -180 || Number(lng) > 180) {
         console.error("Invalid coordinates");
       } else {
-        /*try {
-          const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
-          });
-
-          if (!response.ok) throw new Error("Error: " + response.statusText);
-          
-          await fetchDocuments();
-        } catch (error) {
-          console.error("Error:", error);
-        }*/
        await API.updateCoordinates(document.id, lat, lng)
        await fetchDocuments();
       }
     }
-  };
+  };*/
 
   const setPin = (id:number) => {
     if(id==pin){
@@ -117,13 +113,13 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
     console.log(pin)
   }, [pin]);
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
+  /*const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
     if (event.key === 'Enter') {
       handleSaveCoordinates();
       if (field === "lat") setEditLat(false);
       if (field === "lng") setEditLng(false);
     }
-  };
+  };*/
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
   const toggleDescription = (e: React.MouseEvent) => {
@@ -132,21 +128,28 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
     if (document) {
       setUpdating(true);
       console.log(updating)
-      const convertedDocument = {
-        id: document.id,
-        title: document.title,
-        stakeholders: document.stakeholders,
-        scale: document.scale,
-        issuanceDate: document.issuance_date,
-        type: document.type,
-        connection: document.connection,
-        language: document.language,
-        pages: document.pages,
-        description: document.description,
-        lat: document.coordinates?.lat,
-        lng: document.coordinates?.lng,
-      };
-      setNewDocument(convertedDocument);
+      /*const convertedDocument = new Document(
+        document.id,
+        document.title,
+        document.type,
+        document.lastModifiedBy,
+        document.issuanceDate,
+        document.language,
+        document.pages,
+        document.stakeholders,
+        document.scale,
+        document.description,
+        document.coordinates
+      );*/
+      if(!document.coordinates){
+        document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
+      }
+      else{
+        if (document.coordinates.coords.length<=2){
+          document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(document.coordinates.coords.lan,document.coordinates.coords.lng));
+        }
+      }
+      setNewDocument(document);
     }
   }
   const toggleEditDescription = () => setEditDescription(true);
@@ -185,7 +188,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         {pin==document.id ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date ? dayjs(document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
+          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuanceDate ? document.issuanceDate.toString() : ""}</Typography>
           <Typography variant="body2"><strong>Type:</strong> {document.type}</Typography>
           
           {renderConnections()}
@@ -200,10 +203,10 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               {editLat ? (
                 <TextField
                 disabled={true}
-                  value={lat}
+                  /*value={lat}
                   onChange={handleLatChange}
                   onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}*/
                   autoFocus
                   variant="outlined"
                   size="small"
@@ -216,7 +219,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
                   style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
                   onClick={() => setEditLat(true)}
                 >
-                  {lat || "Enter latitude"}
+                  {/*lat || "Enter latitude"*/lat?lat:''}
                 </Typography>
               )}
             </Box>
@@ -227,10 +230,10 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
               {editLng ? (
                 <TextField
                 disabled={true}
-                  value={lng}
+                  /*value={lng}
                   onChange={handleLngChange}
                   onBlur={() => { setEditLng(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lng")}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lng")}*/
                   autoFocus
                   variant="outlined"
                   size="small"
@@ -243,7 +246,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
                   style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
                   onClick={() => setEditLng(true)}
                 >
-                  {lng || "Enter longitude"}
+                  {/*lng || "Enter longitude"*/lng?lng:''}
                 </Typography>
               )}
             </Box>

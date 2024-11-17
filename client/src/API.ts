@@ -1,3 +1,4 @@
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "./models/coordinates";
 
 
 
@@ -57,12 +58,12 @@ async function addDocument(finalDocument: any){
       console.log("res:", result);
 }
 
-async function updateCoordinates(id: number, lat: string, lng: string) {
+async function updateCoordinates(id: number, coordinates: Coordinates) {
     try {
         const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${id}/coordinates`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
+          body: JSON.stringify(coordinates),
         });
 
         if (!response.ok) throw new Error("Error: " + response.statusText);
