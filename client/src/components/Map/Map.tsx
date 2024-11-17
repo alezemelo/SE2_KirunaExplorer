@@ -23,9 +23,10 @@ interface MapProps {
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
+  updating:boolean;
 }
 
-const MyMap: React.FC<MapProps> = ({/* setCoordinates,*//* setBounds, coordinates, setDocuments,*/ documents,pin, setNewPin, fetchDocuments, /*coordMap,*/ setCoordMap, adding, setAdding }) => {
+const MyMap: React.FC<MapProps> = ({/* setCoordinates,*//* setBounds, coordinates, setDocuments,*/ documents,pin, setNewPin, fetchDocuments, /*coordMap,*/ setCoordMap, adding, setAdding, updating }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const [mapOptions, setMapOptions] = useState<MapOptions>({
@@ -67,7 +68,7 @@ const MyMap: React.FC<MapProps> = ({/* setCoordinates,*//* setBounds, coordinate
 
 const onMapClick = (e: MapMouseEvent) => {
   console.log(adding)
-  if(adding){
+  if(adding || updating){
     const c={lat: e.detail.latLng?.lat, lng: e.detail.latLng?.lng}
     setCoordMap(c)
     console.log(c);

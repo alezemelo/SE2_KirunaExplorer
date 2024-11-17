@@ -27,6 +27,7 @@ function App() {
   const [pin, setNewPin] = useState(0);
   const [coordMap,setCoordMap] = useState<CoordinateLocal|null>(null);//coordinates of the point choosen from the map
   const [adding, setAdding] = useState(false);//mode for taking coordinate from map
+  const [updating, setUpdating] = useState(false);//mode for taking coordinate from map for updating
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -87,6 +88,7 @@ function App() {
             <Grid item xs={13} md={4}>
               <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
                pin={pin} setNewPin={setNewPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} 
+               updating={updating} setUpdating={setUpdating}
                />
             </Grid>
           )}
@@ -127,6 +129,7 @@ function App() {
               setCoordMap={setCoordMap}
               adding={adding} setAdding={setAdding}
               documents={documents}
+              updating={updating}
             />
           </Grid>
         </Grid>

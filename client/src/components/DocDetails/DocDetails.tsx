@@ -55,8 +55,8 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
     }
   }, [document.coordinates]);*/
 
-  //const connections = document.connection || []; 
-  //const displayedConnections = expand ? connections : connections.slice(0, 3);
+  const connections = document.connection || []; 
+  const displayedConnections = expand ? connections : connections.slice(0, 3);
 
   const renderConnections = () => (
     <Box marginTop={1}>
@@ -64,17 +64,17 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         <strong>Connections:</strong>
       </Typography>
       <Box display="flex" flexDirection="column" marginTop={1}>
-        {/*connections.length > 0 ? (
-          displayedConnections.map((conn, index) => (
+        {connections.length > 0 ? (
+           displayedConnections.map((conn: string, index: number) => (
             <Typography key={index} variant="body2">
               {conn}
-            </Typography> 
+            </Typography>
           ))
         ) : (
           <Typography variant="body2" color="textSecondary">
             No connections available.
           </Typography>
-        )*/}
+        )}
 
         {/*connections.length > 3 && (
           <IconButton onClick={handleToggleExpand} aria-label="expand">
@@ -145,8 +145,8 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       }
       else{
-        if (document.coordinates.coords.length<=2){
-          document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(document.coordinates.coords.lan,document.coordinates.coords.lng));
+        if (document.coordinates.coords){
+          document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(document.coordinates.coords.lat,document.coordinates.coords.lng));
         }
       }
       setNewDocument(document);

@@ -51,6 +51,8 @@ interface DocumentListProps {
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
+  updating:boolean;
+  setUpdating:any;
 }
 
 interface DocumentLocal {
@@ -69,7 +71,7 @@ interface DocumentLocal {
 }
 
 
-const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin, coordMap, setCoordMap, adding, setAdding }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin, coordMap, setCoordMap, adding, setAdding,updating,setUpdating }) => {
   const reset = () => {
     /*return new Document(
       0,
@@ -108,7 +110,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
-  const [updating, setUpdating] = useState(false);
+  
   //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
   //const [docExpand, setDocExpand] = useState(0);
   
@@ -319,13 +321,13 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
           if (
               latLng?.lat != null && 
-              latLng?.lng != null && 
+              latLng?.lng != null /*&& 
               (latLng.lat !== oldForm?.coordinates.coords.lat || 
-               latLng.lng !== oldForm?.coordinates.coords.lng)
+               latLng.lng !== oldForm?.coordinates.coords.lng)*/
           ) {
               await API.updateCoordinates(
                   newDocument.id,
-                  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
+                  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng.lat), Number(latLng.lng)))
               );
           }
           setUpdating(false);
