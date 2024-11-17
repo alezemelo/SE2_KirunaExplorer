@@ -133,42 +133,91 @@ class DocumentRoutes {
 
         this.router.post(
             '/',
-            // TODO remember to enable when there's the authenticator plss
-            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-
-            body('title').isString(),
-            body('type').isString(),
-            //body('lastModifiedBy').isString(),
-            body('issuanceDate').optional().isISO8601(),
-            body('language').optional().isString(),
-            body('pages').optional().isInt(),
-            body('stakeholders').optional().isString(),
-            body('scale').optional().isString(),
-            body('description').optional().isString(),
-            /*body('coordinates').optional().custom(coordinates => {
-                if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
-                    console.log("invalid coordinates");
-                    throw new Error('coordinates are not valide.');
-                }
-                return true;
-            }),*/
+            body('title')
+                .isString()
+                .withMessage('Title must be a string')
+                .notEmpty()
+                .withMessage('Title is required'),
+            body('type')
+                .isString()
+                .withMessage('Type must be a string'),
+            body('lastModifiedBy')
+                .isString()
+                .withMessage('Last modified by must be a string')
+                .notEmpty()
+                .withMessage('Last modified by is required'),
+            body('issuanceDate')
+                .optional()
+                .isISO8601()
+                .withMessage('Issuance date must be a valid ISO8601 date'),
+            body('language')
+                .optional()
+                .isString()
+                .withMessage('Language must be a string'),
+            body('pages')
+                .optional()
+                .isInt()
+                .withMessage('Pages must be an integer'),
+            body('stakeholders')
+                .optional()
+                .isString()
+                .withMessage('Stakeholders must be a string'),
+            body('scale')
+                .optional()
+                .isString()
+                .withMessage('Scale must be a string'),
+            body('description')
+                .optional()
+                .isString()
+                .withMessage('Description must be a string'),
+            body('coordinates')
+                .optional()
+                .custom((coordinates) => {
+                    if (!coordinates.type) {
+                        throw new Error('Coordinates type is required');
+                    }
+                    if (coordinates.type === 'POINT') {
+                        if (
+                            !coordinates.coords ||
+                            typeof coordinates.coords.lat !== 'number' ||
+                            typeof coordinates.coords.lng !== 'number'
+                        ) {
+                            throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
+                        }
+                    } else if (coordinates.type !== 'MUNICIPALITY') {
+                        throw new Error('Invalid coordinates type');
+                    }
+                    return true;
+                }),
             async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+                // Handle validation errors
                 const errors = validationResult(req);
                 if (!errors.isEmpty()) {
-                    console.log(errors)
+                    console.log('Validation Errors:', errors.array());
                     res.status(400).json({ errors: errors.array() });
                     return;
                 }
-    
-                // Call controller to add the document
+        
+                // Call controller to process the request
                 try {
                     await this.controller.addDocument(req, res, next);
                 } catch (error) {
-                    next(error);
+                    console.error('Unexpected Error:', error);
+        
+                    // Check if it's a database error
+                    if ((error as any).code === 'XX000') {
+                        res.status(400).json({
+                            error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.',
+                        });
+                    } else {
+                        res.status(500).json({
+                            error: 'Internal Server Error',
+                        });
+                    }
                 }
             }
         );
+        
 
         /*
         * PATCH `/documents/:id/coordinates`

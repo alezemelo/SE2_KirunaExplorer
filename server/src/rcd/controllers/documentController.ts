@@ -45,10 +45,9 @@ class DocumentController {
             stakeholders,
             scale,
             description,
-            coordinates
+            coordinates,
         } = req.body;
-
-        // Create a document data object with the necessary fields
+    
         const documentData = new Document(
             id,
             title,
@@ -60,18 +59,24 @@ class DocumentController {
             stakeholders,
             scale,
             description,
-            coordinates,
+            coordinates
         );
-
+    
         try {
-            // Call DAO to add the document and retrieve the generated document ID
             const documentId = await this.dao.addDocument(documentData);
             res.status(201).json({ message: 'Document added successfully', documentId });
         } catch (error) {
             console.error('Failed to add document:', error);
-            next(error); // Pass the error to the error-handling middleware
+            if (error instanceof Error && error.message.includes('Invalid geometry')) {
+                res.status(400).json({ error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.' });
+            } else if (error instanceof Error && error.message.includes('Invalid coordinates type')) {
+                res.status(400).json({ error: 'Unsupported or invalid coordinates type' });
+            } else {
+                next(error);
+            }
         }
-    };
+    }
+    
 
 
     /**
