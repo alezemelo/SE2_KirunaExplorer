@@ -31,15 +31,15 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [editLat, setEditLat] = useState(false);
   const [editLng, setEditLng] = useState(false);
   const [description, setDescription] = useState(props.document.description);
-  const [lat, setLat] = useState<string>(props.document.coordinates?.lat.toString() || '');
-  const [lng, setLng] = useState<string>(props.document.coordinates?.lng.toString() || '');
+  const [lat, setLat] = useState<string>('');
+  const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
 
   const handleToggleExpand = () => setExpand(!expand);
 
   useEffect(()=>{
-    if(document.coordinates.type==CoordinatesType.POINT){
-      const s = document.coordinates.coords;
+    if(props.document.coordinates.type==CoordinatesType.POINT){
+      const s = props.document.coordinates.coords;
       if(s){
         setLat(s.lat);
         setLng(s.lng);
@@ -50,12 +50,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
 
 
 
-  /*useEffect(() => {
-    if (document.coordinates) {
-      setLat(document.coordinates.lat.toString());
-      setLng(document.coordinates.lng.toString());
-    }
-  }, [props.document.coordinates]);
+
 
   const connections = props.document.connection || []; 
   const displayedConnections = expand ? connections : connections.slice(0, 3);
@@ -83,9 +78,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             {expand ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
           </IconButton>
         )*/}
-      </Box>
-    </Box>
-  );
+        </Box>
+        </Box>
+      );
 
   /*const handleLatChange = (event: React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
   const handleLngChange = (event: React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);*/
@@ -107,7 +102,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           await fetchDocuments();
         } catch (error) {
           console.error("Error:", error);
-        }*/
+        }
        await API.updateCoordinates(props.document.id, lat, lng)
        await props.fetchDocuments();
       }
@@ -158,8 +153,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         lng: props.document.coordinates?.lng,
       };
       props.setNewDocument(convertedDocument);
-      setUpdating(true);
-      console.log(updating)
+      props.setUpdating(true);
+      console.log(props.updating)
       /*const convertedDocument = new Document(
         document.id,
         document.title,
@@ -173,15 +168,15 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         document.description,
         document.coordinates
       );*/
-      if(!document.coordinates){
-        document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
+      if(!props.document.coordinates){
+        props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       }
       else{
-        if (document.coordinates.coords){
-          document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(document.coordinates.coords.lat,document.coordinates.coords.lng));
+        if (props.document.coordinates.coords){
+          props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
         }
       }
-      setNewDocument(document);
+      props.setNewDocument(document);
     }
   }
   const toggleEditDescription = () => setEditDescription(true);
@@ -214,63 +209,52 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     <Card elevation={6} onClick={() => setPin(props.document.id)} style={{ margin: "5px", padding: "5px" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          <strong>Title: </strong>{document.title}
+          <strong>Title: </strong>{props.document.title}
         </Typography>
 
         {props.pin==props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuance_date ? dayjs(props.document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
+          <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? props.document.issuanceDate.toString() : ""}</Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
           
           {renderConnections()}
 
           <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
-          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages}</Typography>
+          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages?props.document.pages:'not avaiable'}</Typography>
 
           {/* Editable Latitude */}
           <Box display="flex" alignItems="center" gap={2} marginTop={2}>
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
-              {props.loggedIn && props.user?.type === "urban_planner" ? (
-                editLat ? (
-                  <TextField
-                    disabled={true}
-                    value={lat}
-                    onChange={handleLatChange}
-                    onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
-                    onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}
-                    autoFocus
-                    variant="outlined"
-                    size="small"
-                    placeholder="Enter latitude"
-                    style={{ marginLeft: '8px', width: '120px' }}
-                  />
-                ) : (
-                  <Typography
-                    variant="body2"
-                    style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
-                    onClick={() => setEditLat(true)}
-                  >
-                    {lat || "Enter latitude"}
-                  </Typography>
-                )
+              {editLat ? (
+                <TextField
+                disabled={true}
+                  /*value={lat}
+                  onChange={handleLatChange}
+                  onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}*/
+                  autoFocus
+                  variant="outlined"
+                  size="small"
+                  placeholder="Enter latitude"
+                  style={{ marginLeft: '8px', width: '120px' }}
+                />
               ) : (
                 <Typography
                   variant="body2"
-                  style={{ marginLeft: '8px'}}
+                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
+                  onClick={() => setEditLat(true)}
                 >
-                  {lat || "not available"}
+                  {/*lat || "Enter latitude"*/lat?lat:''}
                 </Typography>
               )}
-
             </Box>
 
             {/* Editable Longitude */}
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
-              {props.loggedIn && props.user?.type === "urban_planner" ? (
-               editLng ? (
+              {editLng ? (
                 <TextField
                 disabled={true}
                   /*value={lng}
@@ -291,24 +275,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                 >
                   {/*lng || "Enter longitude"*/lng?lng:''}
                 </Typography>
-              )
-              ) : (
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px'}}
-                >
-                  {lng || "not available"}
-                </Typography>
-              )
-              ) : (
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px'}}
-                >
-                  {lng || "not available"}
-                </Typography>
               )}
-              
             </Box>
           </Box>
         </Box>: <></>}

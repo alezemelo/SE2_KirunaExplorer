@@ -24,6 +24,7 @@ interface MapProps {
   adding: boolean; 
   setAdding:any;
   updating:boolean;
+  setCoordinates: any;
 }
 
 const MyMap: React.FC<MapProps> = ({/* setCoordinates,*//* setBounds, coordinates, setDocuments,*/ documents,pin, setNewPin, fetchDocuments, /*coordMap,*/ setCoordMap, adding, setAdding, updating }) => {

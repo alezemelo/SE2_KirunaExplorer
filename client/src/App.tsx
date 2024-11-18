@@ -11,20 +11,13 @@ import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import "./App.css";
-import { User } from "./type";
+import { User, Coordinates as CoordinatesLocal } from "./type";
+import { Document } from "./models/document";
 
-const ProtectedRoute = ({ children, loggedIn }: any) => {
-  // If not logged in, redirect to login
-  if (!loggedIn) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
-};
 
 function App() {
 
-  const [coordinates, setCoordinates] = useState<CoordinateLocal>({
+  const [coordinates, setCoordinates] = useState<CoordinatesLocal>({
     lat: 67.85572,
     lng: 20.22513,
   });
@@ -32,12 +25,13 @@ function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
   const [pin, setNewPin] = useState(0);
-  const [coordMap, setCoordMap] = useState<Coordinates | undefined>(undefined);
+  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined);
   const [adding, setAdding] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false); 
   const [user, setUser] = useState<User | undefined>(undefined);
   const [message, setMessage] = useState<{ msg: string; type: string } | null>({ msg: '', type: '' });
   const navigate = useNavigate(); // Use navigate hook
+  const [updating, setUpdating] = useState(false);//mode for taking coordinate from map for updating
 
 
 
@@ -194,13 +188,13 @@ function App() {
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
                     setCoordinates={setCoordinates}
-                    setBounds={setBounds}
+                    /*setBounds={setBounds}
                     coordinates={coordinates}
-                    setDocuments={setDocuments}
+                    setDocuments={setDocuments}*/
                     fetchDocuments={fetchDocuments}
                     pin={pin}
                     setNewPin={setNewPin}
-                    coordMap={coordMap}
+                    //coordMap={coordMap}
                     setCoordMap={setCoordMap}
                     adding={adding}
                     setAdding={setAdding}

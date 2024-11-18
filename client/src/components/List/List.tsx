@@ -30,14 +30,13 @@ import {
   IconButton,
   createTheme
 } from "@mui/material";
-import { DocumentType, User } from "../../type";
-import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
+import { DocumentType as DocumentLocal, User, Coordinates as CoordinateLocal } from "../../type";
+import DocDetails from "../DocDetails/DocDetails";
 import "./List.css";
 import API from "../../API";
 import CloseIcon from '@mui/icons-material/Close';
 import { Document, DocumentType } from "../../models/document";
 import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
-import { CoordinateLocal } from "../../App";
 import { title } from "process";
 
 
@@ -48,15 +47,17 @@ interface DocumentListProps {
   fetchDocuments:() => Promise<void>;
   pin: number,
   setNewPin: any;
-  coordMap?: CoordinateLocal|null;
+  coordMap?: CoordinateLocal|undefined;
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
   loggedIn: boolean;
   user: User | undefined;
+  updating: boolean;
+  setUpdating: any;
 }
 
-interface DocumentLocal {
+/*interface DocumentLocal {
   id: number;
   title: string;
   stakeholders: string;
@@ -69,10 +70,10 @@ interface DocumentLocal {
   pages: number;
   description: string;
   coordinates: any;
-}
+}*/
 
 
-const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fetchDocuments, pin, setNewPin, coordMap, setCoordMap, adding, setAdding,updating,setUpdating }) => {
+const DocumentList: React.FC<DocumentListProps> = (props) => {
   const reset = () => {
     /*return new Document(
       0,
@@ -128,31 +129,31 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   },[pin])*/
 
   useEffect(()=>{
-    if(updating){
+    if(props.updating){
       setOldForm(newDocument);
       setOpen(true);
     }
-  },[updating])
+  },[props.updating])
 
 
 
   useEffect(()=> {
-    console.log(adding)
-    console.log(updating)
-    if(coordMap && (adding || updating) ){
-      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(coordMap.lat,coordMap.lng)))
+    console.log(props.adding)
+    console.log(props.updating)
+    if(props.coordMap && (props.adding || props.updating) ){
+      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(props.coordMap.lat,props.coordMap.lng)))
       setOpen(true);
     }
-  },[coordMap])
+  },[props.coordMap])
 
 
   const handleClickOpen = () => {
     setOpen(true);
-    setAdding(true);
+    props.setAdding(true);
   };
   const handleClose = () => {
     setOpen(false);
-    setUpdating(false);
+    props.setUpdating(false);
     setNewDocument(reset());
     setErrors([]);
   }
@@ -299,7 +300,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
 
         console.log(finalDocument)
   
-        if(updating){
+        if(props.updating){
           if(newDocument.description!=oldForm?.description){
             console.log("nuovo")
             console.log(newDocument.description)
@@ -307,7 +308,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
             console.log(oldForm?.description)
             if(newDocument.description){
               await API.updateDescription(newDocument.id,newDocument.description);
-              await fetchDocuments();
+              await props.fetchDocuments();
             }
             /*setDocuments((prev) => 
               prev.map((doc) => 
@@ -330,13 +331,13 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
                   new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng.lat), Number(latLng.lng)))
               );
           }
-          setUpdating(false);
+          props.setUpdating(false);
         }
         else{
           await API.addDocument(finalDocument);
-          setAdding(false)
+          props.setAdding(false)
         }
-        await fetchDocuments();
+        await props.fetchDocuments();
   
         handleClose();
         setNewDocument(reset());
@@ -374,7 +375,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       console.error("Error:", error);
     }*/
     await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
-    await fetchDocuments();
+    await props.fetchDocuments();
     closeLinkingDialog()
 
    }
@@ -384,10 +385,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
-    if ( itemRefs.current[pin]) {
-        itemRefs.current[pin].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if ( itemRefs.current[props.pin]) {
+        itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-}, [pin]);
+}, [props.pin]);
 
   return (
     <div className="container">
@@ -397,42 +398,42 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       <Dialog open={open} onClose={handleClose}  className="custom-dialog">
         <DialogTitle>Add a New Document</DialogTitle>
           <DialogContent>
-            <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} disabled={updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} disabled={updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} disabled={updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="ex. 2022-01-01/2022-01/2022" name="issuanceDate" fullWidth value={newDocument.issuanceDate} disabled={updating?true:false} onChange={handleChange} />
-            <FormControl component="fieldset" margin="dense" fullWidth disabled={updating}>
+            <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="ex. 2022-01-01/2022-01/2022" name="issuanceDate" fullWidth value={newDocument.issuanceDate} disabled={props.updating?true:false} onChange={handleChange} />
+            <FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
   <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
   <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
         <FormControlLabel
           value="informative_doc"
-          control={<Radio disabled={updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
-          label={<Typography sx={{ color: updating ? "gray" : "white" }}>informative_doc</Typography>}
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>informative_doc</Typography>}
         />
         <FormControlLabel
           value="prescriptive_doc"
-          control={<Radio disabled={updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
-          label={<Typography sx={{ color: updating ? "gray" : "white" }}>prescriptive_doc</Typography>}
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>prescriptive_doc</Typography>}
         />
         <FormControlLabel
           value="design_doc"
-          control={<Radio disabled={updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
-          label={<Typography sx={{ color: updating ? "gray" : "white" }}>design_doc</Typography>}
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>design_doc</Typography>}
         />
         <FormControlLabel
           value="technical_doc"
-          control={<Radio disabled={updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
-          label={<Typography sx={{ color: updating ? "gray" : "white" }}>technical_doc</Typography>}
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>technical_doc</Typography>}
         />
         <FormControlLabel
           value="material_effect"
-          control={<Radio disabled={updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
-          label={<Typography sx={{ color: updating ? "gray" : "white" }}>material_effect</Typography>}
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>material_effect</Typography>}
         />
       </RadioGroup>
     </FormControl>
-            <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} disabled={updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.coordinates && newDocument.coordinates.coords ? newDocument.coordinates.coords.lat : ""}  onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.coordinates && newDocument.coordinates.coords ? newDocument.coordinates.coords.lng : ""}  onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button>
@@ -455,9 +456,9 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
       {/* Scrollable document list */}
       <Box ref={containerRef} className="scrollable-list" style={{ height: "700px", overflowY: "auto", paddingRight: "10px" }}>
         <Grid container spacing={3}>
-          {documents.map((document, i) => (
+          {props.documents.map((document, i) => (
             <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
-              <DocDetails document={document} loggedIn={loggedIn} user={user} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={updating} setUpdating={setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
+              <DocDetails document={document} loggedIn={props.loggedIn} user={props.user} fetchDocuments={props.fetchDocuments} pin={props.pin} setNewPin={props.setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={props.updating} setUpdating={props.setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
             </Grid>
           ))
         }
@@ -483,7 +484,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
             />
           </div>
           <List>
-          {documents.map((doc, index) => (
+          {props.documents.map((doc, index) => (
             currentDocument && doc.id !== currentDocument.id ? ( // Controllo di null
               <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
                 {(targetDocumentId!=0 && targetDocumentId == doc.id) ? <ListItemText primary={doc.title} sx={{ color: 'yellow' }} /> : <ListItemText primary={doc.title}/> }
