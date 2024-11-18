@@ -147,9 +147,9 @@ function App() {
           element={
             <div className="container">
               <Header onToggleDocumentList={toggleDocumentList} loggedIn={loggedIn} logOut={handleLogout}/>
-              <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
-                {isDocumentListOpen && (
-                  <Grid item xs={13} md={4}>
+              <Grid container spacing={0} style={{ height: "100vh", width: "100%", margin: 0, padding: 0 }}>
+              {isDocumentListOpen && (
+                  <Grid item xs={12} md={4}>
                     <DocumentList
                     updating={updating} 
                     setUpdating={setUpdating}
@@ -167,7 +167,7 @@ function App() {
                     />
                   </Grid>
                 )}
-                <Box sx={{ position: "relative", height: "100vh" }}>
+                <Box sx={{ position: "relative", height: "400px"}}>
                   <Button
                     sx={{
                       position: "absolute",
@@ -185,7 +185,9 @@ function App() {
                     {isDocumentListOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                   </Button>
                 </Box>
-                <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
+
+
+                <Grid item xs={12} md={isDocumentListOpen ? 8 : 12} >
                   <Map
                     setCoordinates={setCoordinates}
                     /*setBounds={setBounds}
@@ -199,7 +201,7 @@ function App() {
                     adding={adding}
                     setAdding={setAdding}
                     documents={documents}
-              updating={updating}
+                    updating={updating}
                   />
                 </Grid>
               </Grid>

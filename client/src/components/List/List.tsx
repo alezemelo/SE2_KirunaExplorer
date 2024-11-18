@@ -454,7 +454,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       </Dialog>
 
       {/* Scrollable document list */}
-      <Box ref={containerRef} className="scrollable-list" style={{ height: "700px", overflowY: "auto", paddingRight: "10px" }}>
+      <Box ref={containerRef} className="scrollable-list" style={{ height: props.user?.type === "urban_planner" ? "600px" : "700px", overflowY: "auto", paddingRight: "10px" }}>
         <Grid container spacing={3}>
           {props.documents.map((document, i) => (
             <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
@@ -465,9 +465,18 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         </Grid>
       </Box>
 
-      <Button fullWidth variant="contained" color="primary" onClick={handleClickOpen} style={{ marginTop: "38px" }}>
-        Add a new document
-      </Button>
+      {props.loggedIn && props.user?.type === "urban_planner" && (
+        <Button 
+          fullWidth 
+          variant="contained" 
+          color="primary" 
+          onClick={handleClickOpen} 
+          style={{ marginTop: "38px" }}
+        >
+          Add a new document
+        </Button>
+      )}
+
 
       {/* Linking Dialog */}
       <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
