@@ -1,4 +1,4 @@
-/*export interface Coordinates {
+export interface Coordinates {
     lat: number;
     lng: number;
   }
@@ -15,5 +15,10 @@
     pages: number;
     description: string;
     coordinates?: Coordinates;
-  }*/
+  }
+  export interface User {
+    username: string;
+    type: UserType;
+  }
   
+  export type UserType = "resident" | "urban_planner" | "urban_developer";

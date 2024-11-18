@@ -1,19 +1,26 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
+import Login from "./components/Login/Login";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
 import { Coordinates } from "./models/coordinates"
 import "./App.css";
 import API from "./API";
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { Document } from "./models/document";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import "./App.css";
+import { User } from "./type";
 
-export interface CoordinateLocal {
-  lat: number,
-  lng: number
-}
+const ProtectedRoute = ({ children, loggedIn }: any) => {
+  // If not logged in, redirect to login
+  if (!loggedIn) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
 
 function App() {
 
@@ -25,9 +32,14 @@ function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
   const [pin, setNewPin] = useState(0);
-  const [coordMap,setCoordMap] = useState<CoordinateLocal|null>(null);//coordinates of the point choosen from the map
-  const [adding, setAdding] = useState(false);//mode for taking coordinate from map
-  const [updating, setUpdating] = useState(false);//mode for taking coordinate from map for updating
+  const [coordMap, setCoordMap] = useState<Coordinates | undefined>(undefined);
+  const [adding, setAdding] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false); 
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [message, setMessage] = useState<{ msg: string; type: string } | null>({ msg: '', type: '' });
+  const navigate = useNavigate(); // Use navigate hook
+
+
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -37,20 +49,14 @@ function App() {
       const data:Document[] = await API.getDocuments();
 
       for (let i = 0; i < data.length; i++) {
-        /*const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${data[i].id}`);
-        const t = await res.json();*/
-        const t = await API.getLinks(data[i].id)
+        const t = await API.getLinks(data[i].id);
         let c = [];
         for (let j = 0; j < t.length; j++) {
-          if (t[j].docId1 == data[i].id) {
-            /*const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId2}`);
-            const t1 = await temp.json();*/
-            const t1 = await API.getDocument(t[j].docId2)
+          if (t[j].docId1 === data[i].id) {
+            const t1 = await API.getDocument(t[j].docId2);
             c.push(t1.title + ` (${t[j].linkType})`);
           } else {
-            /*const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${t[j].docId1}`);
-            const t2 = await temp.json();*/
-            const t2 = await API.getDocument(t[j].docId1)
+            const t2 = await API.getDocument(t[j].docId1);
             c.push(t2.title + ` (${t[j].linkType})`);
           }
         }
@@ -67,79 +73,164 @@ function App() {
     fetchDocuments();
   }, [fetchDocuments]);
 
-  useEffect(() => {
-    console.log(coordinates, bounds);
-  }, [coordinates, bounds]);
-
   const toggleDocumentList = () => {
     setIsDocumentListOpen((prev) => !prev);
-    setNewPin(0)
+    setNewPin(0);
   };
+
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await API.checkAuth();
+        if (user) { // Proceed only if user data is returned
+          setLoggedIn(true);
+          setUser(user);
+          console.log("User authenticated:", user);
+        } else {
+          setLoggedIn(false); // User not authenticated
+          console.log("User not authenticated");
+          setUser(undefined);
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      }
+    };
+  
+    checkAuth();
+  }, []);
+  
+  useEffect(() => {
+    console.log("LoggedIn:", loggedIn);
+  }, [loggedIn]);
+  
+
+  // NEW
+  const handleLogin = async (credentials:any) => {
+    try {
+      const user = await API.login(credentials.username, credentials.password);
+      if (user) {
+
+        setLoggedIn(true);
+
+        setUser(user || undefined);
+        setMessage(null);
+        navigate("/"); // Redirect to the home page
+        console.log("Logged in:", user?.type);
+      }else {
+        console.error("Login failed");
+        setMessage({ msg: 'Invalid credentials. Please try again.', type: 'danger' });
+      }
+
+    }catch(err) {
+      console.error("An error occurred during login:", err);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const success = await API.logout();
+      if (success) {
+        setLoggedIn(false); // Update the loggedIn state
+        setUser(undefined); // Clear the user state
+        navigate("/login"); // Redirect to the login page
+        console.log("Logged out successfully");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (err) {
+      console.error("An error occurred during logout:", err);
+    }
+  };
+  
 
   return (
     <>
-    <div className="container">
       <CssBaseline />
-      <Header onToggleDocumentList={toggleDocumentList} />
-      
-      <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
-        <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
-          {isDocumentListOpen && (
-            <Grid item xs={13} md={4}>
-              <DocumentList documents={documents} setDocuments={setDocuments} fetchDocuments={fetchDocuments}
-               pin={pin} setNewPin={setNewPin} coordMap={coordMap} setCoordMap={setCoordMap} adding={adding} setAdding={setAdding} 
-               updating={updating} setUpdating={setUpdating}
-               />
-            </Grid>
-          )}
-<Box
-      sx={{
-        position: 'relative', 
-        height: '100vh',  
-      }}
-    >
-      <Button
-        sx={{
-          position: 'absolute',
-          top: '50%', 
-          left: '50%', 
-          transform: 'translate(0%, -50%)',  
-          backgroundColor: "white",
-          zIndex: "10",
-          padding: "0",
-          minWidth: "6px",
-          height: "50px"
-        }}
-        onClick={toggleDocumentList}
-      >
-        {isDocumentListOpen?<ChevronLeftIcon />:<ChevronRightIcon/>}
-      </Button>
-    </Box>
-          
-          <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
-            <Map
-              //setCoordinates={setCoordinates}
-              //setBounds={setBounds}
-              //coordinates={coordinates}
-              //setDocuments={setDocuments}
-              fetchDocuments={fetchDocuments}
-              pin={pin}
-              setNewPin={setNewPin}
-              //coordMap={coordMap}
-              setCoordMap={setCoordMap}
-              adding={adding} setAdding={setAdding}
-              documents={documents}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div className="container">
+              <Header onToggleDocumentList={toggleDocumentList} loggedIn={loggedIn} logOut={handleLogout}/>
+              <Grid container spacing={0} style={{ width: "100%", marginTop: 10, padding: 0 }}>
+                {isDocumentListOpen && (
+                  <Grid item xs={13} md={4}>
+                    <DocumentList
+                    updating={updating} 
+                    setUpdating={setUpdating}
+                      documents={documents}
+                      setDocuments={setDocuments}
+                      fetchDocuments={fetchDocuments}
+                      pin={pin}
+                      setNewPin={setNewPin}
+                      coordMap={coordMap}
+                      setCoordMap={setCoordMap}
+                      adding={adding}
+                      setAdding={setAdding}
+                      loggedIn={loggedIn}
+                      user={user}
+                    />
+                  </Grid>
+                )}
+                <Box sx={{ position: "relative", height: "100vh" }}>
+                  <Button
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(0%, -50%)",
+                      backgroundColor: "white",
+                      zIndex: "10",
+                      padding: "0",
+                      minWidth: "6px",
+                      height: "50px",
+                    }}
+                    onClick={toggleDocumentList}
+                  >
+                    {isDocumentListOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+                  </Button>
+                </Box>
+                <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
+                  <Map
+                    setCoordinates={setCoordinates}
+                    setBounds={setBounds}
+                    coordinates={coordinates}
+                    setDocuments={setDocuments}
+                    fetchDocuments={fetchDocuments}
+                    pin={pin}
+                    setNewPin={setNewPin}
+                    coordMap={coordMap}
+                    setCoordMap={setCoordMap}
+                    adding={adding}
+                    setAdding={setAdding}
+                    documents={documents}
               updating={updating}
-            />
-          </Grid>
-        </Grid>
-      </Grid>
-      </div>
-      </>
+                  />
+                </Grid>
+              </Grid>
+            </div>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            loggedIn ? (
+              <Navigate to="/" />
+            ) : (
+              <Login login={handleLogin} message={message} setMessage={setMessage} />
+            )
+          }
+        />
+
+      </Routes>
+    </>
   );
 }
 
 export default App;
+
+
 
 
 

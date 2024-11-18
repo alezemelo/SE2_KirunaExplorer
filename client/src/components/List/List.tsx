@@ -30,7 +30,8 @@ import {
   IconButton,
   createTheme
 } from "@mui/material";
-import DocDetails from "../DocDetails/DocDetails";
+import { DocumentType, User } from "../../type";
+import DocDetails, { Coordinates } from "../DocDetails/DocDetails";
 import "./List.css";
 import API from "../../API";
 import CloseIcon from '@mui/icons-material/Close';
@@ -51,8 +52,8 @@ interface DocumentListProps {
   setCoordMap: any;
   adding: boolean; 
   setAdding:any;
-  updating:boolean;
-  setUpdating:any;
+  loggedIn: boolean;
+  user: User | undefined;
 }
 
 interface DocumentLocal {
@@ -130,7 +131,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
     if(updating){
       setOldForm(newDocument);
       setOpen(true);
-      console.log(open)
     }
   },[updating])
 
@@ -457,7 +457,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ documents, setDocuments, fe
         <Grid container spacing={3}>
           {documents.map((document, i) => (
             <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
-              <DocDetails document={document} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={updating} setUpdating={setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
+              <DocDetails document={document} loggedIn={loggedIn} user={user} fetchDocuments={fetchDocuments} pin={pin} setNewPin={setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={updating} setUpdating={setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
             </Grid>
           ))
         }

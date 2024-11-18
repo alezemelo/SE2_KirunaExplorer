@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
+import './Login.css';
 import { Container, TextField, Button, Grid, Typography, Alert, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import 'animate.css';
+import WebFont from 'webfontloader';
 
-// Define types for props
+WebFont.load({
+  google: {
+    families: ['Anton', 'sans-serif'], // Anton font loaded
+  },
+});
+
 interface LoginPageProps {
-  login: (credentials: { username: string; password: string }) => void;
+  login: (credentials: { username: string; password: string } ) => void;
   message: { msg: string; type: string } | null;
   setMessage: (message: { msg: string; type: string } | null) => void;
 }
@@ -30,84 +38,98 @@ const Login: React.FC<LoginPageProps> = (props) => {
 
   return (
     <Container
+      className="login-container"
       component="main"
-      maxWidth="xs"
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        height: '100vh',
-        padding: 3,
-      }}
+      maxWidth={false}
     >
-      <Grid container spacing={2} direction="column" alignItems="center">
-        <Grid item>
-          <Typography variant="h4" gutterBottom>
-            Login
-          </Typography>
-        </Grid>
+      <div className="login-box">
+        <Grid container spacing={2} direction="column" alignItems="center">
+          <Grid item>
+            <div className="animate__animated animate__backInDown">
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  fontFamily: '"Anton", sans-serif', // Updated to use Anton font
+                  fontWeight: 400,
+                  fontSize: '3.5rem',
+                  lineHeight: 1.2,
+                  color: 'white',
+                }}
+              >
+                Kiruna
+              </Typography>
+            </div>
+          </Grid>
 
-        {props.message && (
-        <Grid item>
-            <Alert
-            severity={props.message.type as 'error' | 'info' | 'success' | 'warning'}  // Type assertion here
-            sx={{ width: '100%', mb: 2 }}
-            onClose={() => props.setMessage(null)}
-            >
-            {props.message.msg}
-            </Alert>
-        </Grid>
-        )}
+          <Grid item xs={12}>
+            {props.message && props.message.type === 'danger' && (
+              <Grid item xs={12}>
+                <Box
+                  sx={{
+                    mt: 0,
+                    p: 2,
+                    backgroundColor: 'rgba(255, 0, 0, 0.1)', // Light red background
+                    border: '1px solid rgba(255, 0, 0, 0.4)', // Red border
+                    borderRadius: 2,
+                    color: 'red',
+                    textAlign: 'center',
+                  }}
+                >
+                  {props.message.msg}
+                </Box>
+              </Grid>
+            )}
 
-        <Grid item xs={12}>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email address"
-              type="email"
-              value={username}
-              onChange={handleUsernameChange}
-              required
-              margin="normal"
-              variant="outlined"
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              value={password}
-              onChange={handlePasswordChange}
-              required
-              margin="normal"
-              variant="outlined"
-            />
-            <Box mt={2} display="flex" justifyContent="space-between">
-              <Button variant="contained" color="secondary" onClick={() => navigate('../')}>
+            <form onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="username"
+                type="username"
+                value={username}
+                onChange={handleUsernameChange}
+                required
+                margin="normal"
+                variant="outlined"
+              />
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                value={password}
+                onChange={handlePasswordChange}
+                required
+                margin="normal"
+                variant="outlined"
+              />
+
+              <Box mt={2} display="flex" justifyContent="space-between">
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => {
+                  props.setMessage(null); // Clear the message
+                  navigate('../'); // Navigate back
+                }}
+              >
                 Back
               </Button>
-              <Button variant="contained" color="primary" type="submit">
-                Enter
-              </Button>
-            </Box>
-          </form>
+                <Button variant="contained" color="success" type="submit">
+                  Enter
+                </Button>
+              </Box>
+            </form>
+          </Grid>
         </Grid>
-
-        <Grid item xs={12} mt={3}>
-          <Button
-            variant="outlined"
-            color="error"
-            fullWidth
-            onClick={() => navigate('../register')}
-            sx={{ height: 50 }}
-          >
-            Register
-          </Button>
-        </Grid>
-      </Grid>
+      </div>
     </Container>
   );
 };
 
 export default Login;
+
+
+
+
 
 
