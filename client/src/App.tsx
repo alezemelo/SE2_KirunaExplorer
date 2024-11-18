@@ -12,14 +12,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import "./App.css";
 import { User } from "./type";
 
-const ProtectedRoute = ({ children, loggedIn }: any) => {
-  // If not logged in, redirect to login
-  if (!loggedIn) {
-    return <Navigate to="/login" />;
-  }
 
-  return children;
-};
 
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({
