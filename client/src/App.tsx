@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
@@ -12,6 +12,14 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import "./App.css";
 import { User } from "./type";
 
+const ProtectedRoute = ({ children, loggedIn }: any) => {
+  // If not logged in, redirect to login
+  if (!loggedIn) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
 
 function App() {
   const [coordinates, setCoordinates] = useState<Coordinates>({
@@ -152,6 +160,8 @@ function App() {
                       setCoordMap={setCoordMap}
                       adding={adding}
                       setAdding={setAdding}
+                      loggedIn={loggedIn}
+                      user={user}
                     />
                   </Grid>
                 )}
@@ -201,8 +211,15 @@ function App() {
         />
         <Route
           path="/login"
-          element={<Login login={handleLogin} message={message} setMessage={setMessage} />}
+          element={
+            loggedIn ? (
+              <Navigate to="/" />
+            ) : (
+              <Login login={handleLogin} message={message} setMessage={setMessage} />
+            )
+          }
         />
+
       </Routes>
     </>
   );

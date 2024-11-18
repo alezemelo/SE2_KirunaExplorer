@@ -3,7 +3,7 @@ import { Button, Box, Typography, Card, CardContent, TextField, IconButton } fro
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import dayjs from "dayjs";
-import { DocumentType } from "../../type";
+import { DocumentType, User } from "../../type";
 import API from "../../API";
 
 export interface Coordinates {
@@ -23,16 +23,18 @@ interface DocDetailsProps {
   setUpdating: any;
   newDocument: any;
   setNewDocument: any;
+  loggedIn: boolean;
+  user: User | undefined;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocuments, pin, setNewPin/*, docExpand, setDocExpand*/, updating, setUpdating, newDocument, setNewDocument }) => {
+const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [showDescription, setShowDescription] = useState(false);
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
   const [editLng, setEditLng] = useState(false);
-  const [description, setDescription] = useState(document.description);
-  const [lat, setLat] = useState<string>(document.coordinates?.lat.toString() || '');
-  const [lng, setLng] = useState<string>(document.coordinates?.lng.toString() || '');
+  const [description, setDescription] = useState(props.document.description);
+  const [lat, setLat] = useState<string>(props.document.coordinates?.lat.toString() || '');
+  const [lng, setLng] = useState<string>(props.document.coordinates?.lng.toString() || '');
   const [expand, setExpand] = useState(false);
 
   const handleToggleExpand = () => setExpand(!expand);
@@ -40,13 +42,13 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
 
   useEffect(() => {
-    if (document.coordinates) {
-      setLat(document.coordinates.lat.toString());
-      setLng(document.coordinates.lng.toString());
+    if (props.document.coordinates) {
+      setLat(props.document.coordinates.lat.toString());
+      setLng(props.document.coordinates.lng.toString());
     }
-  }, [document.coordinates]);
+  }, [props.document.coordinates]);
 
-  const connections = document.connection || []; 
+  const connections = props.document.connection || []; 
   const displayedConnections = expand ? connections : connections.slice(0, 3);
 
   const renderConnections = () => (
@@ -97,25 +99,25 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
         } catch (error) {
           console.error("Error:", error);
         }*/
-       await API.updateCoordinates(document.id, lat, lng)
-       await fetchDocuments();
+       await API.updateCoordinates(props.document.id, lat, lng)
+       await props.fetchDocuments();
       }
     }
   };
 
   const setPin = (id:number) => {
-    if(id==pin){
-      setNewPin(0);
+    if(id==props.pin){
+      props.setNewPin(0);
     }
     else{
       console.log("click"+id)
-      setNewPin(id);
+      props.setNewPin(id);
     }
   }
 
   useEffect(() => {
-    console.log(pin)
-  }, [pin]);
+    console.log(props.pin)
+  }, [props.pin]);
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
     if (event.key === 'Enter') {
@@ -130,29 +132,29 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
     //setShowDescription(!showDescription);
     e.stopPropagation();
     if (document) {
-      setUpdating(true);
-      console.log(updating)
+      props.setUpdating(true);
+      console.log(props.updating)
       const convertedDocument = {
-        id: document.id,
+        id: props.document.id,
         title: document.title,
-        stakeholders: document.stakeholders,
-        scale: document.scale,
-        issuanceDate: document.issuance_date,
-        type: document.type,
-        connection: document.connection,
-        language: document.language,
-        pages: document.pages,
-        description: document.description,
-        lat: document.coordinates?.lat,
-        lng: document.coordinates?.lng,
+        stakeholders: props.document.stakeholders,
+        scale: props.document.scale,
+        issuanceDate: props.document.issuance_date,
+        type: props.document.type,
+        connection: props.document.connection,
+        language: props.document.language,
+        pages: props.document.pages,
+        description: props.document.description,
+        lat: props.document.coordinates?.lat,
+        lng: props.document.coordinates?.lng,
       };
-      setNewDocument(convertedDocument);
+      props.setNewDocument(convertedDocument);
     }
   }
   const toggleEditDescription = () => setEditDescription(true);
   const closeEditDescription = () => {
     setEditDescription(false);
-    setDescription(document.description)
+    setDescription(props.document.description)
   }
 
   /*const saveDescription = async () => {
@@ -176,55 +178,66 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
   };*/
 
   return (
-    <Card elevation={6} onClick={() => setPin(document.id)} style={{ margin: "5px", padding: "5px" }}>
+    <Card elevation={6} onClick={() => setPin(props.document.id)} style={{ margin: "5px", padding: "5px" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{document.title}
         </Typography>
 
-        {pin==document.id ? <Box display="flex" flexDirection="column" gap={1}>
-          <Typography variant="body2"><strong>Stakeholders:</strong> {document.stakeholders}</Typography>
-          <Typography variant="body2"><strong>Scale:</strong> {document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {document.issuance_date ? dayjs(document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
-          <Typography variant="body2"><strong>Type:</strong> {document.type}</Typography>
+        {props.pin==props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
+          <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders}</Typography>
+          <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
+          <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuance_date ? dayjs(props.document.issuance_date).format("YYYY-MM-DD") : ''}</Typography>
+          <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
           
           {renderConnections()}
 
-          <Typography variant="body2"><strong>Language:</strong> {document.language}</Typography>
-          <Typography variant="body2"><strong>Pages:</strong> {document.pages}</Typography>
+          <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
+          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages}</Typography>
 
           {/* Editable Latitude */}
           <Box display="flex" alignItems="center" gap={2} marginTop={2}>
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
-              {editLat ? (
-                <TextField
-                disabled={true}
-                  value={lat}
-                  onChange={handleLatChange}
-                  onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}
-                  autoFocus
-                  variant="outlined"
-                  size="small"
-                  placeholder="Enter latitude"
-                  style={{ marginLeft: '8px', width: '120px' }}
-                />
+              {props.loggedIn && props.user?.type === "urban_planner" ? (
+                editLat ? (
+                  <TextField
+                    disabled={true}
+                    value={lat}
+                    onChange={handleLatChange}
+                    onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
+                    onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}
+                    autoFocus
+                    variant="outlined"
+                    size="small"
+                    placeholder="Enter latitude"
+                    style={{ marginLeft: '8px', width: '120px' }}
+                  />
+                ) : (
+                  <Typography
+                    variant="body2"
+                    style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
+                    onClick={() => setEditLat(true)}
+                  >
+                    {lat || "Enter latitude"}
+                  </Typography>
+                )
               ) : (
                 <Typography
                   variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
-                  onClick={() => setEditLat(true)}
+                  style={{ marginLeft: '8px'}}
                 >
-                  {lat || "Enter latitude"}
+                  {lat || "not available"}
                 </Typography>
               )}
+
             </Box>
 
             {/* Editable Longitude */}
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
-              {editLng ? (
+              {props.loggedIn && props.user?.type === "urban_planner" ? (
+               editLng ? (
                 <TextField
                 disabled={true}
                   value={lng}
@@ -245,7 +258,16 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
                 >
                   {lng || "Enter longitude"}
                 </Typography>
+              )
+              ) : (
+                <Typography
+                  variant="body2"
+                  style={{ marginLeft: '8px'}}
+                >
+                  {lng || "not available"}
+                </Typography>
               )}
+              
             </Box>
           </Box>
         </Box>: <></>}
@@ -256,7 +278,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
             <strong>Description:</strong> {description}
           </Typography>
         )*/}
-        {pin==document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
+        {props.pin==props.document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
             <strong>Description:</strong> {description}
           </Typography>:<></>}
 
@@ -290,7 +312,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
-          {pin==document.id && /*!editDescription &&*/ (
+          {props.pin==props.document.id && props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription &&*/ (
             <>
             <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={(e)=>{
               e.stopPropagation();
@@ -300,7 +322,7 @@ const DocDetails: React.FC<DocDetailsProps> = ({ document, onLink, fetchDocument
             </Button>
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e)=>{
               e.stopPropagation();
-              onLink()}}>
+              props.onLink()}}>
             Link Document
           </Button>
           </>
