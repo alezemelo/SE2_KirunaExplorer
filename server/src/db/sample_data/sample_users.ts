@@ -13,7 +13,7 @@ export const SAMPLE_USERS = [
         type: "urban_developer",
     },
     {
-        username: "user3",
+        username: "admin",
         hash: "d5a43cfbed4ef660d6449649c2599a35ecd1dcd74d67538a5695fbcb43d2dc8e",
         salt: "610dbce01d172d82fa4ad2d1005dfc5d",
         type: "urban_planner",
