@@ -189,7 +189,7 @@ function App() {
 
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12} >
                   <Map
-                    setCoordinates={setCoordinates}
+                    //setCoordinates={setCoordinates}
                     /*setBounds={setBounds}
                     coordinates={coordinates}
                     setDocuments={setDocuments}*/

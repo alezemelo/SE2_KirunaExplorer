@@ -3,6 +3,7 @@ import { useMediaQuery } from "@mui/material";
 import { GoogleMap, LoadScript, Marker, Polygon } from "@react-google-maps/api";
 import API from "../../API";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import { useLocation } from "react-router-dom";
 
 const containerStyle = {
   width: '100%',
@@ -26,18 +27,16 @@ const DocumentMarkers: React.FC<{
   documents: any[], 
   handleDrag: (e: google.maps.MapMouseEvent, id: number) => void, 
   setNewPin: (id: number) => void, 
-  pin: number // Accept pin here
+  pin: number 
 }> = ({ documents, handleDrag, setNewPin, pin }) => {
-
-  // Funzione per creare l'icona del marker di tipo pin simile a Google Maps
   const createIcon = (selected: boolean) => {
     return {
       url: selected
-        ? "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png" // Icona rossa per il pin selezionato
-        : "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png", // Icona blu per i pin non selezionati
-      scaledSize: new window.google.maps.Size(selected ? 50 : 40, selected ? 50 : 40), // Aumenta la dimensione per il pin selezionato
+        ? "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png"
+        : "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+      scaledSize: new window.google.maps.Size(selected ? 50 : 40, selected ? 50 : 40),
       origin: new window.google.maps.Point(0, 0),
-      anchor: new window.google.maps.Point(25, 50), // Posiziona l'icona correttamente sopra il marker
+      anchor: new window.google.maps.Point(25, 50),
     };
   };
 
@@ -51,7 +50,7 @@ const DocumentMarkers: React.FC<{
             draggable={true}
             onDragEnd={(e) => handleDrag(e, doc.id)}
             onClick={() => setNewPin(doc.id)}
-            icon={createIcon(doc.id === pin)} // Usa l'icona personalizzata
+            icon={createIcon(doc.id === pin)}
           />
         )
       ))}
@@ -90,9 +89,12 @@ const MyMap: React.FC<MapProps> = ({ documents, pin, setNewPin, fetchDocuments, 
   const [mapOptions, setMapOptions] = useState({
     fullscreenControl: false,
     mapTypeControl: true,
-    mapTypeId: 'satellite' // Imposta il tipo di mappa iniziale su "satellite"
+    mapTypeId: 'satellite'
   });
   const [zoom, setZoom] = useState(12);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);  // Track map load state
+
+  const location = useLocation();
 
   const handleDrag = useCallback(async (e: google.maps.MapMouseEvent, id: number) => {
     const lat = e.latLng?.lat();
@@ -118,6 +120,13 @@ const MyMap: React.FC<MapProps> = ({ documents, pin, setNewPin, fetchDocuments, 
     }
   }, [onMapClick, setNewPin, adding, updating]);
 
+  // Use useEffect to handle map load event
+  useEffect(() => {
+    if (!isMapLoaded) {
+      setIsMapLoaded(true); // Once the component is mounted and ready, set the map as loaded
+    }
+  }, [isMapLoaded]);
+
   useEffect(() => {
     documents.map((doc) => {
       console.log("Coordinates updated MAP:", doc.coordinates);
@@ -126,24 +135,33 @@ const MyMap: React.FC<MapProps> = ({ documents, pin, setNewPin, fetchDocuments, 
 
   return (
     <LoadScript googleMapsApiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={zoom}
-        options={mapOptions}
-        onClick={onMapClick}
-      >
-        <DocumentMarkers 
-          documents={documents} 
-          handleDrag={handleDrag} 
-          setNewPin={setNewPin} 
-          pin={pin} // Passa il pin per il marker selezionato
-        />
-        <DocumentPolygons documents={documents} onPolygonClick={onPolygonClick} />
-      </GoogleMap>
+      <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+        {/* Always render the map, and show a loading message until it's fully loaded */}
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={zoom}
+          options={mapOptions}
+          onClick={onMapClick}
+          onLoad={() => setIsMapLoaded(true)} // Mark the map as loaded when onLoad is fired
+        >
+          {!isMapLoaded && (
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '20px', color: '#000' }}>
+              Loading Map...
+            </div>
+          )} {/* You can show a loading message while the map is loading */}
+
+          <DocumentMarkers 
+            documents={documents} 
+            handleDrag={handleDrag} 
+            setNewPin={setNewPin} 
+            pin={pin} 
+          />
+          <DocumentPolygons documents={documents} onPolygonClick={onPolygonClick} />
+        </GoogleMap>
+      </div>
     </LoadScript>
   );
 };
 
 export default MyMap;
-
