@@ -55,6 +55,7 @@ interface DocumentListProps {
   user: User | undefined;
   updating: boolean;
   setUpdating: any;
+ 
 }
 
 /*interface DocumentLocal {
@@ -71,6 +72,8 @@ interface DocumentListProps {
   description: string;
   coordinates: any;
 }*/
+
+
 
 
 const DocumentList: React.FC<DocumentListProps> = (props) => {
@@ -112,10 +115,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   
   //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
   //const [docExpand, setDocExpand] = useState(0);
-  
+
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -382,6 +387,29 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     
   };
 
+  const handleSearchLinking = async () => {
+    try {
+      let matchingDocs = [];
+      if (searchQuery.trim()) {
+        // Fetch matching documents based on the search query
+        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+      } else {
+        // Default to all documents if no query
+        matchingDocs = props.documents;
+      }
+  
+      // Exclude the current document
+      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== currentDocument?.id);
+      setLinkDocuments(filteredDocs);
+  
+    } catch (error) {
+      console.error("Error searching documents:", error);
+    }
+  };
+
+
+  
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
@@ -482,25 +510,56 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
         <DialogTitle>Link Document</DialogTitle>
         <DialogContent>
-        <div className="search">
+          {/* Search Input */}
+          <div className="search">
             <InputBase
-              placeholder="Search…"
+              placeholder="Search by title…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               sx={{
                 color: 'white',
                 '& ::placeholder': { color: 'white' },
               }}
               className="inputRoot"
             />
+            <Button
+              onClick={handleSearchLinking}
+              color="primary"
+              variant="contained"
+              style={{ marginLeft: '8px' }}
+            >
+              Search
+            </Button>
           </div>
-          <List>
-          {props.documents.map((doc, index) => (
-            currentDocument && doc.id !== currentDocument.id ? ( // Controllo di null
-              <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
-                {(targetDocumentId!=0 && targetDocumentId == doc.id) ? <ListItemText primary={doc.title} sx={{ color: 'yellow' }} /> : <ListItemText primary={doc.title}/> }
-              </ListItemButton>
-            ) : null
-          ))}
-          </List>
+
+          {/* Search Results */}
+          {
+            linkDocuments.length === 0 ? (
+              props.documents.map((doc, index) => (
+                currentDocument && doc.id !== currentDocument.id ? ( // Checking for non-null currentDocument
+                  <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
+                    {targetDocumentId !== 0 && targetDocumentId === doc.id ? (
+                      <ListItemText primary={doc.title} sx={{ color: 'yellow' }} />
+                    ) : (
+                      <ListItemText primary={doc.title} />
+                    )}
+                  </ListItemButton>
+                ) : null
+              ))
+            ) : (
+              <List>
+                {linkDocuments.map(doc => (
+                  <ListItemButton key={doc.id} onClick={() => setTargetDocumentId(doc.id)}>
+                    <ListItemText primary={doc.title} />
+                  </ListItemButton>
+                ))}
+              </List>
+            )
+          }
+
+          
+
+
           <select onChange={handleSelectChange} value={targetLinkType}>
                   <option value="direct" selected>direct</option>
                   <option value="collateral">collateral</option>
