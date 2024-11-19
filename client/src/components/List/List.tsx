@@ -121,8 +121,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [isChecked, setIsChecked] = useState(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   
   //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
   //const [docExpand, setDocExpand] = useState(0);
@@ -254,12 +252,20 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
-    if (((!newDocument.coordinates.coords.lat && newDocument.coordinates.coords.lng) || (newDocument.coordinates.coords.lat && !newDocument.coordinates.coords.lng))) {
-      newErrors.push("Latitude and Longitude must be defined."); 
+    if (
+      (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) || 
+      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng)
+    ) {
+      newErrors.push("Latitude and Longitude must be defined.");
     }
-    if ((Number(newDocument.coordinates.coords.lat) < -90 || Number(newDocument.coordinates.coords.lat) > 90) || (Number(newDocument.coordinates.coords.lng) < -180 || Number(newDocument.coordinates.coords.lng) > 180)) {
+    
+    if (
+      (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) || 
+      (Number(newDocument.coordinates?.coords?.lng) < -180 || Number(newDocument.coordinates?.coords?.lng) > 180)
+    ) {
       newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
     }
+    
     /*
     if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
       newErrors.push("Latitude must be a number.");
@@ -397,7 +403,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     
   };
 
-  const handleSearchLinking = async () => {
+  /*const handleSearchLinking = async () => {
     try {
       let matchingDocs = [];
       if (searchQuery.trim()) {
@@ -415,7 +421,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     } catch (error) {
       console.error("Error searching documents:", error);
     }
-  };
+  };*/
 
 
   
@@ -510,8 +516,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     </FormControl>
             <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.coordinates && newDocument.coordinates.coords ? newDocument.coordinates.coords.lat : ""}  onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.coordinates && newDocument.coordinates.coords ? newDocument.coordinates.coords.lng : ""}  onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button>
             <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
           </DialogContent>
@@ -571,12 +577,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         <DialogContent>
           {/* Search Input */}
           <div className="search">
-          {/* Search Input */}
-          <div className="search">
             <InputBase
-              placeholder="Search by title…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

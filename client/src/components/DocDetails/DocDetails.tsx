@@ -30,7 +30,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [editDescription, setEditDescription] = useState(false);
   const [editLat, setEditLat] = useState(false);
   const [editLng, setEditLng] = useState(false);
-  const [description, setDescription] = useState(props.document.description);
+  //const [description, setDescription] = useState(props.document.description);
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
@@ -131,7 +131,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     }
   };*/
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
+  //const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
   const toggleDescription = (e: React.MouseEvent) => {
     //setShowDescription(!showDescription);
     e.stopPropagation();
@@ -168,7 +168,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         document.description,
         document.coordinates
       );*/
-      if(!props.document.coordinates){
+      if(!props.document.coordinates.coords){
         props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       }
       else{
@@ -180,10 +180,10 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     }
   }
   const toggleEditDescription = () => setEditDescription(true);
-  const closeEditDescription = () => {
+  /*const closeEditDescription = () => {
     setEditDescription(false);
     setDescription(props.document.description)
-  }
+  }*/
 
   /*const saveDescription = async () => {
     try {
@@ -287,7 +287,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           </Typography>
         )*/}
         {props.pin==props.document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
-            <strong>Description:</strong> {description}
+            <strong>Description:</strong> {props.document.description}
           </Typography>:<></>}
 
         {/* editDescription ? (
