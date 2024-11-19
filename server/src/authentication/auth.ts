@@ -104,7 +104,10 @@ class Authenticator {
     }
 
 
-    // pass the appropriate UserType to create an authorization middleware for that user type
+    /*
+    * Used as a middleware to check authorization for specified user type
+    * @param userType - The type of user to check authorization for 
+    */
     isUserAuthorized(userType: UserType) {
         return (req: any, res: any, next: any) => {
             if (req.isAuthenticated() && req.user && req.user.type === userType) {

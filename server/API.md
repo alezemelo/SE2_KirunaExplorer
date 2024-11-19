@@ -223,6 +223,7 @@ create a link between two documents
 - returns 400 if the id of the docuemnt does not exist.
 - returns 422 if the request body content is not correct
 
+### Auth APIs
 
 #### POST `kiruna_explorer/sessions`
 
