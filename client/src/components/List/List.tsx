@@ -115,6 +115,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
+  const [isChecked, setIsChecked] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   
@@ -387,6 +388,21 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     
   };
 
+  const handleCheckboxChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(event.target.checked)
+    if(event.target.checked){
+      const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
+      if(t){
+        props.setDocuments(t)
+      }
+      setIsChecked(true); 
+    }else{
+      await props.fetchDocuments();
+      setIsChecked(false); 
+    }
+    
+  }
+
   const handleSearchLinking = async () => {
     try {
       let matchingDocs = [];
@@ -491,7 +507,18 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           ))
         }
         </Grid>
+
       </Box>
+      <div>
+      <label>
+        <input 
+          type="checkbox" 
+          checked={isChecked} 
+          onChange={handleCheckboxChange} 
+        />
+        All municipality documents
+      </label>
+      </div>
 
       {props.loggedIn && props.user?.type === "urban_planner" && (
         <Button 
