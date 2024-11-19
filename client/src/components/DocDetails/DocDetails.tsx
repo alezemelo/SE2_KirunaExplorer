@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { DocumentType, User } from "../../type";
 import API from "../../API";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
-
+import { Document } from "../../models/document";
 
 
 interface DocDetailsProps {
@@ -135,8 +135,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const toggleDescription = (e: React.MouseEvent) => {
     //setShowDescription(!showDescription);
     e.stopPropagation();
-    if (document) {
-      props.setUpdating(true);
+    if (props.document) {
+      /*props.setUpdating(true);
       console.log(props.updating)
       const convertedDocument = {
         id: props.document.id,
@@ -152,7 +152,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         lat: props.document.coordinates?.lat,
         lng: props.document.coordinates?.lng,
       };
-      props.setNewDocument(convertedDocument);
+      props.setNewDocument(convertedDocument);*/
       props.setUpdating(true);
       console.log(props.updating)
       /*const convertedDocument = new Document(
@@ -176,7 +176,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
         }
       }
-      props.setNewDocument(document);
+      props.setNewDocument(props.document);
     }
   }
   const toggleEditDescription = () => setEditDescription(true);
@@ -244,7 +244,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                 <Typography
                   variant="body2"
                   style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
-                  onClick={() => setEditLat(true)}
+                  /*onClick={() => setEditLat(true)}*/
                 >
                   {/*lat || "Enter latitude"*/lat?lat:''}
                 </Typography>
@@ -271,7 +271,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                 <Typography
                   variant="body2"
                   style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
-                  onClick={() => setEditLng(true)}
+                  /*onClick={() => setEditLng(true)}*/
                 >
                   {/*lng || "Enter longitude"*/lng?lng:''}
                 </Typography>
