@@ -330,6 +330,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e)=>{
               e.stopPropagation();
+              props.fetchDocuments();
               props.onLink()}}>
             Link Document
           </Button>
