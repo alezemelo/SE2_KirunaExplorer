@@ -135,7 +135,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const toggleDescription = (e: React.MouseEvent) => {
     //setShowDescription(!showDescription);
     e.stopPropagation();
-    if (props.document) {
+    if (props.document && props.document.coordinates.type!="POLYGON") {
       /*props.setUpdating(true);
       console.log(props.updating)
       const convertedDocument = {
@@ -172,7 +172,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       }
       else{
-        if (props.document.coordinates.coords){
+        if (props.document.coordinates.type="POINT"){
           props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
         }
       }

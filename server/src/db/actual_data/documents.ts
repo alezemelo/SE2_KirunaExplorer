@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 import { Document, DocumentType } from "../../models/document";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 
 const doc_15 = new Document(
   15, // ID
@@ -43,7 +44,7 @@ const doc_18 = new Document(
     `The plan consists, like all detailed plans, of two documents: the area map that regulates it, and a ` +
     `text explaining the reasons that led to the drafting of the plan with these characteristics. The plan ` +
     `gained legal validity in 2012.`, // 10: Description
-  undefined // 11: Coordinates
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.8526128037612, 20.24253383065055)) // 11: Coordinates
 )
 
 const doc_41 = new Document(
@@ -72,7 +73,14 @@ const doc_41 = new Document(
     `diagrams, and texts. The document also includes ` +
     `numerous studies aimed at demonstrating the ` +
     `future success of the project`, // 10: Description
-  undefined // 11: Coordinates
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
+    new CoordinatesAsPoint(67.86760158832168, 20.164591698595675),
+    new CoordinatesAsPoint(67.85351844008717, 20.18194183073118),
+    new CoordinatesAsPoint(67.86227111154075, 20.20676586594044),
+    new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
+
+  ])) // 11: Coordinates
 )
 
 const documents = [doc_15, doc_18, doc_41]
