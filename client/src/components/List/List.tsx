@@ -171,6 +171,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const closeLinkingDialog = () => {setOpenLinkDialog(false);
     setTargetDocumentId(0);
     setTargetLinkType("direct");
+    setLinkDocuments([]);
+    setSearchQuery('');
+
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
