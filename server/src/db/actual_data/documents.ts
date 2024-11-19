@@ -78,6 +78,7 @@ const doc_41 = new Document(
     new CoordinatesAsPoint(67.86760158832168, 20.164591698595675),
     new CoordinatesAsPoint(67.85351844008717, 20.18194183073118),
     new CoordinatesAsPoint(67.86227111154075, 20.20676586594044),
+    new CoordinatesAsPoint(67.8750204078963, 20.189086203319476),
     new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
 
   ])) // 11: Coordinates

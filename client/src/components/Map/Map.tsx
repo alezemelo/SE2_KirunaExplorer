@@ -22,7 +22,25 @@ interface MapProps {
   updating: boolean;
 }
 
-const DocumentMarkers: React.FC<{ documents: any[], handleDrag: (e: google.maps.MapMouseEvent, id: number) => void, setNewPin: (id: number) => void }> = ({ documents, handleDrag, setNewPin }) => {
+const DocumentMarkers: React.FC<{ 
+  documents: any[], 
+  handleDrag: (e: google.maps.MapMouseEvent, id: number) => void, 
+  setNewPin: (id: number) => void, 
+  pin: number // Accept pin here
+}> = ({ documents, handleDrag, setNewPin, pin }) => {
+
+  // Funzione per creare l'icona del marker di tipo pin simile a Google Maps
+  const createIcon = (selected: boolean) => {
+    return {
+      url: selected
+        ? "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png" // Icona rossa per il pin selezionato
+        : "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png", // Icona blu per i pin non selezionati
+      scaledSize: new window.google.maps.Size(selected ? 50 : 40, selected ? 50 : 40), // Aumenta la dimensione per il pin selezionato
+      origin: new window.google.maps.Point(0, 0),
+      anchor: new window.google.maps.Point(25, 50), // Posiziona l'icona correttamente sopra il marker
+    };
+  };
+
   return (
     <>
       {documents.map((doc) => (
@@ -33,6 +51,7 @@ const DocumentMarkers: React.FC<{ documents: any[], handleDrag: (e: google.maps.
             draggable={true}
             onDragEnd={(e) => handleDrag(e, doc.id)}
             onClick={() => setNewPin(doc.id)}
+            icon={createIcon(doc.id === pin)} // Usa l'icona personalizzata
           />
         )
       ))}
@@ -40,7 +59,10 @@ const DocumentMarkers: React.FC<{ documents: any[], handleDrag: (e: google.maps.
   );
 };
 
-const DocumentPolygons: React.FC<{ documents: any[], onPolygonClick: (e: google.maps.MapMouseEvent, id: number) => void }> = ({ documents, onPolygonClick }) => {
+const DocumentPolygons: React.FC<{ 
+  documents: any[], 
+  onPolygonClick: (e: google.maps.MapMouseEvent, id: number) => void 
+}> = ({ documents, onPolygonClick }) => {
   return (
     <>
       {documents.map((doc) => (
@@ -111,7 +133,12 @@ const MyMap: React.FC<MapProps> = ({ documents, pin, setNewPin, fetchDocuments, 
         options={mapOptions}
         onClick={onMapClick}
       >
-        <DocumentMarkers documents={documents} handleDrag={handleDrag} setNewPin={setNewPin} />
+        <DocumentMarkers 
+          documents={documents} 
+          handleDrag={handleDrag} 
+          setNewPin={setNewPin} 
+          pin={pin} // Passa il pin per il marker selezionato
+        />
         <DocumentPolygons documents={documents} onPolygonClick={onPolygonClick} />
       </GoogleMap>
     </LoadScript>
@@ -119,3 +146,4 @@ const MyMap: React.FC<MapProps> = ({ documents, pin, setNewPin, fetchDocuments, 
 };
 
 export default MyMap;
+
