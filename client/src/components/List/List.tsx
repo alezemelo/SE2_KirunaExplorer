@@ -121,8 +121,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [isChecked, setIsChecked] = useState(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
+  
   
   //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
   //const [docExpand, setDocExpand] = useState(0);
@@ -435,25 +434,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     
   }
 
-  const handleSearchLinking = async () => {
-    try {
-      let matchingDocs = [];
-      if (searchQuery.trim()) {
-        // Fetch matching documents based on the search query
-        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
-      } else {
-        // Default to all documents if no query
-        matchingDocs = props.documents;
-      }
-  
-      // Exclude the current document
-      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== currentDocument?.id);
-      setLinkDocuments(filteredDocs);
-  
-    } catch (error) {
-      console.error("Error searching documents:", error);
-    }
-  };
+
 
 
   
@@ -465,6 +446,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }, [props.pin]);
+
 
   return (
     <div className="container">
@@ -571,12 +553,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         <DialogContent>
           {/* Search Input */}
           <div className="search">
-          {/* Search Input */}
-          <div className="search">
             <InputBase
-              placeholder="Search by title…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -594,43 +571,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             >
               Search
             </Button>
-            <Button
-              onClick={handleSearchLinking}
-              color="primary"
-              variant="contained"
-              style={{ marginLeft: '8px' }}
-            >
-              Search
-            </Button>
+            
           </div>
 
-          {/* Search Results */}
-          {
-            linkDocuments.length === 0 ? (
-              props.documents.map((doc, index) => (
-                currentDocument && doc.id !== currentDocument.id ? ( // Checking for non-null currentDocument
-                  <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
-                    {targetDocumentId !== 0 && targetDocumentId === doc.id ? (
-                      <ListItemText primary={doc.title} sx={{ color: 'yellow' }} />
-                    ) : (
-                      <ListItemText primary={doc.title} />
-                    )}
-                  </ListItemButton>
-                ) : null
-              ))
-            ) : (
-              <List>
-                {linkDocuments.map(doc => (
-                  <ListItemButton key={doc.id} onClick={() => setTargetDocumentId(doc.id)}>
-                    <ListItemText primary={doc.title} />
-                  </ListItemButton>
-                ))}
-              </List>
-            )
-          }
-
           
-
 
 
           {/* Search Results */}
@@ -676,6 +620,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     </div>
   );
 };
+
 
 export default DocumentList;
 
