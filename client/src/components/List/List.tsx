@@ -392,7 +392,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   return (
     <div className="container">
-      <Typography variant="h6">Documents</Typography>
+      <Typography variant="h6" sx={{ marginTop: 2}}>Documents</Typography>
 
       {/* Dialog for Adding New Document */}
       <Dialog open={open} onClose={handleClose}  className="custom-dialog">
@@ -454,7 +454,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       </Dialog>
 
       {/* Scrollable document list */}
-      <Box ref={containerRef} className="scrollable-list" style={{ height: "600px", overflowY: "auto", paddingRight: "10px" }}>
+      <Box ref={containerRef} className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
         <Grid container spacing={3}>
           {props.documents.map((document, i) => (
             <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
