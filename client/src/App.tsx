@@ -32,6 +32,7 @@ function App() {
   const [message, setMessage] = useState<{ msg: string; type: string } | null>({ msg: '', type: '' });
   const navigate = useNavigate(); // Use navigate hook
   const [updating, setUpdating] = useState(false);//mode for taking coordinate from map for updating
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
 
 
@@ -72,6 +73,23 @@ function App() {
     setNewPin(0);
   };
 
+  const handleSearch = async () => {
+    try {
+      // Only search if the query is not empty
+      if (searchQuery.trim()) {
+        const matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+        setDocuments(matchingDocs);
+        console.log("Documents found:", matchingDocs);
+      } else {
+        // If the search query is empty, fetch all documents again
+        fetchDocuments();
+      }
+    } catch (error) {
+      console.error("Error searching documents:", error);
+    }
+  };
+  
+
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -99,7 +117,7 @@ function App() {
   }, [loggedIn]);
   
 
-  // NEW
+  
   const handleLogin = async (credentials:any) => {
     try {
       const user = await API.login(credentials.username, credentials.password);
@@ -146,13 +164,13 @@ function App() {
           path="/"
           element={
             <div className="container">
-              <Header onToggleDocumentList={toggleDocumentList} loggedIn={loggedIn} logOut={handleLogout}/>
+              <Header onToggleDocumentList={toggleDocumentList} loggedIn={loggedIn} logOut={handleLogout} handleSearch={handleSearch} setSearchQuery={setSearchQuery} searchQuery={searchQuery}/>
               <Grid container spacing={0} style={{ height: "100vh", width: "100%", margin: 0, padding: 0 }}>
               {isDocumentListOpen && (
                   <Grid item xs={12} md={4}>
                     <DocumentList
-                    updating={updating} 
-                    setUpdating={setUpdating}
+                      updating={updating} 
+                      setUpdating={setUpdating}
                       documents={documents}
                       setDocuments={setDocuments}
                       fetchDocuments={fetchDocuments}
@@ -164,6 +182,7 @@ function App() {
                       setAdding={setAdding}
                       loggedIn={loggedIn}
                       user={user}
+                     
                     />
                   </Grid>
                 )}

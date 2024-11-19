@@ -68,7 +68,25 @@ async function getDocuments() {
   return await response.json();
 }
 
+async function searchDocumentsByTitle(title: string) {
+  try {
+      const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Include session cookies
+      });
 
+      if (!response.ok) {
+          throw new Error("Error fetching documents by title");
+      }
+
+      // Assuming the response body contains an array of documents
+      return await response.json();
+  } catch (error) {
+      console.error("Error:", error);
+      throw error;
+  }
+}
 
 
 async function getLinks(id: number){
@@ -154,6 +172,7 @@ const API = {
     getDocuments,
     getLinks,
     getDocument,
+    searchDocumentsByTitle,
     createLink,
     addDocument,
     updateCoordinates,

@@ -3,6 +3,7 @@ import React from "react";
 import { AppBar, Toolbar, Typography, Box, IconButton, InputBase, Button } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import LogoutIcon from '@mui/icons-material/Logout';
+import SearchIcon from '@mui/icons-material/Search'; // Import icon for search
 import MenuIcon from "@mui/icons-material/Menu"; // Import icon for toggle
 import { useNavigate } from "react-router-dom";
 import "./Header.css";
@@ -11,6 +12,9 @@ interface Header {
   onToggleDocumentList: () => void;
   loggedIn: boolean;
   logOut: () => void;
+  setSearchQuery: (query: string) => void;
+  handleSearch: () => void;
+  searchQuery: string;
 }
 
 const Header: React.FC<Header> = (props) => {
@@ -38,12 +42,27 @@ const Header: React.FC<Header> = (props) => {
           <div className="search">
             <InputBase
               placeholder="Search…"
+              value={props.searchQuery.trim()}
+              onChange={(e) => props.setSearchQuery(e.target.value)}
               sx={{
                 color: 'white',
                 '& ::placeholder': { color: 'white' },
+                backgroundColor: 'rgba(255, 255, 255, 0.2)', // Optional: style to make the input stand out
+                borderRadius: '4px',
+                padding: '4px 12px',
+                width: '100%',
               }}
               className="inputRoot"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  props.handleSearch();
+                }
+              }}
             />
+            {/* Optional: Add a button for search */}
+            <IconButton onClick={props.handleSearch} sx={{ color: 'white', padding: '10px' }}>
+              <SearchIcon />
+            </IconButton>
           </div>
         </Box>
         <div>
