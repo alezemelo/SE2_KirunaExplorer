@@ -1,40 +1,61 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { LoadScript } from "@react-google-maps/api"; // Import LoadScript
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import Login from "./components/Login/Login";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
-import { LoadScript } from "@react-google-maps/api";
+import { Coordinates } from "./models/coordinates";
+import "./App.css";
+import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import API from "./API";
+import "./App.css";
 import { User, Coordinates as CoordinatesLocal } from "./type";
 import { Document } from "./models/document";
 
-const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ['places'];
-
 function App() {
+  const [coordinates, setCoordinates] = useState<CoordinatesLocal>({
+    lat: 67.85572,
+    lng: 20.22513,
+  });
+  const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
-  const [pin, setNewPin] = useState<number>(0);
-  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>();
-  const [adding, setAdding] = useState<boolean>(false);
-  const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  const [user, setUser] = useState<User | undefined>();
-  const [message, setMessage] = useState<{ msg: string; type: string } | null>(null);
-  const [updating, setUpdating] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
+  const [pin, setNewPin] = useState(0);
+  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined);
+  const [adding, setAdding] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [message, setMessage] = useState<{ msg: string; type: string } | null>({
+    msg: "",
+    type: "",
+  });
   const navigate = useNavigate();
+  const [updating, setUpdating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const fetchDocuments = useCallback(async () => {
     try {
       const data: Document[] = await API.getDocuments();
+      for (let i = 0; i < data.length; i++) {
+        const t = await API.getLinks(data[i].id);
+        let c = [];
+        for (let j = 0; j < t.length; j++) {
+          if (t[j].docId1 === data[i].id) {
+            const t1 = await API.getDocument(t[j].docId2);
+            c.push(t1.title + ` (${t[j].linkType})`);
+          } else {
+            const t2 = await API.getDocument(t[j].docId1);
+            c.push(t2.title + ` (${t[j].linkType})`);
+          }
+        }
+        data[i].connection = c;
+      }
       setDocuments(data);
-      console.log("Documents fetched:", data);
     } catch (error) {
-      console.error("Error fetching documents:", error);
+      console.error(error);
     }
   }, []);
 
@@ -79,20 +100,19 @@ function App() {
     checkAuth();
   }, []);
 
-  const handleLogin = async (credentials: { username: string; password: string }) => {
+  const handleLogin = async (credentials: any) => {
     try {
       const user = await API.login(credentials.username, credentials.password);
       if (user) {
         setLoggedIn(true);
-        setUser(user);
+        setUser(user || undefined);
         setMessage(null);
-        fetchDocuments();
         navigate("/");
       } else {
         setMessage({ msg: "Invalid credentials. Please try again.", type: "danger" });
       }
-    } catch (error) {
-      console.error("Error during login:", error);
+    } catch (err) {
+      console.error("An error occurred during login:", err);
     }
   };
 
@@ -100,20 +120,17 @@ function App() {
     try {
       const success = await API.logout();
       if (success) {
-        fetchDocuments();
         setLoggedIn(false);
         setUser(undefined);
         navigate("/login");
-      } else {
-        console.error("Logout failed");
       }
-    } catch (error) {
-      console.error("Error during logout:", error);
+    } catch (err) {
+      console.error("An error occurred during logout:", err);
     }
   };
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4" libraries={libraries}>
+    <LoadScript googleMapsApiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
       <CssBaseline />
       <Routes>
         <Route
@@ -166,6 +183,7 @@ function App() {
                     {isDocumentListOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                   </Button>
                 </Box>
+
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
                     fetchDocuments={fetchDocuments}
