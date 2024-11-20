@@ -163,7 +163,7 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="container">
+            <div className="container" >
               <Header onToggleDocumentList={toggleDocumentList} loggedIn={loggedIn} logOut={handleLogout} handleSearch={handleSearch} setSearchQuery={setSearchQuery} searchQuery={searchQuery}/>
               <Grid container spacing={0} style={{ height: "100vh", width: "100%", margin: 0, padding: 0 }}>
               {isDocumentListOpen && (
@@ -190,7 +190,7 @@ function App() {
                   <Button
                     sx={{
                       position: "absolute",
-                      top: "50%",
+                      top: "400px",
                       left: "50%",
                       transform: "translate(0%, -50%)",
                       backgroundColor: "white",

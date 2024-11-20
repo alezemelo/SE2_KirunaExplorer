@@ -7,7 +7,7 @@ import { useLocation } from "react-router-dom";
 
 const containerStyle = {
   width: '100%',
-  height: '100vh'
+  height: '90%',
 };
 
 const center = { lat: 67.85766491972178, lng: 20.22771266622486 };

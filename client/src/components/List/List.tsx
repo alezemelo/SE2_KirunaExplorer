@@ -56,7 +56,6 @@ interface DocumentListProps {
   updating: boolean;
   setUpdating: any;
  
- 
 }
 
 /*interface DocumentLocal {
@@ -299,18 +298,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       }
       if(isValidDocumentType(newDocument.type)){
 
-        const latLng = newDocument.coordinates.coords;
+        const latLng = newDocument.coordinates?.coords;
         const coordinates1 = latLng && latLng.lat !== null && latLng.lng !== null
           ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
           : new Coordinates(CoordinatesType.MUNICIPALITY, null);
 
-
-        // Creazione dell'oggetto finale
+        
         const finalDocument:Document = new Document(
           0,
           newDocument.title,
           newDocument.type,
-          'admin', //to change when we have cookies
+          props.user?.username?props.user?.username:'',
           dayjs(date),
           newDocument.language,
           Number(newDocument.pages),
