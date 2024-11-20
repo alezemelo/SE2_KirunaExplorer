@@ -7,8 +7,8 @@ export enum CoordinatesType {
 }
 
 export class Coordinates {
-    private type: CoordinatesType;
-    private coords: CoordinatesAsPoint | CoordinatesAsPolygon | null;
+    public type: CoordinatesType;
+    public coords: CoordinatesAsPoint | CoordinatesAsPolygon | null;
 
     /*
     * Wrapper class for CoordinatesAsPoint and CoordinatesAsPolygon. It will contain one of the two OR null (for municipality type).
