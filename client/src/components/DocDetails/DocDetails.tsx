@@ -215,7 +215,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         {props.pin==props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? props.document.issuanceDate.toString() : ""}</Typography>
+          <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
           
           {renderConnections()}

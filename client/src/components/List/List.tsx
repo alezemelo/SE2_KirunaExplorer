@@ -465,7 +465,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} disabled={props.updating?true:false} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} disabled={props.updating?true:false} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="ex. 2022-01-01/2022-01/2022" name="issuanceDate" fullWidth value={newDocument.issuanceDate} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="ex. 2022-01-01" name="issuanceDate" fullWidth value={newDocument.issuanceDate} disabled={props.updating?true:false} onChange={handleChange} />
             <FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
   <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
   <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
