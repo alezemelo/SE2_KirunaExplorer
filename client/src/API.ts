@@ -110,7 +110,8 @@ async function createLink(doc_id1: number, doc_id2: number, link_type: string) {
             doc_id1: doc_id1,
             doc_id2: doc_id2,
             link_type: link_type
-          }), 
+          }),
+          credentials: "include",
         });
     
         if (!response.ok) {
@@ -127,6 +128,7 @@ async function addDocument(finalDocument: any){
     const response = await fetch('http://localhost:3000/kiruna_explorer/documents', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(finalDocument),
       });
 
@@ -144,6 +146,7 @@ async function updateCoordinates(id: number, coordinates: Coordinates) {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(coordinates),
+          credentials: "include",
         });
 
         if (!response.ok) throw new Error("Error: " + response.statusText);
@@ -159,6 +162,7 @@ async function updateDescription(id: number, description: string){
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ description }),
+          credentials: "include",
         });
   
         if (!response.ok) throw new Error("Error: " + response.statusText);
