@@ -164,6 +164,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const handleClose = () => {
     setOpen(false);
     props.setUpdating(false);
+    props.setAdding(false)
     setNewDocument(reset());
     setErrors([]);
   }
