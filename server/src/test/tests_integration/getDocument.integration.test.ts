@@ -15,6 +15,7 @@ import db from '../../db/db';
 import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 import dayjs from "dayjs";
 
+/*
 const complete_doc = new Document(
   15, // ID
   "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
@@ -37,13 +38,39 @@ const complete_doc = new Document(
       `that over the years it will propose various consultation opportunities`, // Description
   new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(20, 20)) // Coordinates
 );
+*/
 
+const complete_doc = new Document(
+  99, // ID
+  "Sample test doc", // Title
+  DocumentType.informative_doc, // Type
+  "admin", // Last modified by
+
+  dayjs.utc("2005"), // Issuance date
+  "Swedish", // Language
+  999, // Pages
+  "Kiruna kommun/Residents", // Stakeholders
+  "Text", // Scale
+  "This is a sample test doc",
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(20, 20)) // Coordinates
+);
+
+const minimal_doc = new Document(
+  99, // ID
+  "Sample test doc", // Title
+  DocumentType.informative_doc, // Type
+  "admin", // Last modified by
+);
+
+
+/*
 const minimal_doc = new Document(
   15, // ID
   "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
   DocumentType.informative_doc, // Type
   "admin", // Last modified by
 );
+*/
 
 async function insertAdmin() {
   await db("users").insert({ username: "admin", hash: "hash", salt: "salt", type: "urban_planner" });
@@ -59,6 +86,11 @@ describe('get_document Integration Tests', () => {
     documentController = new DocumentController();
 
     // TODO Empty the db
+    //await dbEmpty();
+    //await populate();
+  });
+
+  beforeEach(async () => {
     await dbEmpty();
     await populate();
   });
@@ -71,9 +103,7 @@ describe('get_document Integration Tests', () => {
     await db.destroy();
   });
 
-  beforeEach(async () => {
-    await dbEmpty();
-  });
+  
 
   // ================================---------------+++++++++++++++++++++-----------------================================
 
@@ -85,14 +115,14 @@ describe('get_document Integration Tests', () => {
         await db("documents").insert(minimal_doc.toObject());
 
         // Running test target function(s)
-        let response = await documentDAO.getDocument(15);
+        let response = await documentDAO.getDocument(99);
 
         // Checking results
         expect(response).not.toBeNull();
         if (response) {
           expect(response).toBeInstanceOf(Document);
-          expect(response.id).toBe(15);
-          expect(response.title).toBe(`Compilation of responses “So what the people of Kiruna think?” (15)`);
+          expect(response.id).toBe(99);
+          expect(response.title).toBe("Sample test doc");
           expect(response.type).toBe(`informative_doc`);
           expect(response.lastModifiedBy).toBe(`admin`);
           expect(response.issuanceDate).toBeUndefined();
@@ -120,14 +150,14 @@ describe('get_document Integration Tests', () => {
         await db("documents").insert(complete_doc.toObject());
 
         // Running test target function(s)
-        const response = await documentDAO.getDocument(15);
+        const response = await documentDAO.getDocument(99);
 
         // Checking results
         expect(response).not.toBeNull();
         if (response) {
           expect(response).toBeInstanceOf(Document);
-          expect(response.id).toBe(15);
-          expect(response.title).toBe(`Compilation of responses “So what the people of Kiruna think?” (15)`);
+          expect(response.id).toBe(99);
+          expect(response.title).toBe(`Sample test doc`);
           expect(response.type).toBe(`informative_doc`);
           expect(response.lastModifiedBy).toBe(`admin`);
           expect(response.issuanceDate?.toISOString()).toBe(`2005-01-01T00:00:00.000Z`);
@@ -135,7 +165,7 @@ describe('get_document Integration Tests', () => {
           expect(response.pages).toBe(999);
           expect(response.stakeholders).toBe(`Kiruna kommun/Residents`);
           expect(response.scale).toBe(`Text`);
-          expect(response.description).toContain(`This document is a compilation of the responses to `);
+          expect(response.description).toContain(`This is a sample test doc`);
           
           const coordinates = response.getCoordinates();
           expect(coordinates).not.toBeUndefined();
@@ -172,14 +202,14 @@ describe('get_document Integration Tests', () => {
         await db("documents").insert(polygon_doc.toObject());
 
         // Running test target function(s)
-        const response = await documentDAO.getDocument(15);
+        const response = await documentDAO.getDocument(99);
 
         // Checking results
         expect(response).not.toBeNull();
         if (response) {
           expect(response).toBeInstanceOf(Document);
-          expect(response.id).toBe(15);
-          expect(response.title).toBe(`Compilation of responses “So what the people of Kiruna think?” (15)`);
+          expect(response.id).toBe(99);
+          expect(response.title).toBe(`Sample test doc`);
           expect(response.type).toBe(`informative_doc`);
           expect(response.lastModifiedBy).toBe(`admin`);
           expect(response.issuanceDate?.toISOString()).toBe(`2005-01-01T00:00:00.000Z`);
@@ -187,7 +217,7 @@ describe('get_document Integration Tests', () => {
           expect(response.pages).toBe(999);
           expect(response.stakeholders).toBe(`Kiruna kommun/Residents`);
           expect(response.scale).toBe(`Text`);
-          expect(response.description).toContain(`This document is a compilation of the responses to `);
+          expect(response.description).toContain(`This is a sample test doc`);
           
           const coordinates = response.getCoordinates();
           expect(coordinates).not.toBeUndefined();
@@ -215,7 +245,7 @@ describe('get_document Integration Tests', () => {
 
       test('OK document not found', async () => {
         // Running test target function(s)
-        const response = await documentDAO.getDocument(15);
+        const response = await documentDAO.getDocument(99);
 
         // Checking results
         expect(response).toBeNull();
@@ -227,7 +257,7 @@ describe('get_document Integration Tests', () => {
   describe('Controller Tests', () => { 
     test('OK document found', async () => {
       // Setting data
-      await populate();
+      //await populate();
 
       // Running test target function(s)
       const response = await documentController.getDocument(15);
@@ -242,7 +272,7 @@ describe('get_document Integration Tests', () => {
 
     test('ERROR document not found', async () => {
       // Running test target function(s)
-      expect(documentController.getDocument(15))
+      expect(documentController.getDocument(99))
         .rejects
         .toThrow(DocumentNotFoundError);
     });
@@ -253,7 +283,7 @@ describe('get_document Integration Tests', () => {
   describe('Route Tests', () => { 
     test('OK document found', async () => {
       // Setting data
-      await populate();
+      //await populate();
 
       // Running test target function(s)
       const response = await request(app).get('/kiruna_explorer/documents/15');
@@ -274,7 +304,7 @@ describe('get_document Integration Tests', () => {
 
     test('ERROR document not found', async () => {
       // Running test target function(s)
-      const response = await request(app).get('/kiruna_explorer/documents/15');
+      const response = await request(app).get('/kiruna_explorer/documents/99');
 
       // Checking results
       expect(response.status).toBe(404);

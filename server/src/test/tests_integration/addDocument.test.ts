@@ -2,13 +2,17 @@ import request from 'supertest';
 import { app } from '../../../index';
 import db from '../../db/db';
 import pgdb from '../../db/temp_db';
-import { dbEmpty } from '../../db/db_common_operations';
+import { dbEmpty, dbPopulate } from '../../db/db_common_operations';
+import { populate } from '../populate_for_some_tests';
+
+import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login} from "./test_utility";
 
 const testPort = 3001; 
 let server: any;
 
 beforeAll(async () => {
     await dbEmpty(); 
+    /*
     const adminExists = await db('users').where({ username: 'admin' }).first();
 
     if (!adminExists) {
@@ -19,9 +23,16 @@ beforeAll(async () => {
             type: 'urban_planner',
         });
     }
+    */
 
     server = app.listen(testPort);
 });
+
+beforeEach(async () => {
+    await dbEmpty(); // Clear the database before each test
+    //await dbPopulate(); // Populate the database with sample dat
+    await populate();
+})
 
 afterAll(async () => {
     if (server) {
@@ -48,8 +59,8 @@ describe('POST /kiruna_explorer/documents', () => {
             },
             lastModifiedBy: 'admin',
         };
-
-        const response = await request(app).post('/kiruna_explorer/documents').send(validDocument);
+        const cookie = await login(URBAN_PLANNER);
+        const response = await request(app).post('/kiruna_explorer/documents').set("Cookie", cookie).send(validDocument);
         expect(response.status).toBe(201);
         expect(response.body).toEqual({
             message: 'Document added successfully',
@@ -63,8 +74,8 @@ describe('POST /kiruna_explorer/documents', () => {
         const invalidDocument = {
             type: 'technical_doc',
         };
-
-        const response = await request(app).post('/kiruna_explorer/documents').send(invalidDocument);
+        const cookie = await login(URBAN_PLANNER);
+        const response = await request(app).post('/kiruna_explorer/documents').set("Cookie", cookie).send(invalidDocument);
         expect(response.status).toBe(400);
         expect(response.body.errors).toEqual(
             expect.arrayContaining([
@@ -84,8 +95,8 @@ describe('POST /kiruna_explorer/documents', () => {
                 coords: { lat: 'invalid', lng: 22.183 },
             },
         };
-
-        const response = await request(app).post('/kiruna_explorer/documents').send(invalidDocument);
+        const cookie = await login(URBAN_PLANNER);
+        const response = await request(app).post('/kiruna_explorer/documents').set("Cookie", cookie).send(invalidDocument);
         expect(response.status).toBe(400);
         expect(response.body.errors).toEqual(
             expect.arrayContaining([
@@ -107,7 +118,8 @@ describe('POST /kiruna_explorer/documents', () => {
             },
         };
 
-        const response = await request(app).post('/kiruna_explorer/documents').send(invalidDocument);
+        const cookie = await login(URBAN_PLANNER);
+        const response = await request(app).post('/kiruna_explorer/documents').set("Cookie", cookie).send(invalidDocument);
         expect(response.status).toBe(400);
         expect(response.body.errors).toEqual(
             expect.arrayContaining([

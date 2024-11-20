@@ -18,13 +18,13 @@ class DocumentRoutes {
     private controller: DocumentController;
     private router: Router;
     private errorHandler: ErrorHandler;
-    private authenticator: Authenticator;
+    private authService: Authenticator;
 
     /**
      * Constructs a new instance of the DocumentRoutes class.
      */
     constructor(authenticator: Authenticator) {
-        this.authenticator = authenticator;
+        this.authService= authenticator;
         this.controller = new DocumentController();
         this.router = express.Router();
         this.errorHandler = new ErrorHandler();
@@ -61,6 +61,8 @@ class DocumentRoutes {
             //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('description').isString().isLength({ max: 2500 }),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.updateDescription(req.params.id, req.body.description)   
                 .then(() => res.status(200).end())
@@ -81,6 +83,8 @@ class DocumentRoutes {
         this.router.get(
             '/search',
             query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            //this.authService.isLoggedIn,
+            //this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => {
                 try {
@@ -140,7 +144,9 @@ class DocumentRoutes {
                 .withMessage('Title is required'),
             body('type')
                 .isString()
-                .withMessage('Type must be a string'),
+                .withMessage('Type must be a string')
+                .isIn(["informative_doc", "prescriptive_doc", "design_doc", "technical_doc", "material_effect"])
+                .withMessage("Type of doc must be either: 'informative_doc',  'prescriptive_doc', 'design_doc', 'technical_doc', 'material_effect"),
             body('lastModifiedBy')
                 .isString()
                 .withMessage('Last modified by must be a string')
@@ -189,6 +195,8 @@ class DocumentRoutes {
                     }
                     return true;
                 }),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner),
             async (req: Request, res: Response, next: NextFunction): Promise<void> => {
                 // Handle validation errors
                 const errors = validationResult(req);
@@ -225,8 +233,8 @@ class DocumentRoutes {
         */
         this.router.patch('/:id/coordinates',
             // TODO: CHECK IF AUTH MIDDLEWARE WORKS
-            //this.authenticator.isLoggedIn,
-            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('type').isIn([CoordinatesType.POINT, CoordinatesType.POLYGON, CoordinatesType.MUNICIPALITY]).withMessage('Invalid coordinates type'),
             body('coords').custom((value, { req }) => {

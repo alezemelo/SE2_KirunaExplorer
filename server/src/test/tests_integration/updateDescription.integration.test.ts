@@ -13,6 +13,8 @@ import { dbEmpty } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 import db from '../../db/db';
 
+import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login } from "./test_utility";
+
 describe('update_description Integration Tests', () => {
   let documentDAO: DocumentDAO;
   let documentController: DocumentController;
@@ -23,6 +25,11 @@ describe('update_description Integration Tests', () => {
     documentController = new DocumentController();
   });
 
+  beforeEach(async () => {
+    await dbEmpty();
+    await populate();
+  });
+
   afterAll(async () => {
     await dbEmpty();
 
@@ -30,17 +37,12 @@ describe('update_description Integration Tests', () => {
     server.close();
     await db.destroy();
   });
-
-  beforeEach(async () => {
-    await dbEmpty();
-  });
-
   // ================================---------------+++++++++++++++++++++-----------------================================
 
   describe('DAO Tests', () => {
     it('OK successful update', async () => {
       // Setting data
-      await populate();
+      //await populate();;
 
       // Running test target function(s)
       const amt = await documentDAO.updateDescription(15, "new description");
@@ -58,7 +60,7 @@ describe('update_description Integration Tests', () => {
 
     it('OK successful update with former empty description', async () => {
       // Setting data
-      await populate();
+      //await populate();;
       await documentDAO.updateDescription(15, "");
 
       // Running test target function(s)
@@ -77,7 +79,7 @@ describe('update_description Integration Tests', () => {
 
     it('OK successful update emptying the description', async () => {
       // Setting data
-      await populate();
+      //await populate();;
 
       // Running test target function(s)
       const amt = await documentDAO.updateDescription(15, "");
@@ -95,7 +97,7 @@ describe('update_description Integration Tests', () => {
 
     it('ERROR document not found', async () => {
       // Setting data
-      await populate();
+      //await populate();;
 
       // Running test target function(s)
       const amt = await documentDAO.updateDescription(1, "new description");
@@ -110,7 +112,7 @@ describe('update_description Integration Tests', () => {
   describe('Controller Tests', () => {
     it('OK successful update', async () => {
       // Setting data
-      await populate();
+      //await populate();;
 
       // Running test target function(s)
       await documentController.updateDescription(15, "new description");
@@ -126,7 +128,7 @@ describe('update_description Integration Tests', () => {
 
     it('OK successful update with former empty description', async () => {
       // Setting data
-      await populate();
+      //await populate();;
       await documentDAO.updateDescription(15, "");
       
       // Running test target function(s)
@@ -143,7 +145,7 @@ describe('update_description Integration Tests', () => {
 
     it('OK successful update emptying description', async () => {
       // Setting data
-      await populate();
+      //await populate();;
       
       // Running test target function(s)
       await documentController.updateDescription(15, "");
@@ -159,7 +161,7 @@ describe('update_description Integration Tests', () => {
 
     it('ERROR document not found', async () => {
       // Setting data
-      await populate();
+      //await populate();;
 
       // Running test target function(s)
       await expect(documentController.updateDescription(1, "new description"))
@@ -174,11 +176,12 @@ describe('update_description Integration Tests', () => {
   describe('Route Tests', () => {
     it('OK successful update', async () => {
       // Setting data
-      await populate();
+      //await populate();;
       // TODO login as Urban Planner
-
+      const cookie = await login(URBAN_PLANNER);
       // Running test target function
       const res = await request(app).post('/kiruna_explorer/documents/15/description')
+        .set("Cookie", cookie)
         .send({ description: "new description" });
 
       // Checking results
@@ -194,12 +197,13 @@ describe('update_description Integration Tests', () => {
 
     it('OK successful update with former empty description', async () => {
       // Setting data
-      await populate();
+      //await populate();;
       await documentDAO.updateDescription(15, "");
       // TODO login as Urban Planner
-
+      const cookie = await login(URBAN_PLANNER);
       // Running test target function
       const res = await request(app).post('/kiruna_explorer/documents/15/description')
+        .set("Cookie", cookie)
         .send({ description: "new description" });
         
       // Checking results
@@ -214,11 +218,12 @@ describe('update_description Integration Tests', () => {
 
     it('OK successful update emptying description', async () => {
       // Setting data
-      await populate();
+      //await populate();;
       // TODO login as Urban Planner
-
+      const cookie = await login(URBAN_PLANNER);
       // Running test target function
       const res = await request(app).post('/kiruna_explorer/documents/15/description')
+        .set("Cookie", cookie)
         .send({ description: "" });
         
       // Checking results
@@ -234,9 +239,10 @@ describe('update_description Integration Tests', () => {
     it('ERROR document not found', async () => {
       // Setting data
       // TODO login as Urban Planner
-
+      const cookie = await login(URBAN_PLANNER);
       // Running test target function
       const res = await request(app).post('/kiruna_explorer/documents/1/description')
+        .set("Cookie", cookie)
         .send({ description: "new description" });
 
       // Checking results
@@ -247,9 +253,10 @@ describe('update_description Integration Tests', () => {
     it('ERROR - Format: invalid id', async () => {
       // Setting data
       // TODO login as Urban Planner
-
+      const cookie = await login(URBAN_PLANNER);
       // Running test target function
       const res = await request(app).post('/kiruna_explorer/documents/abc/description')
+        .set("Cookie", cookie)
         .send({ description: "new description" });
       
       // Checking results
@@ -259,10 +266,12 @@ describe('update_description Integration Tests', () => {
     it('ERROR - Format: invalid description - it has more than 2.5k chars', async () => {
       // Setting data
       // TODO login as Urban Planner
+      const cookie = await login(URBAN_PLANNER);
       const more_than_2000_chars = "a".repeat(2501);
 
       // Running test target function
       const res = await request(app).post(`/kiruna_explorer/documents/15/description`)
+        .set("Cookie", cookie)
         .send({ description: more_than_2000_chars });
 
       // Checking results

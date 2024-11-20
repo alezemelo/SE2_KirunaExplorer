@@ -24,9 +24,9 @@ function initRoutes(app: express.Application) {
 
     const authenticator = new Authenticator(app);
     const documentRoutes = new DocumentRoutes(authenticator);
-    const linkDocumentRouter = new LinkRouter();
+    const linkDocumentRouter = new LinkRouter(authenticator);
     const authRoutes = new AuthRoutes(authenticator);
-    
+
 
     /**
      * Add your routers here, like the documents router was added
