@@ -25,7 +25,7 @@ class Document {
     stakeholders?: string;
     scale?: string;
     description?: string;
-    private coordinates: Coordinates; // default to municipality type if no coordinates are provided
+    public coordinates: Coordinates; // default to municipality type if no coordinates are provided
     
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
