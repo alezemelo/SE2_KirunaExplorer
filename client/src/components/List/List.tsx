@@ -410,11 +410,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         matchingDocs = await API.searchDocumentsByTitle(searchQuery);
       } else {
         // Default to all documents if no query
+        
         matchingDocs = props.documents;
+        
       }
   
       // Exclude the current document
-      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== currentDocument?.id);
+      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin );
       setLinkDocuments(filteredDocs);
   
     } catch (error) {
@@ -522,7 +524,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         <Grid container spacing={3}>
           {props.documents.map((document, i) => (
             <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
-              <DocDetails document={document} loggedIn={props.loggedIn} user={props.user} fetchDocuments={props.fetchDocuments} pin={props.pin} setNewPin={props.setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={props.updating} setUpdating={props.setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
+              <DocDetails  handleSearchLinking={handleSearchLinking} document={document} loggedIn={props.loggedIn} user={props.user} fetchDocuments={props.fetchDocuments} pin={props.pin} setNewPin={props.setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={props.updating} setUpdating={props.setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
             </Grid>
           ))
         }
@@ -586,30 +588,22 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           {/* Search Results */}
           {
             linkDocuments.length === 0 ? (
-              props.documents.map((doc, index) => (
-                currentDocument && doc.id !== currentDocument.id ? ( // Checking for non-null currentDocument
-                  <ListItemButton key={index} onClick={() => setTargetDocumentId(doc.id)} className="document-item">
-                    {targetDocumentId !== 0 && targetDocumentId === doc.id ? (
-                      <ListItemText primary={doc.title} sx={{ color: 'yellow' }} />
-                    ) : (
-                      <ListItemText primary={doc.title} />
-                    )}
-                  </ListItemButton>
-                ) : null
-              ))
+              <Typography variant="body1" color="textSecondary">
+                No matched Document to be linked
+              </Typography>
             ) : (
               <List>
-                {linkDocuments.map(doc => (
-                  <ListItemButton key={doc.id} onClick={() => setTargetDocumentId(doc.id)}>
+                {linkDocuments.map((doc) => (
+                  <ListItemButton
+                    key={doc.id}
+                    onClick={() => setTargetDocumentId(doc.id)}
+                  >
                     <ListItemText primary={doc.title} />
                   </ListItemButton>
                 ))}
               </List>
             )
           }
-
-          
-
 
           <select onChange={handleSelectChange} value={targetLinkType}>
                   <option value="direct" selected>direct</option>

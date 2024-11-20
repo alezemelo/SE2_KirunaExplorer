@@ -23,6 +23,7 @@ interface DocDetailsProps {
   setNewDocument: any;
   loggedIn: boolean;
   user: User | undefined;
+  handleSearchLinking: () => Promise<void>;
 }
 
 const DocDetails: React.FC<DocDetailsProps> = (props) => {
@@ -330,7 +331,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e)=>{
               e.stopPropagation();
-              props.fetchDocuments();
+              props.handleSearchLinking();
               props.onLink()}}>
             Link Document
           </Button>
