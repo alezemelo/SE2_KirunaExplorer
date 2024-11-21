@@ -39,13 +39,7 @@ Creates a new document
     "stakeholders": "Stakeholder Info",
     "scale": "1:1000",
     "description": "Document Description",
-    "coordinates": {
-      "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
-      "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
-        "lat": 59.3293,
-        "long": 18.0686
-      }
-    }
+    "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
   }
 - Response Status code:
   - If created: `201`
@@ -77,13 +71,7 @@ Edits the coordinates of a document
 - Request Parameters: `:id`, the doc id
 - Request Body Content:
 ```json
-{
-  "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
-  "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
-    "lat": 59.3293,
-    "long": 18.0686
-  }
-}
+{ ***valid coordinates JSON. See bottom of the file!*** }
 ```
 - Response Status code:
   - If ok:  `200`
@@ -170,13 +158,7 @@ Fetches a `Document` object.
       "description": "This document is a compilation of the responses to the survey What is ...",
       "type": "Informative document",
       "lastModifiedBy": "user123",
-      "coordinates": {
-        "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
-        "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
-          "lat": 59.3293,
-          "long": 18.0686
-        }
-      }
+      "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
     }
     ```
 - **Access Constraints:** `None`
@@ -271,3 +253,37 @@ Retrieves information about the currently logged in user.
 - Response Body Content: A **User** object that represents the logged in user
   - Example: `{username: "Gianni Verdi", type: "resident"}`
 - Access Constraints: Can only be called by a logged in User
+
+# Coordinates Format (Point, Polygon, Municipality)
+
+Point Coordinates  
+```json
+{
+  "type": CoordinatesType.POINT,
+  "coords": { 
+    "lat": 59.3293,
+    "long": 18.0686
+  }
+}
+```
+
+Polygon Coordinates
+```json
+{
+  "type": CoordinatesType.POLYGON, 
+  "coords": [
+    { "lat": 59.3293, "long": 18.0686 }
+    { "lat": 60.3293, "long": 4.0686  }
+    { "lat": 43.3293, "long": 44.0686 }
+    { "lat": 3.3293,  "long": 38.0686 }
+  ]
+}
+```
+
+Municipality Coordinates
+```json
+{
+  "type": CoordinatesType.MUNICIPALITY,
+  // coords is not present (undefined) or is null
+}
+```
