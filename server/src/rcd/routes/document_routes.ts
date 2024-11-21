@@ -36,6 +36,7 @@ class DocumentRoutes {
      */
     private initRoutes() {
         /**
+         * [route names: update description, add description]
          * POST /documents/:id/description
          * Updates the description of a document.
          * 
@@ -68,6 +69,7 @@ class DocumentRoutes {
 
 
         /*
+        * [route names: search documents, get documents by title, get document by title]
         * GET /documents/search
         * API for searching a doc with a specific title
         * performs case insensitive search
@@ -97,6 +99,7 @@ class DocumentRoutes {
         );
 
         /* 
+        * [route names: get document by id]
         * GET /documents/:id
         * Retrieves a document by its ID.
         * 
@@ -120,6 +123,14 @@ class DocumentRoutes {
                 })
         )
 
+        /* 
+        * [route names: get documents, get all documents]
+        * GET /documents
+        * Retrieves all documents.
+        * 
+        * Response:
+        * - 200 OK: If the documents were successfully retrieved.
+        */
         this.router.get(
             `/`,
             (req: any, res: any, next: any) => this.controller.getDocuments()
@@ -130,6 +141,12 @@ class DocumentRoutes {
                 })
         )
 
+        /*
+        * [route names: add document, create document, create new document, add new document, make document]
+        * POST /documents
+        * Adds a new document.
+        * 
+        */
         this.router.post(
             '/',
             body('title')
@@ -223,6 +240,8 @@ class DocumentRoutes {
         
 
         /*
+        * [route names: update coordinates, update coords]
+        *
         * PATCH `/documents/:id/coordinates`
         * Updates the coordinates of a document.
         */

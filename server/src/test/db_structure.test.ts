@@ -14,7 +14,7 @@ const complete_doc = new Document(
     DocumentType.informative_doc, // Type
     "admin", // Last modified by
   
-    dayjs.utc("2005"), // Issuance date
+    dayjs.utc("2005").toISOString(), // Issuance date
     "Swedish", // Language
     999, // Pages
     "Kiruna kommun/Residents", // Stakeholders
@@ -36,6 +36,7 @@ const minimal_doc = new Document(
     "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
     DocumentType.informative_doc, // Type
     "admin", // Last modified by
+    dayjs.utc("2005").toISOString(),
 );
 
 async function insertAdmin() {
@@ -57,7 +58,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         await dbEmpty();
     });
 
-    describe("date tests", () => {
+    describe("timezone for issuance_date in documents table tests", () => {
         it("testing the date timezone with Dayjs object", async () => {
             // Setup
             await insertAdmin();
@@ -69,6 +70,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
                 "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
                 DocumentType.informative_doc, // Type
                 "admin", // Last modified by
+                dayjs.utc("2005").toISOString(),
             );
 
             const doc1: any = my_obj.copy().toObject();
@@ -95,6 +97,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
                 "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
                 DocumentType.informative_doc, // Type
                 "admin", // Last modified by
+                dayjs.utc("2005").toISOString(),
             );
 
             const doc2: any = my_obj.copy().toObject();
@@ -121,6 +124,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
                 "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
                 DocumentType.informative_doc, // Type
                 "admin", // Last modified by
+                dayjs.utc("2005").toISOString(),
             );
 
             const doc3: any = my_obj.copy().toObject();
@@ -135,6 +139,64 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             expect(res3.issuance_date.toISOString()).toBe(date1.toISOString());
         });
 
+    });
+
+    describe("testing issuance_date and date_type in documents table", () => {
+        it("should successfully insert a document with year-only issuance_date", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = new Document(15, "title", DocumentType.design_doc, "admin", "2005",);
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the dates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            expect(res.issuance_date.toISOString()).toBe("2005-01-01T00:00:00.000Z");
+            expect(res.date_type).toBe("YEAR");
+        });
+
+        it("should successfully insert a document with year-month issuance_date", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = new Document(15, "title", DocumentType.design_doc, "admin", "2005-01",);
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the dates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            expect(res.issuance_date.toISOString()).toBe("2005-01-01T00:00:00.000Z");
+            expect(res.date_type).toBe("YEARMONTH");
+        });
+
+        it("should successfully insert a document with full issuance_date", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = new Document(15, "title", DocumentType.design_doc, "admin", "2005-01-01",);
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the dates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            expect(res.issuance_date.toISOString()).toBe("2005-01-01T00:00:00.000Z");
+            expect(res.date_type).toBe("FULL");
+        });
+
+        it("should successfully insert a document using an ISOstring issuance_date", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = new Document(15, "title", DocumentType.design_doc, "admin", dayjs.utc("2005-01-01").toISOString(),);
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the dates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            expect(res.issuance_date.toISOString()).toBe("2005-01-01T00:00:00.000Z");
+            expect(res.date_type).toBeNull;
+        });
     });
 
     describe("coordinates tests", () => {
@@ -249,7 +311,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("autincrement won't skip a number if one is already taken by a manual insertion (=> you have to update it manually after)", async () => {
             // Setup
-            const doc = new Document(1, "title", DocumentType.design_doc, "admin").toObject();
+            const doc = new Document(1, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),).toObject();
             const doc2 = {title: "title2", type: DocumentType.design_doc, last_modified_by: "admin"};
             await insertAdmin();
 
@@ -270,14 +332,14 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         });
 
         it("should fail to insert a document with an invalid type", async () => {
-            const doc = new Document(1, "title", "invalid_type" as DocumentType, "admin").toObject();
+            const doc = new Document(1, "title", "invalid_type" as DocumentType, "admin", dayjs.utc("2005").toISOString(),).toObject();
             await expect(db("documents").insert(doc)).rejects.toThrow(/documents_type_check/i);
         });
 
         it("should trigger primary key constraint violation", async () => {
             // Setup
             await insertAdmin();
-            const doc = new Document(1, "title", DocumentType.design_doc, "admin").toObject();
+            const doc = new Document(1, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),).toObject();
             await db("documents").insert(doc);
 
             // Run and Check unique constraint violation
@@ -295,7 +357,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         it("should cascade delete related documents when a user is deleted", async () => {
             // Setup
             await db("users").insert({ username: "test_user", hash: "hash", salt: "salt", type: "urban_planner" });
-            const doc = new Document(1, "title", DocumentType.design_doc, "test_user").toObject();
+            const doc = new Document(1, "title", DocumentType.design_doc, "test_user", dayjs.utc("2005").toISOString(),).toObject();
             await db("documents").insert(doc);
         
             // Run
@@ -381,11 +443,11 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("should work with 'informative_doc' 'prescriptive_doc' 'design_doc' 'technical_doc' and 'material_effect' types", async () => {
             // Setup
-            const doc1 = new Document(1, "title", DocumentType.informative_doc, "admin");
-            const doc2 = new Document(2, "title", DocumentType.prescriptive_doc, "admin");
-            const doc3 = new Document(3, "title", DocumentType.design_doc, "admin");
-            const doc4 = new Document(4, "title", DocumentType.technical_doc, "admin");
-            const doc5 = new Document(5, "title", DocumentType.material_effect, "admin");
+            const doc1 = new Document(1, "title", DocumentType.informative_doc, "admin", dayjs.utc("2005").toISOString(),);
+            const doc2 = new Document(2, "title", DocumentType.prescriptive_doc, "admin", dayjs.utc("2005").toISOString(),);
+            const doc3 = new Document(3, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),);
+            const doc4 = new Document(4, "title", DocumentType.technical_doc, "admin", dayjs.utc("2005").toISOString(),);
+            const doc5 = new Document(5, "title", DocumentType.material_effect, "admin", dayjs.utc("2005").toISOString(),);
             await insertAdmin();
 
             // Run

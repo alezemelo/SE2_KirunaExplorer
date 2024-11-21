@@ -46,7 +46,7 @@ const complete_doc = new Document(
   DocumentType.informative_doc, // Type
   "admin", // Last modified by
 
-  dayjs.utc("2005"), // Issuance date
+  dayjs.utc('2005').toISOString(), // Issuance date
   "Swedish", // Language
   999, // Pages
   "Kiruna kommun/Residents", // Stakeholders
@@ -60,8 +60,8 @@ const minimal_doc = new Document(
   "Sample test doc", // Title
   DocumentType.informative_doc, // Type
   "admin", // Last modified by
+  dayjs.utc('2005').toISOString(), // Issuance date
 );
-
 
 /*
 const minimal_doc = new Document(
@@ -125,7 +125,7 @@ describe('get_document Integration Tests', () => {
           expect(response.title).toBe("Sample test doc");
           expect(response.type).toBe(`informative_doc`);
           expect(response.lastModifiedBy).toBe(`admin`);
-          expect(response.issuanceDate).toBeUndefined();
+          expect(response.issuanceDate).toBe(`2005-01-01T00:00:00.000Z`);
           expect(response.language).toBeUndefined();
           expect(response.pages).toBeUndefined();
           expect(response.stakeholders).toBeUndefined();
@@ -160,7 +160,7 @@ describe('get_document Integration Tests', () => {
           expect(response.title).toBe(`Sample test doc`);
           expect(response.type).toBe(`informative_doc`);
           expect(response.lastModifiedBy).toBe(`admin`);
-          expect(response.issuanceDate?.toISOString()).toBe(`2005-01-01T00:00:00.000Z`);
+          expect(response.issuanceDate).toBe(`2005-01-01T00:00:00.000Z`);
           expect(response.language).toBe(`Swedish`);
           expect(response.pages).toBe(999);
           expect(response.stakeholders).toBe(`Kiruna kommun/Residents`);
@@ -212,7 +212,7 @@ describe('get_document Integration Tests', () => {
           expect(response.title).toBe(`Sample test doc`);
           expect(response.type).toBe(`informative_doc`);
           expect(response.lastModifiedBy).toBe(`admin`);
-          expect(response.issuanceDate?.toISOString()).toBe(`2005-01-01T00:00:00.000Z`);
+          expect(response.issuanceDate).toBe(`2005-01-01T00:00:00.000Z`);
           expect(response.language).toBe(`Swedish`);
           expect(response.pages).toBe(999);
           expect(response.stakeholders).toBe(`Kiruna kommun/Residents`);

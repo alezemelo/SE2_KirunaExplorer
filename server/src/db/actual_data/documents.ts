@@ -10,7 +10,7 @@ const doc_15 = new Document(
   DocumentType.informative_doc, // Type
   "user1", // Last modified by
 
-  dayjs.utc("2005"), // Issuance date
+  "2005", // Issuance date
   "Swedish", // Language
   undefined, // Pages
   "Kiruna kommun/Residents", // Stakeholders
@@ -33,7 +33,7 @@ const doc_18 = new Document(
   DocumentType.prescriptive_doc, // 3: Type
   "user1", // 4: Last modified by
 
-  dayjs.utc("2014-03-17"), // 5: Issuance date
+  "2014-03-17", // 5: Issuance date
   "Swedish", // 6: Language
   32, // 7: Pages
   "Kiruna kommun", // 8: Stakeholders
@@ -53,7 +53,7 @@ const doc_41 = new Document(
   DocumentType.design_doc, // 3: Type
   "user1", // 4: Last modified by
 
-  dayjs.utc("2014-03-17"), // 5: Issuance date
+  "2014-03-17", // 5: Issuance date
   "Swedish", // 6: Language
   111, // 7: Pages
   "Kiruna kommun/White Arkitekter", // 8: Stakeholders
