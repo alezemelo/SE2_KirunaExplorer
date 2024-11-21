@@ -127,49 +127,59 @@ class DocumentDAO {
     }
 
     
-    public async addDocument(doc: any): Promise<number> {
-        let coordinates = null;
+    public async addDocument(doc: Document): Promise<number> {
     
-        if (doc.coordinates?.type === 'POINT') {
-            if (!doc.coordinates.coords?.lat || !doc.coordinates.coords?.lng) {
-                throw new Error('Invalid POINT coordinates: lat and lng are required');
-            }
-            coordinates = new Coordinates(
-                CoordinatesType.POINT,
-                new CoordinatesAsPoint(doc.coordinates.coords.lat, doc.coordinates.coords.lng)
-            );
-        } else if (doc.coordinates?.type === 'MUNICIPALITY') {
-            coordinates = new Coordinates(CoordinatesType.MUNICIPALITY, null);
-        } else {
-            throw new Error('Invalid coordinates type');
-        }
+        /* This is not really needed if you use Document instead of any for doc, but I'll leave it here for reference */
+        // let coordinates = null;
+        //
+        // if (doc.coordinates?.type === 'POINT') {
+        //     if (!doc.coordinates.coords?.lat || !doc.coordinates.coords?.lng) {
+        //         throw new Error('Invalid POINT coordinates: lat and lng are required');
+        //     }
+        //     coordinates = new Coordinates(
+        //         CoordinatesType.POINT,
+        //         new CoordinatesAsPoint(doc.coordinates.coords.lat, doc.coordinates.coords.lng)
+        //     );
+        // } else if (doc.coordinates?.type === 'MUNICIPALITY') {
+        //     coordinates = new Coordinates(CoordinatesType.MUNICIPALITY, null);
+        // } else {
+        //     throw new Error('Invalid coordinates type');
+        // }
+        //
+        // doc.setCoordinates(coordinates);
+        //
+        // const query = `
+        //     INSERT INTO documents 
+        //     (title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates_type, coordinates, last_modified_by)
+        //     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        //     RETURNING id;
+        // `;
+        // const values = [
+        //     doc.title,
+        //     doc.type,
+        //     doc.issuanceDate || null,
+        //     doc.language,
+        //     doc.pages,
+        //     doc.stakeholders,
+        //     doc.scale,
+        //     doc.description,
+        //     coordinates.getType(),
+        //     coordinates.getCoords()?.toGeographyString(),
+        //     doc.lastModifiedBy,
+        // ];
+        /* */
     
-        const query = `
-            INSERT INTO documents 
-            (title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates_type, coordinates, last_modified_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            RETURNING id;
-        `;
-        const values = [
-            doc.title,
-            doc.type,
-            doc.issuanceDate || null,
-            doc.language,
-            doc.pages,
-            doc.stakeholders,
-            doc.scale,
-            doc.description,
-            coordinates.getType(),
-            coordinates.getCoords()?.toGeographyString(),
-            doc.lastModifiedBy,
-        ];
-    
+        console.error(doc.coordinates instanceof Coordinates);
+
         try {
-            const res = await pgdb.client.query(query, values);
-            if (res.rowCount !== 1) {
+            const res = await db('documents')
+                .insert(doc.toObject())
+                .returning('id');
+        
+            if (res.length !== 1) {
                 throw new Error('Error adding document to the database');
             }
-            return res.rows[0].id;
+            return res[0].id;
         } catch (error) {
             console.error('Error adding document to the database:', error);
             if (error instanceof Error && (error as any).code === 'XX000') {

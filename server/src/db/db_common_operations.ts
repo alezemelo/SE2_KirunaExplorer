@@ -63,7 +63,7 @@ export async function dbPopulate() {
 export async function dbEmpty() {
     try {
         await knex.raw('TRUNCATE TABLE document_files, document_links, files, documents, users RESTART IDENTITY CASCADE');
-        console.log("Database emptied successfully.");
+        // console.log("Database emptied successfully.");
     } catch (error) {
         console.error("Error emptying database:", error);
     }

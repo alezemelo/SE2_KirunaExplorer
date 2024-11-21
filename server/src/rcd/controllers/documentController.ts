@@ -59,7 +59,7 @@ class DocumentController {
             stakeholders,
             scale,
             description,
-            coordinates
+            Coordinates.fromJSON(coordinates) // (Dragos 2024/11/21) I need this to have the correct Coordinates methods
         );
     
         try {
