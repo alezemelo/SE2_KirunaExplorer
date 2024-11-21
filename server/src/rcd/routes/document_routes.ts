@@ -1,11 +1,12 @@
 import express, { Router, Request, Response, NextFunction } from "express";
 import ErrorHandler from "./helper";
-import { body, param,validationResult } from "express-validator";
+import { body, param,validationResult, query } from "express-validator";
 import Authenticator from "../../authentication/auth";
 import { UserType } from "../../models/user";
 
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentController from "../controllers/documentController";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 
 /**
  * Represents a class that defines the routes for handling document-related operations.
@@ -17,13 +18,13 @@ class DocumentRoutes {
     private controller: DocumentController;
     private router: Router;
     private errorHandler: ErrorHandler;
-    private authenticator: Authenticator;
+    private authService: Authenticator;
 
     /**
      * Constructs a new instance of the DocumentRoutes class.
      */
     constructor(authenticator: Authenticator) {
-        this.authenticator = authenticator;
+        this.authService= authenticator;
         this.controller = new DocumentController();
         this.router = express.Router();
         this.errorHandler = new ErrorHandler();
@@ -53,19 +54,46 @@ class DocumentRoutes {
          */
         this.router.post(
             '/:id/description',
-            // TODO remember to enable when there's the authenticator plss
-            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-            //this.authenticator.isLoggedIn,
-            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
             body('description').isString().isLength({ max: 2500 }),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.updateDescription(req.params.id, req.body.description)   
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)
                 })
+        );
+
+
+        /*
+        * GET /documents/search
+        * API for searching a doc with a specific title
+        * performs case insensitive search
+        * PLEASE NOTE: DO NOT move this below the GET /documents/:id route,
+        * otherwise the "search" in the url will be matched by the GET /documents/:id route
+        * thanks <3
+        */
+        this.router.get(
+            '/search',
+            query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            //this.authService.isLoggedIn,
+            //this.authService.isUserAuthorized(UserType.UrbanPlanner),
+            this.errorHandler.validateRequest,
+            (req: any, res: any, next: any) => {
+                try {
+                    this.controller.searchDocuments(req.query)
+                        .then((documents: any) => res.status(200).json(documents))
+                        .catch((err: any) => {
+                            console.log("an error while searching for documents!", err);
+                            next(err)
+                        });
+                } catch (error) {
+                    console.error("Unexpected error in /search route:", error);
+                    res.status(500).json({ error: "Internal server error" });
+                }
+            }
         );
 
         /* 
@@ -83,7 +111,7 @@ class DocumentRoutes {
         */
         this.router.get(
             `/:id`,
-            param('id').isInt().toInt(),
+            param('id').isInt().withMessage("id must be an integer").toInt(),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.getDocument(req.params.id)
                 .then((document: any) => res.status(200).json(document))
@@ -95,7 +123,8 @@ class DocumentRoutes {
         this.router.get(
             `/`,
             (req: any, res: any, next: any) => this.controller.getDocuments()
-                .then((documents: any) => res.status(200).json(documents))
+                .then((documents: any) => {res.status(200).json(documents)
+                })
                 .catch((err: any) => {
                     next(err)
                 })
@@ -103,42 +132,95 @@ class DocumentRoutes {
 
         this.router.post(
             '/',
-            // TODO remember to enable when there's the authenticator plss
-            // (req: any, res: any, next: any) => this.authenticator.isLoggedIn(req, res, next),
-            // (req: any, res: any, next: any) => this.authenticator.isUrbanPlanner(req, res, next),
-
-            body('title').isString(),
-            body('type').isString(),
-            //body('lastModifiedBy').isString(),
-            body('issuanceDate').optional().isISO8601(),
-            body('language').optional().isString(),
-            body('pages').optional().isInt(),
-            body('stakeholders').optional().isString(),
-            body('scale').optional().isString(),
-            body('description').optional().isString(),
-            body('coordinates').optional().custom(coordinates => {
-                if (typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number') {
-                    console.log("invalid coordinates");
-                    throw new Error('coordinates are not valide.');
-                }
-                return true;
-            }),
+            body('title')
+                .isString()
+                .withMessage('Title must be a string')
+                .notEmpty()
+                .withMessage('Title is required'),
+            body('type')
+                .isString()
+                .withMessage('Type must be a string')
+                .isIn(["informative_doc", "prescriptive_doc", "design_doc", "technical_doc", "material_effect"])
+                .withMessage("Type of doc must be either: 'informative_doc',  'prescriptive_doc', 'design_doc', 'technical_doc', 'material_effect"),
+            body('lastModifiedBy')
+                .isString()
+                .withMessage('Last modified by must be a string')
+                .notEmpty()
+                .withMessage('Last modified by is required'),
+            body('issuanceDate')
+                .optional()
+                .isISO8601()
+                .withMessage('Issuance date must be a valid ISO8601 date'),
+            body('language')
+                .optional()
+                .isString()
+                .withMessage('Language must be a string'),
+            body('pages')
+                .optional()
+                .isInt()
+                .withMessage('Pages must be an integer'),
+            body('stakeholders')
+                .optional()
+                .isString()
+                .withMessage('Stakeholders must be a string'),
+            body('scale')
+                .optional()
+                .isString()
+                .withMessage('Scale must be a string'),
+            body('description')
+                .optional()
+                .isString()
+                .withMessage('Description must be a string'),
+            body('coordinates')
+                .optional()
+                .custom((coordinates) => {
+                    if (!coordinates.type) {
+                        throw new Error('Coordinates type is required');
+                    }
+                    if (coordinates.type === 'POINT') {
+                        if (
+                            !coordinates.coords ||
+                            typeof coordinates.coords.lat !== 'number' ||
+                            typeof coordinates.coords.lng !== 'number'
+                        ) {
+                            throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
+                        }
+                    } else if (coordinates.type !== 'MUNICIPALITY') {
+                        throw new Error('Invalid coordinates type');
+                    }
+                    return true;
+                }),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner),
             async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+                // Handle validation errors
                 const errors = validationResult(req);
                 if (!errors.isEmpty()) {
-                    console.log(errors)
+                    console.log('Validation Errors:', errors.array());
                     res.status(400).json({ errors: errors.array() });
                     return;
                 }
-    
-                // Call controller to add the document
+        
+                // Call controller to process the request
                 try {
                     await this.controller.addDocument(req, res, next);
                 } catch (error) {
-                    next(error);
+                    console.error('Unexpected Error:', error);
+        
+                    // Check if it's a database error
+                    if ((error as any).code === 'XX000') {
+                        res.status(400).json({
+                            error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.',
+                        });
+                    } else {
+                        res.status(500).json({
+                            error: 'Internal Server Error',
+                        });
+                    }
                 }
             }
         );
+        
 
         /*
         * PATCH `/documents/:id/coordinates`
@@ -146,16 +228,30 @@ class DocumentRoutes {
         */
         this.router.patch('/:id/coordinates',
             // TODO: CHECK IF AUTH MIDDLEWARE WORKS
-            //this.authenticator.isLoggedIn,
-            //this.authenticator.isUserAuthorized(UserType.UrbanPlanner),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
-            body('lat').isFloat().withMessage('Latitude must be a number'),
-            body('lng').isFloat().withMessage('Longitude must be a number'),
+            body('type').isIn([CoordinatesType.POINT, CoordinatesType.POLYGON, CoordinatesType.MUNICIPALITY]).withMessage('Invalid coordinates type'),
+            body('coords').custom((value, { req }) => {
+                if (req.body.type !== CoordinatesType.MUNICIPALITY) {
+                    if (!value || typeof value.lat !== 'number' || typeof value.lng !== 'number') {
+                        throw new Error('Invalid coordinates');
+                    }
+                }
+                return true;
+            }),
             this.errorHandler.validateRequest,
             async (req: any, res: any, next: any) => {
                 //TODO: call controller
-                const {lat, lng} = req.body;
-                this.controller.updateCoordinates(req.params.id, {lat, lng})
+                let {type, coords} = req.body;
+                if (type === CoordinatesType.MUNICIPALITY) {
+                    coords = null;
+                } else if (type === CoordinatesType.POINT) {
+                    coords = new CoordinatesAsPoint(coords.lat, coords.lng);
+                } else if (type === CoordinatesType.POLYGON) {
+                    coords = new CoordinatesAsPolygon(coords);
+                }
+                this.controller.updateCoordinates(req.params.id, new Coordinates(type,coords))
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)

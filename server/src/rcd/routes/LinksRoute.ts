@@ -4,14 +4,18 @@ import { body, param } from "express-validator";
 import { LinkController } from "../controllers/LinkController";
 import initRoutes from "../../routes";
 import { DocumentLink, LinkType } from "../../models/document";
-
+import Authenticator from "../../authentication/auth";
+import { UserType } from "../../models/user";
 
 class LinkRouter {
     private controller: LinkController;
     private router: Router;
     private errorHandler: ErrorHandler;
+    private authService: Authenticator;
 
-    constructor() {
+
+    constructor(authenticator: Authenticator) {
+        this.authService = authenticator
         this.controller = new LinkController();
         this.router = express.Router();
         this.errorHandler = new ErrorHandler();
@@ -44,6 +48,8 @@ class LinkRouter {
             body('doc_id1').isInt().toInt(),
             body('doc_id2').isInt().toInt(),
             body('link_type').isIn(Object.values(LinkType)),
+            this.authService.isLoggedIn,
+            this.authService.isUserAuthorized(UserType.UrbanPlanner), 
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.createLink(req.body.doc_id1,req.body.doc_id2,req.body.link_type)   
                 .then((row) => res.status(201).json(row).end())

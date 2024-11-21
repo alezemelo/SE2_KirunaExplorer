@@ -12,27 +12,17 @@ import dbpg from '../../db/temp_db';
 import { dbEmpty } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 import db from '../../db/db';
+import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login } from "./test_utility";
 
 describe('get links integretion', () => {
     let linksDAO: LinksDAO;
-  let linkController: LinkController;
+    let linkController: LinkController;
 
   beforeAll(async () => {
     // Initialize test structures
     linksDAO = new LinksDAO();
     linkController = new LinkController();
   });
-
-  /*beforeEach(async () => {
-    
-  })
-
-  afterAll(async () => {
-    await dbEmpty();
-
-    await dbpg.disconnect();
-    server.close();
-  });*/
 
   afterAll(async () => {
     await dbEmpty();
@@ -163,8 +153,11 @@ describe('get links integretion', () => {
   })
   describe('link routes test ', () => {
     test('create link ok', async() => {
+        
         await dbpg.client.query('DELETE FROM document_links');
+        const cookie = await login(URBAN_PLANNER);
         const res = await request(app).post(`/kiruna_explorer/linkDocuments/create`)
+        .set("Cookie", cookie)
         .send( {doc_id1: 15,
             doc_id2: 18,
             link_type: "update"});
@@ -172,7 +165,9 @@ describe('get links integretion', () => {
     })
     test('validation of document id', async() => {
         await dbpg.client.query('DELETE FROM document_links');
+        const cookie = await login(URBAN_PLANNER);
         const res = await request(app).post(`/kiruna_explorer/linkDocuments/create`)
+        .set("Cookie", cookie)
         .send( {doc_id1: 15,
             doc_id2: 18,
             link_type: "ooo"});
@@ -180,7 +175,9 @@ describe('get links integretion', () => {
     })
     test('error propagation', async() => {
         await dbpg.client.query('DELETE FROM document_links');
+        const cookie = await login(URBAN_PLANNER);
         const res = await request(app).post(`/kiruna_explorer/linkDocuments/create`)
+        .set("Cookie", cookie)
         .send( {doc_id1: 150,
             doc_id2: 18,
             link_type: "update"});
@@ -188,7 +185,9 @@ describe('get links integretion', () => {
     })
     test('get links ok', async() => {
         await dbpg.client.query('DELETE FROM document_links');
+        const cookie = await login(URBAN_PLANNER);
         const res = await request(app).post(`/kiruna_explorer/linkDocuments/create`)
+        .set("Cookie", cookie)
         .send( {doc_id1: 15,
             doc_id2: 18,
             link_type: "update"});
@@ -200,6 +199,24 @@ describe('get links integretion', () => {
         expect(t.docId2).toBe(18);
         expect(t.linkType).toBe("update");
     })
+    test('fails if not logged in', async() => {
+        await dbpg.client.query('DELETE FROM document_links');
+        const res = await request(app).post(`/kiruna_explorer/linkDocuments/create`)
+        .send( {doc_id1: 15,
+            doc_id2: 18,
+            link_type: "update"});
+        expect(res.status).toBe(401);
+    })
+    test('fails if logged in but not urban planner', async() => {
+        await dbpg.client.query('DELETE FROM document_links');
+        const cookie = await login(RESIDENT);
+        const res = await request(app).post(`/kiruna_explorer/linkDocuments/create`)
+        .set("Cookie", cookie)
+        .send( {doc_id1: 15,
+            doc_id2: 18,
+            link_type: "update"});
+        expect(res.status).toBe(403);
+    });
     test('error propagation', async() => {
         await dbpg.client.query('DELETE FROM document_links');
         const res = await request(app).get(`/kiruna_explorer/linkDocuments/150`)

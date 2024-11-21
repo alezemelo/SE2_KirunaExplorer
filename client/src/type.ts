@@ -8,12 +8,17 @@ export interface Coordinates {
     title: string;
     stakeholders: string;
     scale: string;
-    issuance_date: any;
+    issuanceDate: any;
     type: string;
     connection: string[];
     language: string;
-    pages: number;
+    pages?: number;
     description: string;
-    coordinates?: Coordinates;
+    coordinates?: any;
+  }
+  export interface User {
+    username: string;
+    type: UserType;
   }
   
+  export type UserType = "resident" | "urban_planner" | "urban_developer";

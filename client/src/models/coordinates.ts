@@ -1,4 +1,4 @@
-import { Knex } from "knex";
+//import { Knex } from "knex";
 
 export enum CoordinatesType {
     POINT = "POINT",
@@ -7,8 +7,8 @@ export enum CoordinatesType {
 }
 
 export class Coordinates {
-    public type: CoordinatesType;
-    public coords: CoordinatesAsPoint | CoordinatesAsPolygon | null;
+    private type: CoordinatesType;
+    private coords: CoordinatesAsPoint | CoordinatesAsPolygon | null;
 
     /*
     * Wrapper class for CoordinatesAsPoint and CoordinatesAsPolygon. It will contain one of the two OR null (for municipality type).
@@ -56,6 +56,23 @@ export class Coordinates {
     // ============== Static Methods ==============
     static isGeographyString(input: string): boolean {
         return CoordinatesAsPoint.isPoint(input) || CoordinatesAsPolygon.isPolygon(input);
+    }
+
+    getLatLng(): { lat: number | null, lng: number | null } | null {
+        if (this.type === CoordinatesType.POINT && this.coords instanceof CoordinatesAsPoint) {
+            return {
+                lat: this.coords.getLat(),
+                lng: this.coords.getLng(),
+            };
+        }
+        if (this.type === CoordinatesType.MUNICIPALITY) {
+            return null;
+        }
+        if (this.type === CoordinatesType.POLYGON) {
+            return null;
+        }
+
+        return null;
     }
 }
 
@@ -110,15 +127,15 @@ export class CoordinatesAsPoint {
         return CoordinatesAsPoint.isWKBPoint(input) || CoordinatesAsPoint.isWKTPoint(input);
     }
 
-    static async wkbToWktPoint(wkb: string, db: Knex): Promise<string> {
+    /*static async wkbToWktPoint(wkb: string, db: Knex): Promise<string> {
         const result = await db.raw(`SELECT ST_AsText('${wkb}') AS wkt`);
         return `SRID=4326;${result.rows[0].wkt}`;
-    }
+    }*/
     
     /* 
     * Use this when extracting the coordinates from the database (should be used by Document.fromJSON method)
     */
-    static async fromWKBstring(wkb: string, db: Knex): Promise<CoordinatesAsPoint> {
+    /*static async fromWKBstring(wkb: string, db: Knex): Promise<CoordinatesAsPoint> {
         const wkt = await CoordinatesAsPoint.wkbToWktPoint(wkb, db);
         // extract the fields using  /^SRID=4326;POINT\(-?\d+(\.\d+)? -?\d+(\.\d+)?\)$/;
         const regex =                /^SRID=4326;POINT\((?<lat>-?\d+(\.\d+)?) (?<lng>-?\d+(\.\d+)?)\)$/;
@@ -131,7 +148,7 @@ export class CoordinatesAsPoint {
         } else {
             throw new Error('Invalid WKT format');
         }
-    }
+    }*/
 }
 
 export class CoordinatesAsPolygon {
@@ -180,15 +197,15 @@ export class CoordinatesAsPolygon {
         return CoordinatesAsPolygon.isWKBPolygon(input) || CoordinatesAsPolygon.isWKTPolygon(input);
     }
 
-    static async wkbToWktPolygon(wkb: string, db: Knex): Promise<string> {
+    /*static async wkbToWktPolygon(wkb: string, db: Knex): Promise<string> {
         const result = await db.raw(`SELECT ST_AsText('${wkb}') AS wkt`);
         return `SRID=4326;${result.rows[0].wkt}`;
-    }
+    }*/
 
     /* 
     * Use this when extracting the coordinates from the database (should be used by Document.fromJSON method)
     */
-    static async fromWKBstring(wkb: string, db: Knex): Promise<CoordinatesAsPolygon> {
+    /*static async fromWKBstring(wkb: string, db: Knex): Promise<CoordinatesAsPolygon> {
         const wkt = await CoordinatesAsPolygon.wkbToWktPolygon(wkb, db);
 
         const regex = /^SRID=4326;POLYGON\(\((?<points>.+)\)\)$/;
@@ -203,5 +220,5 @@ export class CoordinatesAsPolygon {
         } else {
             throw new Error('Invalid WKT format');
         }
-    }
+    }*/
 }

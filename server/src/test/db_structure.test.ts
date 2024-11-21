@@ -5,7 +5,8 @@ dayjs.extend(utc);
 import db from "../db/db";
 import {Document, DocumentType} from "../models/document";
 import { dbEmpty } from "../db/db_common_operations";
-import { Coordinates } from "../models/coordinates";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../models/coordinates";
+import { exitCode } from "process";
 
 const complete_doc = new Document(
     15, // ID
@@ -27,7 +28,7 @@ const complete_doc = new Document(
         `value to the population. The municipality views the ` +
         `experience of this survey positively, to the extent ` +
         `that over the years it will propose various consultation opportunities`, // Description
-    new Coordinates(20, 20).toGeographyString() // Coordinates
+    new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(20, 20)) // Coordinates
 );
 
 const minimal_doc = new Document(
@@ -56,7 +57,153 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         await dbEmpty();
     });
 
+    describe("date tests", () => {
+        it("testing the date timezone with Dayjs object", async () => {
+            // Setup
+            await insertAdmin();
+
+            const date1 = dayjs.utc("2023-01-01");
+
+            const my_obj = new Document(
+                15, // ID
+                "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
+                DocumentType.informative_doc, // Type
+                "admin", // Last modified by
+            );
+
+            const doc1: any = my_obj.copy().toObject();
+            doc1.issuance_date = date1;
+            delete doc1.id;
+
+            // Run
+            await db("documents").insert(doc1);
+
+            // Check that the dates are the same
+            const res1 = await db("documents").where({ id: 1 }).first();
+            expect(res1.issuance_date.toISOString()).toBe(date1.toISOString());
+        });
+
+        it("testing the date timezone with ISO string", async () => {
+            // Setup
+            await insertAdmin();
+
+            const date1 = dayjs.utc("2023-01-01");
+            const date2 = dayjs.utc("2023-01-01").toISOString();
+
+            const my_obj = new Document(
+                15, // ID
+                "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
+                DocumentType.informative_doc, // Type
+                "admin", // Last modified by
+            );
+
+            const doc2: any = my_obj.copy().toObject();
+            doc2.issuance_date = date2;
+            delete doc2.id;
+
+            // Run
+            await db("documents").insert(doc2);
+
+            // Check that the dates are the same
+            const res2 = await db("documents").where({ id: 1 }).first();
+            expect(res2.issuance_date.toISOString()).toBe(date1.toISOString());
+        });
+
+        it("testing the date timezone with custom format", async () => {
+            // Setup
+            await insertAdmin();
+
+            const date1 = dayjs.utc("2023-01-01");
+            const date3 = dayjs.utc("2023-01-01").format('YYYY-MM-DDTHH:mm:ss[Z]');
+
+            const my_obj = new Document(
+                15, // ID
+                "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
+                DocumentType.informative_doc, // Type
+                "admin", // Last modified by
+            );
+
+            const doc3: any = my_obj.copy().toObject();
+            doc3.issuance_date = date3;
+            delete doc3.id;
+
+            // Run
+            await db("documents").insert(doc3);
+
+            // Check that the dates are the same
+            const res3 = await db("documents").where({ id: 1 }).first();
+            expect(res3.issuance_date.toISOString()).toBe(date1.toISOString());
+        });
+
+    });
+
+    describe("coordinates tests", () => {
+        it("should successfully insert a document with Point coordinates", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = complete_doc;
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the coordinates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            const wkt_coords = await CoordinatesAsPoint.wkbToWktPoint(res.coordinates, db);
+            expect(wkt_coords).toEqual("SRID=4326;POINT(20 20)");
+        });
+
+        it("should successfully insert a document with Polygon coordinates", async () => {
+            // Setup
+            await insertAdmin();
+            const polygon = new CoordinatesAsPolygon([
+                new CoordinatesAsPoint(20.123, 30.456),
+                new CoordinatesAsPoint(40.789, 50.012),
+                new CoordinatesAsPoint(60.345, 70.678),
+                new CoordinatesAsPoint(20.123, 30.456),
+            ]);
+
+            let doc = complete_doc.copy()
+            doc.setCoordinates(new Coordinates(CoordinatesType.POLYGON, polygon));
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the coordinates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            const wkt_coords = await CoordinatesAsPolygon.wkbToWktPolygon(res.coordinates, db);
+            expect(wkt_coords).toEqual("SRID=4326;POLYGON((20.123 30.456,40.789 50.012,60.345 70.678,20.123 30.456))");
+        });
+
+        it("should successfully insert a document with Municipality coordinates", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = minimal_doc.copy()
+            doc.setCoordinates(new Coordinates(CoordinatesType.MUNICIPALITY, null));
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the coordinates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            expect(res.coordinates).toBeNull();
+        });
+
+        it("should successfully insert a document wihtout coordinates (will default to Municipality)", async () => {
+            // Setup
+            await insertAdmin();
+            const doc = minimal_doc;
+
+            // Run
+            await db("documents").insert(doc.toObject());
+
+            // Check that the coordinates are the same
+            const res = await db("documents").where({ id: 15 }).first();
+            expect(res.coordinates).toBeNull();
+        });
+    });
+
     describe("'documents' table", () => {
+
         /* ==================-------------- Success and main constraints tests --------------================== */
         it("should successfully insert a complete document", async () => {
             // Setup
@@ -68,24 +215,9 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
             // Check that the document is the same (except for time and coordinates for now)
             const res_doc_obj: any = await db("documents").where({id: 15}).first();
-            const res_doc = Document.fromJSON(res_doc_obj);
-            
-            // TODO: Check time and coordinates when we fix them
-            expect(res_doc.id).toBe(complete_doc.id);
-            expect(res_doc.title).toBe(complete_doc.title);
-            expect(res_doc.type).toBe(complete_doc.type);
-            expect(res_doc.lastModifiedBy).toBe(complete_doc.lastModifiedBy);
-            // expect(res_doc.issuanceDate).toBe(complete_doc.issuanceDate);
-            expect(res_doc.language).toBe(complete_doc.language);
-            expect(res_doc.pages).toBe(complete_doc.pages);
-            expect(res_doc.stakeholders).toBe(complete_doc.stakeholders);
-            expect(res_doc.scale).toBe(complete_doc.scale);
-            expect(res_doc.description).toBe(complete_doc.description);
-            const res_wkt_coords = await Coordinates.wkbToWktPoint(res_doc.coordinates, db)
-            expect(res_wkt_coords).toBe(complete_doc.coordinates);
+            const res_doc = await Document.fromJSON(res_doc_obj, db);
 
-            // const res_doc = Document.fromJSON(res_doc_obj)
-            // expect(complete_doc.issuanceDate?.format('YYYY-MM-DDTHH:mm:ss[Z]')).toBe(complete_doc.issuanceDate?.format('YYYY-MM-DDTHH:mm:ss[Z]'));
+            expect(res_doc).toEqual(complete_doc);
         });
 
         it("should successfully insert a minimal document", async () => {
@@ -98,7 +230,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
             // Check that the document is the same
             const res_doc_obj: any = await db("documents").where({id: 15}).first();
-            const res_doc = Document.fromJSON(res_doc_obj);
+            const res_doc = await Document.fromJSON(res_doc_obj, db);
             expect(res_doc).toEqual(minimal_doc);
         });
         
@@ -264,16 +396,16 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             await db("documents").insert(doc5.toObject());
 
             // Check that the documents are the same
-            const res1 = await db("documents").where({ id: 1 }).first();
-            const res2 = await db("documents").where({ id: 2 }).first();
-            const res3 = await db("documents").where({ id: 3 }).first();
-            const res4 = await db("documents").where({ id: 4 }).first();
-            const res5 = await db("documents").where({ id: 5 }).first();
-            expect(Document.fromJSON(res1)).toEqual(doc1);
-            expect(Document.fromJSON(res2)).toEqual(doc2);
-            expect(Document.fromJSON(res3)).toEqual(doc3);
-            expect(Document.fromJSON(res4)).toEqual(doc4);
-            expect(Document.fromJSON(res5)).toEqual(doc5);
+            const res1 = await db("documents").where({ id: 1 }).first().then((res) => Document.fromJSON(res, db));
+            const res2 = await db("documents").where({ id: 2 }).first().then((res) => Document.fromJSON(res, db));
+            const res3 = await db("documents").where({ id: 3 }).first().then((res) => Document.fromJSON(res, db));
+            const res4 = await db("documents").where({ id: 4 }).first().then((res) => Document.fromJSON(res, db));
+            const res5 = await db("documents").where({ id: 5 }).first().then((res) => Document.fromJSON(res, db));
+            expect(res1).toEqual(doc1);
+            expect(res2).toEqual(doc2);
+            expect(res3).toEqual(doc3);
+            expect(res4).toEqual(doc4);
+            expect(res5).toEqual(doc5);
         });
 
         it("should not allow coordinates not being a valid geometry", async () => {
@@ -295,8 +427,22 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
             // Check that the coordinates are the same
             const res = await db("documents").where({ title: "title" }).first();
-            const res_wtk_coords = await Coordinates.wkbToWktPoint(res.coordinates, db); 
-            expect(res_wtk_coords).toBe(doc.coordinates);
+            const res_wtk_coords = await CoordinatesAsPoint.wkbToWktPoint(res.coordinates, db); 
+            expect(res_wtk_coords).toBe("SRID=4326;POINT(40.7128 -74.006)");
+        });
+
+        it("should accept our coordinates format (SRID=4326;POLYGON((x1 y1, x2 y2, x3 y3, x4 y4, x1 y1)))", async () => {
+            // Setup
+            const doc = {title: "title", type: DocumentType.design_doc, last_modified_by: "admin", coordinates: 'SRID=4326;POLYGON((20.123 30.456,40.789 50.012,60.345 70.678,20.123 30.456))'};
+            await insertAdmin();
+
+            // Run
+            await db("documents").insert(doc);
+
+            // Check that the coordinates are the same
+            const res = await db("documents").where({ title: "title" }).first();
+            const res_wtk_coords = await CoordinatesAsPolygon.wkbToWktPolygon(res.coordinates, db); 
+            expect(res_wtk_coords).toBe("SRID=4326;POLYGON((20.123 30.456,40.789 50.012,60.345 70.678,20.123 30.456))");
         });
 
         it("should not allow last_modified_by longer than 255 characters", async () => {
@@ -308,6 +454,56 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             await expect(db("documents").insert(doc)).rejects.toThrow(/value too long/i);
         });
 
+        it("should work with 'MUNICIPALITY' 'POINT' and 'POLYGON' coordinate_types", async () => {
+            // Setup
+            const polygon = new CoordinatesAsPolygon([
+                new CoordinatesAsPoint(20.123, 30.456),
+                new CoordinatesAsPoint(40.789, 50.012),
+                new CoordinatesAsPoint(60.345, 70.678),
+                new CoordinatesAsPoint(20.123, 30.456),
+            ]);
+
+            let doc1 = minimal_doc.copy()
+            doc1.setCoordinates(new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.006)));
+            doc1.id = 1;
+
+            let doc2 = minimal_doc
+            doc2.copy().setCoordinates(new Coordinates(CoordinatesType.POLYGON, polygon));
+            doc2.id = 2;
+
+            let doc3 = minimal_doc.copy()
+            doc3.setCoordinates(new Coordinates(CoordinatesType.MUNICIPALITY, null));
+            doc3.id = 3;
+
+            await insertAdmin();
+
+            // Run
+            await db("documents").insert(doc1.toObject());
+            await db("documents").insert(doc2.toObject());
+            await db("documents").insert(doc3.toObject());
+
+            // Check that the coordinates are the same
+            const res1 = await db("documents").where({ id: 1 }).first().then((res) => Document.fromJSON(res, db));
+            const res2 = await db("documents").where({ id: 2 }).first().then((res) => Document.fromJSON(res, db));
+            const res3 = await db("documents").where({ id: 3 }).first().then((res) => Document.fromJSON(res, db));
+            expect(res1).toEqual(doc1);
+            expect(res2).toEqual(doc2);
+            expect(res3).toEqual(doc3);
+        });
+
+        it("should default coordinates_type to 'MUNICIPALITY' ", async () => {
+            // Setup
+            const doc = {title: "title", type: DocumentType.design_doc, last_modified_by: "admin"};
+            await insertAdmin();
+
+            // Run
+            await db("documents").insert(doc);
+
+            // Check that the coordinates_type is 'MUNICIPALITY'
+            const res = await db("documents").where({ title: "title" }).first();
+            expect(res.coordinates_type).toBe(CoordinatesType.MUNICIPALITY);
+        });
+
         it("should not allow not null fields to be null", async () => {
             // Setup
             const doc1 = {title: null, type: DocumentType.design_doc, last_modified_by: "admin"};
@@ -315,9 +511,9 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc3 = {title: "title", type: null, last_modified_by: "admin"};
 
             // Run and Check NOT NULL constraint violation
-            await expect(db("documents").insert(doc1)).rejects.toThrow(/not-null/i);
-            await expect(db("documents").insert(doc2)).rejects.toThrow(/not-null/i);
-            await expect(db("documents").insert(doc3)).rejects.toThrow(/not-null/i);
+            await expect(db("documents").insert(doc1)).rejects.toThrow(/null value in column \"title.*not-null/);
+            await expect(db("documents").insert(doc2)).rejects.toThrow(/null value in column \"last_modified_by.*not-null/);
+            await expect(db("documents").insert(doc3)).rejects.toThrow(/null value in column \"type.*not-null/);
         });
     });
 
@@ -410,10 +606,10 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const user4 = { username: "user", hash: "hash", salt: "salt", type: null };
 
             // Run and Check NOT NULL constraint violation
-            await expect(db("users").insert(user1)).rejects.toThrow(/not-null/i);
-            await expect(db("users").insert(user2)).rejects.toThrow(/not-null/i);
-            await expect(db("users").insert(user3)).rejects.toThrow(/not-null/i);
-            await expect(db("users").insert(user4)).rejects.toThrow(/not-null/i);
+            await expect(db("users").insert(user1)).rejects.toThrow(/null value in column \"username.*not-null/);
+            await expect(db("users").insert(user2)).rejects.toThrow(/null value in column \"hash.*not-null/);
+            await expect(db("users").insert(user3)).rejects.toThrow(/null value in column \"salt.*not-null/);
+            await expect(db("users").insert(user4)).rejects.toThrow(/null value in column \"type.*not-null/);
         });
     });
 
@@ -716,8 +912,8 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const file2 = { id: 1, file_url: null };
 
             // Run and Check NOT NULL constraint violation
-            await expect(db("files").insert(file1)).rejects.toThrow(/not-null/i);
-            await expect(db("files").insert(file2)).rejects.toThrow(/not-null/i);
+            await expect(db("files").insert(file1)).rejects.toThrow(/null value in column \"id.*not-null/);
+            await expect(db("files").insert(file2)).rejects.toThrow(/null value in column \"file_url.*not-null/);
         });
     })
 
@@ -857,9 +1053,9 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc_file3 = { doc_id: 1, file_id: 1, role: null };
 
             // Run and Check NOT NULL constraint violation
-            await expect(db("document_files").insert(doc_file1)).rejects.toThrow(/not-null/i);
-            await expect(db("document_files").insert(doc_file2)).rejects.toThrow(/not-null/i);
-            await expect(db("document_files").insert(doc_file3)).rejects.toThrow(/not-null/i);
+            await expect(db("document_files").insert(doc_file1)).rejects.toThrow(/null value in column \"doc_id.*not-null/);
+            await expect(db("document_files").insert(doc_file2)).rejects.toThrow(/null value in column \"file_id.*not-null/);
+            await expect(db("document_files").insert(doc_file3)).rejects.toThrow(/null value in column \"role.*not-null/);
         });
     });
 });

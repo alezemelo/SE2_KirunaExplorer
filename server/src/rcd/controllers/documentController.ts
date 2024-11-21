@@ -1,13 +1,11 @@
 import { DocumentNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
+import { Coordinates, CoordinatesAsPoint } from "../../models/coordinates";
+
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
 
-export interface Coordinates {
-    lat: number;
-    lng: number;
-}
 
 /**
  * Represents a controller for handling document-related operations.
@@ -37,20 +35,7 @@ class DocumentController {
 
     public async addDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
         const {
-            title,
-            type,
-            lastModifiedBy,
-            issuanceDate,
-            language,
-            pages,
-            stakeholders,
-            scale,
-            description,
-            coordinates
-        } = req.body;
-
-        // Create a document data object with the necessary fields
-        const documentData = {
+            id,
             title,
             type,
             lastModifiedBy,
@@ -61,17 +46,37 @@ class DocumentController {
             scale,
             description,
             coordinates,
-        };
-
+        } = req.body;
+    
+        const documentData = new Document(
+            id,
+            title,
+            type,
+            lastModifiedBy,
+            issuanceDate,
+            language,
+            pages,
+            stakeholders,
+            scale,
+            description,
+            coordinates
+        );
+    
         try {
-            // Call DAO to add the document and retrieve the generated document ID
             const documentId = await this.dao.addDocument(documentData);
             res.status(201).json({ message: 'Document added successfully', documentId });
         } catch (error) {
             console.error('Failed to add document:', error);
-            next(error); // Pass the error to the error-handling middleware
+            if (error instanceof Error && error.message.includes('Invalid geometry')) {
+                res.status(400).json({ error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.' });
+            } else if (error instanceof Error && error.message.includes('Invalid coordinates type')) {
+                res.status(400).json({ error: 'Unsupported or invalid coordinates type' });
+            } else {
+                next(error);
+            }
         }
-    };
+    }
+    
 
 
     /**
@@ -97,8 +102,9 @@ class DocumentController {
 
     async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
         try {
-            console.log("id: ", id);
-            console.log("coordinates: ", coordinates);
+            // console.log("id: ", id);
+            // console.log("coordinates: ", coordinates);
+            console.log(coordinates)
             const amount_updated = await this.dao.updateCoordinates(id, coordinates);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
@@ -135,6 +141,23 @@ class DocumentController {
     async getDocuments(): Promise<Document[]> {
         try {
             const docs = await this.dao.getDocuments();
+            return docs;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async searchDocuments(query: { title: string }): Promise<Document[]> {
+        try {
+            /*const docs = await this.dao.searchDocuments(query.title);
+            docs.map(doc => {
+                if (doc.coordinates) {
+                    const [long, lat] = doc.coordinates.replace("POINT(", "").replace(")", "").split(" ");
+                    doc.coordinates = {lat: parseFloat(lat), lng: parseFloat(long)}
+                }
+            })
+            return docs;*/
+            const docs = await this.dao.searchDocuments(query.title);
             return docs;
         } catch (error) {
             throw error;

@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 import {Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType} from "./coordinates";
-import { Knex } from "knex";
+//import { Knex } from "knex";
 
 enum DocumentType {
     informative_doc = "informative_doc",
@@ -17,7 +17,7 @@ class Document {
     title: string;
     type: DocumentType;
     lastModifiedBy: string;
-
+    connection?: string[];
     issuanceDate?: Dayjs;
     language?: string;
     pages?: number;
@@ -25,7 +25,7 @@ class Document {
     stakeholders?: string;
     scale?: string;
     description?: string;
-    public coordinates: Coordinates; // default to municipality type if no coordinates are provided
+    private coordinates: Coordinates; // default to municipality type if no coordinates are provided
     
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
@@ -55,7 +55,7 @@ class Document {
     * @returns Document object
     * @throws Error if the JSON object is invalid
     */
-    static async fromJSON(json: any, db: Knex): Promise<Document> {
+    /*static async fromJSON(json: any, db: Knex): Promise<Document> {
         // Convert coordinates from WKB to Coordinates object
         if (!json.coordinates_type) {throw new Error("Invalid coordinates_type: is non-nullable but found null-like value");}           
         switch (json.coordinates_type) {
@@ -89,7 +89,7 @@ class Document {
             json.description !== null ? json.description : undefined,
             json.coordinates
         );
-    }
+    }*/
 
     /*
     * Use this when you want to send a Document to the db
