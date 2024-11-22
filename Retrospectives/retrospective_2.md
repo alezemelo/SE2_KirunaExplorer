@@ -46,7 +46,7 @@ sections:
     - Actual: 2h27m
   - Standard deviation:
     - Estimated: 2h37m
-    - Actual: 2h37m
+    - Actual: 3h6m
 - Total estimation error ratio: sum of total hours spent / sum of total hours effort - 1
   - 0,013
 
@@ -76,10 +76,10 @@ sections:
 ## ASSESSMENT
 
 - What caused your errors in estimation (if any)?
-  - Bug fixing required more time than initially expected
-  - Adjustments in the frontend part of the application required a 
-  - The Docker containers setup time was underestimated
-  - Time needed to implement the map was underestimated
+  - Bug fixing required more time than initially expected.
+  - Adjustments in the frontend part of the application required more work than expected in the backend.
+  - The Docker containers setup time was underestimated.
+  - Time needed to implement the map was underestimated.
 
 - What lessons did you learn (both positive and negative) in this sprint?
   - Misalignments with the product owner's expectations highlighted the need for stricter adherence to agreed priorities.
