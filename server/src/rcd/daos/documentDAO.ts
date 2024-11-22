@@ -173,7 +173,7 @@ class DocumentDAO {
 
         try {
             const res = await db('documents')
-                .insert(doc.toObject())
+                .insert(doc.toObjectWithoutId())
                 .returning('id');
         
             if (res.length !== 1) {
@@ -185,7 +185,7 @@ class DocumentDAO {
             if (error instanceof Error && (error as any).code === 'XX000') {
                 throw new Error('Invalid geometry: Ensure coordinates are valid and formatted correctly.');
             } else {
-                throw new Error('Database Error: Unable to add document');
+                throw error;
             }
         }
     }
