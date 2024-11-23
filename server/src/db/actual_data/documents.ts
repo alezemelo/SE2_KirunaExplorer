@@ -84,6 +84,119 @@ const doc_41 = new Document(
   ])) // 11: Coordinates
 )
 
-const documents = [doc_15, doc_18, doc_41]
+const doc_42 = new Document(
+  42, // 1: ID
+  "Development Plan (41)", // 2: Title
+  DocumentType.design_doc, // 3: Type
+  "user1", // 4: Last modified by
+
+  dayjs.utc("2014-03-17"), // 5: Issuance date
+  "Swedish", // 6: Language
+  111, // 7: Pages
+  "Kiruna kommun/White Arkitekter", // 8: Stakeholders
+  "1:7.500", // 9: Scale
+  `The development plan shapes the form of the new ` +
+    `city. The document, unlike previous competition ` +
+    `documents, is written entirely in Swedish, which ` +
+    `reflects the target audience: the citizens of Kiruna. ` +
+    `The plan obviously contains many elements of the ` +
+    `winning masterplan from the competition, some ` +
+    `recommended by the jury, and others that were ` +
+    `deemed appropriate to integrate later. The document ` +
+    `is divided into four parts, with the third part, ` +
+    `spanning 80 pages, describing the shape the new ` +
+    `city will take and the strategies to be implemented ` +
+    `for its relocation through plans, sections, images, ` +
+    `diagrams, and texts. The document also includes ` +
+    `numerous studies aimed at demonstrating the ` +
+    `future success of the project`, // 10: Description
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.87805733042363, 20.164424773485898), // Spostato leggermente
+new CoordinatesAsPoint(67.86770158832168, 20.164691698595675), // Spostato leggermente
+new CoordinatesAsPoint(67.85361844008717, 20.18204183073118), // Spostato leggermente
+new CoordinatesAsPoint(67.86237111154075, 20.20686586594044), // Spostato leggermente
+new CoordinatesAsPoint(67.84956008515118, 20.204759924207266), // Spostato leggermente
+new CoordinatesAsPoint(67.87805733042363, 20.164424773485898)  // Spostato leggermente
+
+
+  ])) // 11: Coordinates
+)
+
+const doc_43 = new Document(
+  43, // 1: ID
+  "Development Plan (41)", // 2: Title
+  DocumentType.design_doc, // 3: Type
+  "user1", // 4: Last modified by
+
+  dayjs.utc("2014-03-17"), // 5: Issuance date
+  "Swedish", // 6: Language
+  111, // 7: Pages
+  "Kiruna kommun/White Arkitekter", // 8: Stakeholders
+  "1:7.500", // 9: Scale
+  `The development plan shapes the form of the new ` +
+    `city. The document, unlike previous competition ` +
+    `documents, is written entirely in Swedish, which ` +
+    `reflects the target audience: the citizens of Kiruna. ` +
+    `The plan obviously contains many elements of the ` +
+    `winning masterplan from the competition, some ` +
+    `recommended by the jury, and others that were ` +
+    `deemed appropriate to integrate later. The document ` +
+    `is divided into four parts, with the third part, ` +
+    `spanning 80 pages, describing the shape the new ` +
+    `city will take and the strategies to be implemented ` +
+    `for its relocation through plans, sections, images, ` +
+    `diagrams, and texts. The document also includes ` +
+    `numerous studies aimed at demonstrating the ` +
+    `future success of the project`, // 10: Description
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.87805733042363, 20.164424773485898), // Spostato leggermente
+new CoordinatesAsPoint(67.86770158832168, 20.164691698595675), // Spostato leggermente
+new CoordinatesAsPoint(67.85361844008717, 20.18204183073118), // Spostato leggermente
+new CoordinatesAsPoint(67.86237111154075, 20.20686586594044), // Spostato leggermente
+new CoordinatesAsPoint(67.85033675021812, 20.175405831680624), // Spostato leggermente
+new CoordinatesAsPoint(67.87805733042363, 20.164424773485898)  // Spostato leggermente
+
+
+  ])) // 11: Coordinates
+)
+
+const doc_44 = new Document(
+  44, // 1: ID
+  "Development Plan (41)", // 2: Title
+  DocumentType.design_doc, // 3: Type
+  "user1", // 4: Last modified by
+
+  dayjs.utc("2014-03-17"), // 5: Issuance date
+  "Swedish", // 6: Language
+  111, // 7: Pages
+  "Kiruna kommun/White Arkitekter", // 8: Stakeholders
+  "1:7.500", // 9: Scale
+  `The development plan shapes the form of the new ` +
+    `city. The document, unlike previous competition ` +
+    `documents, is written entirely in Swedish, which ` +
+    `reflects the target audience: the citizens of Kiruna. ` +
+    `The plan obviously contains many elements of the ` +
+    `winning masterplan from the competition, some ` +
+    `recommended by the jury, and others that were ` +
+    `deemed appropriate to integrate later. The document ` +
+    `is divided into four parts, with the third part, ` +
+    `spanning 80 pages, describing the shape the new ` +
+    `city will take and the strategies to be implemented ` +
+    `for its relocation through plans, sections, images, ` +
+    `diagrams, and texts. The document also includes ` +
+    `numerous studies aimed at demonstrating the ` +
+    `future success of the project`, // 10: Description
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.87805733042363, 20.164424773485898), // Spostato leggermente
+new CoordinatesAsPoint(67.86770158832168, 20.164691698595675), // Spostato leggermente
+new CoordinatesAsPoint(67.85361844008717, 20.18204183073118), // Spostato leggermente
+new CoordinatesAsPoint(67.86237111154075, 20.20686586594044), // Spostato leggermente
+new CoordinatesAsPoint(67.88151142308843, 20.24132379844786), // Spostato leggermente
+new CoordinatesAsPoint(67.87805733042363, 20.164424773485898)  // Spostato leggermente
+
+
+  ])) // 11: Coordinates
+)
+const documents = [doc_15, doc_18, doc_41, doc_42, doc_43, doc_44]
 
 export default documents
