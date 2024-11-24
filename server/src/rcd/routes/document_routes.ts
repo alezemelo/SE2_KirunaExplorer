@@ -80,6 +80,7 @@ class DocumentRoutes {
         this.router.get(
             '/search',
             query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            // query('coords_type')
             //this.authService.isLoggedIn,
             //this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
