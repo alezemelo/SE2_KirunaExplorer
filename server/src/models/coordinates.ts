@@ -53,6 +53,19 @@ export class Coordinates {
         return this.type;
     }
 
+    getAsPositionArray(): unknown {
+        if (this.type !== CoordinatesType.POLYGON) {
+            throw new Error("Coordinates must be of type POLYGON to be able to get the position array");
+        }
+        if (this.coords === null) {
+            throw new Error("Coordinates object is null (with type POLYGON), unexpected.");
+        }
+        const coordinates_as_polygon = this.coords as CoordinatesAsPolygon;
+        const vector_of_polygon_jsons = coordinates_as_polygon.getCoordinates(); // This is a vector [{lat, lng}, {lat, lng}, ...]
+        const vector_of_polygon_tuples = vector_of_polygon_jsons.map((point) => [point.getLat(), point.getLng()]); // map: {lat, lng} -> [lat, lng]. So in total we have [[lat, lng], [lat, lng], ...]
+        return [vector_of_polygon_tuples]; // And here we wrap it in another vector, so: [[ [lat, lng], [lat, lng], ...] ]
+    }
+
     // ============== Static Methods ==============
     static isGeographyString(input: string): boolean {
         return CoordinatesAsPoint.isPoint(input) || CoordinatesAsPolygon.isPolygon(input);
@@ -83,6 +96,10 @@ export class CoordinatesAsPoint {
 
     getLng(): number {
         return this.lng;
+    }
+
+    getCoordinates(): { lat: number, lng: number } {
+        return { lat: this.lat, lng: this.lng };
     }
 
     // ============== Static Methods ==============

@@ -5,45 +5,46 @@ import { Document } from "../../models/document";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { Position } from "geojson";
 
 mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // Replace with your Mapbox token
 
 
-// Fake documents with polygon data
-const fakeDocuments = [
-  {
-    id: 1,
-    title: "Polygon Document 1",
-    coordinates: {
-      type: "POLYGON",
-      coordinates: [
-        [
-          [20.2205, 67.8550],
-          [20.2230, 67.8550],
-          [20.2230, 67.8530],
-          [20.2205, 67.8530],
-          [20.2205, 67.8550], // Close the polygon
-        ],
-      ],
-    },
-  },
-  {
-    id: 2,
-    title: "Polygon Document 2",
-    coordinates: {
-      type: "POLYGON",
-      coordinates: [
-        [
-          [20.2250, 67.8560],
-          [20.2280, 67.8560],
-          [20.2280, 67.8540],
-          [20.2250, 67.8540],
-          [20.2250, 67.8560], // Close the polygon
-        ],
-      ],
-    },
-  },
-];
+// // Fake documents with polygon data
+// const fakeDocuments = [
+//   {
+//     id: 1,
+//     title: "Polygon Document 1",
+//     coordinates: {
+//       type: "POLYGON",
+//       coordinates: [
+//         [
+//           [20.2205, 67.8550],
+//           [20.2230, 67.8550],
+//           [20.2230, 67.8530],
+//           [20.2205, 67.8530],
+//           [20.2205, 67.8550], // Close the polygon
+//         ],
+//       ],
+//     },
+//   },
+//   {
+//     id: 2,
+//     title: "Polygon Document 2",
+//     coordinates: {
+//       type: "POLYGON",
+//       coordinates: [
+//         [
+//           [20.2250, 67.8560],
+//           [20.2280, 67.8560],
+//           [20.2280, 67.8540],
+//           [20.2250, 67.8540],
+//           [20.2250, 67.8560], // Close the polygon
+//         ],
+//       ],
+//     },
+//   },
+// ];
 
 interface MapProps {
   documents: Document[];
@@ -86,7 +87,7 @@ const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = us
             type: "Feature",
             geometry: {
               type: "Polygon",
-              coordinates: doc.getCoordinates()?.getCoords()?.getCoordinates(),
+              coordinates: doc.getCoordinates()?.getAsPositionArray() as Position[][],
             },
             properties: {
               title: doc.title,
