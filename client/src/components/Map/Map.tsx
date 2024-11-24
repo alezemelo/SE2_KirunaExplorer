@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
-import { Document } from "../../models/document";
+import { Document, DocumentJSON } from "../../models/document";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
@@ -72,6 +72,7 @@ const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = us
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
     props.documents.forEach((doc) => {
+      doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
       if (doc.getCoordinates()?.getType() === "POLYGON" && doc.getCoordinates()?.getCoords()) {
         const sourceId = `polygon-${doc.id}`;
 
@@ -80,6 +81,9 @@ const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = us
           mapInstance.removeLayer(sourceId);
           mapInstance.removeSource(sourceId);
         }
+
+        console.error("The position array as Position[][] is: ", doc.getCoordinates()?.getAsPositionArray() as Position[][]);
+        console.error("The position array as number[][][] is: ", doc.getCoordinates()?.getAsPositionArray())
 
         mapInstance.addSource(sourceId, {
           type: "geojson",
