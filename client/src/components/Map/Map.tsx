@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
+import { Document } from "../../models/document";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // Replace with your Mapbox token
+
 
 // Fake documents with polygon data
 const fakeDocuments = [
@@ -42,8 +45,12 @@ const fakeDocuments = [
   },
 ];
 
-const MapComponent: React.FC = () => {
-  const [viewport, setViewport] = useState({
+interface MapProps {
+  documents: Document[];
+}
+
+
+const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = useState({
     latitude: 67.85394,
     longitude: 20.222309,
     zoom: 12,
@@ -63,8 +70,8 @@ const MapComponent: React.FC = () => {
   };
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-    fakeDocuments.forEach((doc) => {
-      if (doc.coordinates?.type === "POLYGON" && doc.coordinates.coordinates) {
+    props.documents.forEach((doc) => {
+      if (doc.getCoordinates()?.getType() === "POLYGON" && doc.getCoordinates()?.getCoords()) {
         const sourceId = `polygon-${doc.id}`;
 
         // Remove existing source and layers if already present
@@ -79,7 +86,7 @@ const MapComponent: React.FC = () => {
             type: "Feature",
             geometry: {
               type: "Polygon",
-              coordinates: doc.coordinates.coordinates,
+              coordinates: doc.getCoordinates()?.getCoords()?.getCoordinates(),
             },
             properties: {
               title: doc.title,
@@ -149,4 +156,4 @@ const MapComponent: React.FC = () => {
   );
 };
 
-export default MapComponent;
+export default Map;

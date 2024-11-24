@@ -191,7 +191,7 @@ function App() {
                     //setCoordMap={setCoordMap}
                     //adding={adding}
                     //setAdding={setAdding}
-                    //documents={documents}
+                    documents={documents}
                     //updating={updating}
                   />
                 </Grid>
