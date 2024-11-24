@@ -271,12 +271,14 @@ Polygon Coordinates
 ```json
 {
   "type": CoordinatesType.POLYGON, 
-  "coords": [
-    { "lat": 59.3293, "long": 18.0686 }
-    { "lat": 60.3293, "long": 4.0686  }
-    { "lat": 43.3293, "long": 44.0686 }
-    { "lat": 3.3293,  "long": 38.0686 }
-  ]
+  "coords": {
+      "coordinates": [
+      { "lat": 59.3293, "long": 18.0686 }
+      { "lat": 60.3293, "long": 4.0686  }
+      { "lat": 43.3293, "long": 44.0686 }
+      { "lat": 3.3293,  "long": 38.0686 }
+    ]
+  }
 }
 ```
 

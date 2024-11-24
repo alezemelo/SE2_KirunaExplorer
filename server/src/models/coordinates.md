@@ -18,12 +18,14 @@ Polygon Coordinates
 ```json
 {
   "type": CoordinatesType.POLYGON, 
-  "coords": [
-    { "lat": 59.3293, "long": 18.0686 }
-    { "lat": 60.3293, "long": 4.0686  }
-    { "lat": 43.3293, "long": 44.0686 }
-    { "lat": 3.3293,  "long": 38.0686 }
-  ]
+  "coords": {
+      "coordinates": [
+      { "lat": 59.3293, "long": 18.0686 }
+      { "lat": 60.3293, "long": 4.0686  }
+      { "lat": 43.3293, "long": 44.0686 }
+      { "lat": 3.3293,  "long": 38.0686 }
+    ]
+  }
 }
 ```
 
@@ -35,6 +37,7 @@ Municipality Coordinates
 }
 ```
 
-# How To Access FIelds
+# How To Access Fields
 
-Using `getCoords()` and `getType()` one can access the coordinates and the type. `getCoords()` will return one of 3 possible types of values, which are `CoordinatesAsPoint`, `CoordinatesAsPolygon`, or null.
+Using `getCoords()` and `getType()` one can access the coordinates and the type. `getCoords()` will return one of 3 possible types of values, which are `CoordinatesAsPoint`, `CoordinatesAsPolygon`, or null.  
+Now, the obtained CoordinatesAs... can access their internal fields through another set of getters.

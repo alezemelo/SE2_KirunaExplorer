@@ -493,12 +493,13 @@ describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
             it('should create an instance from a JSON object with a Polygon', () => {
                 const json = {
                     type: 'POLYGON',
-                    coords: [
-                        { lat: 20, lng: 30 },
-                        { lat: 40, lng: 50 },
-                        { lat: 60, lng: 70 },
-                        { lat: 20, lng: 30 },
-                    ],
+                    coords: { coordinates: [
+                            { lat: 20, lng: 30 },
+                            { lat: 40, lng: 50 },
+                            { lat: 60, lng: 70 },
+                            { lat: 20, lng: 30 },
+                        ]
+                    },
                 };
                 const coords = Coordinates.fromJSON(json);
                 expect(coords.getType()).toBe(CoordinatesType.POLYGON);
