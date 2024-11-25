@@ -310,7 +310,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           newDocument.title,
           newDocument.type,
           props.user?.username?props.user?.username:'',
-          dayjs(date),
+          date,
           newDocument.language,
           Number(newDocument.pages),
           newDocument.stakeholders,

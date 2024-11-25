@@ -64,7 +64,7 @@ export class Coordinates {
         }
         const coordinates_as_polygon = this.coords as CoordinatesAsPolygon;
         const vector_of_polygon_jsons = coordinates_as_polygon.getCoordinates(); // This is a vector [{lat, lng}, {lat, lng}, ...]
-        const vector_of_polygon_tuples = vector_of_polygon_jsons.map((point) => [point.getLat(), point.getLng()] as Position); // [[lat, lng], [lat, lng], ...]
+        const vector_of_polygon_tuples = vector_of_polygon_jsons.map((point) => [point.getLng(), point.getLat()] as Position); // [[lat, lng], [lat, lng], ...]
         return [vector_of_polygon_tuples]; // [[ [lat, lng], [lat, lng], ... ]]
     }
 

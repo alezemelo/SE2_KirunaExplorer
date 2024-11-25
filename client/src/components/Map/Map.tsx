@@ -2,64 +2,26 @@ import React, { useState, useEffect } from "react";
 import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
-
-import "mapbox-gl/dist/mapbox-gl.css";
-import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import { Position } from "geojson";
 
-mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // Replace with your Mapbox token
-
-
-// // Fake documents with polygon data
-// const fakeDocuments = [
-//   {
-//     id: 1,
-//     title: "Polygon Document 1",
-//     coordinates: {
-//       type: "POLYGON",
-//       coordinates: [
-//         [
-//           [20.2205, 67.8550],
-//           [20.2230, 67.8550],
-//           [20.2230, 67.8530],
-//           [20.2205, 67.8530],
-//           [20.2205, 67.8550], // Close the polygon
-//         ],
-//       ],
-//     },
-//   },
-//   {
-//     id: 2,
-//     title: "Polygon Document 2",
-//     coordinates: {
-//       type: "POLYGON",
-//       coordinates: [
-//         [
-//           [20.2250, 67.8560],
-//           [20.2280, 67.8560],
-//           [20.2280, 67.8540],
-//           [20.2250, 67.8540],
-//           [20.2250, 67.8560], // Close the polygon
-//         ],
-//       ],
-//     },
-//   },
-// ];
+const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+if (!accessToken) {
+  console.error("Mapbox access token is missing!");
+}
+mapboxgl.accessToken = accessToken!;
 
 interface MapProps {
   documents: Document[];
 }
 
-
-const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = useState({
+const Map: React.FC<MapProps> = (props) => {
+  const [viewport, setViewport] = useState({
     latitude: 67.85394,
     longitude: 20.222309,
     zoom: 12,
   });
 
-  const [mapStyle, setMapStyle] = useState(
-    "mapbox://styles/mapbox/satellite-streets-v11"
-  );
+  const [mapStyle, setMapStyle] = useState("mapbox://styles/mapbox/satellite-streets-v11");
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
 
   const toggleMapStyle = () => {
@@ -71,31 +33,37 @@ const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = us
   };
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
+    console.log("Adding polygons to map:", props.documents);
+
     props.documents.forEach((doc) => {
       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-      if (doc.getCoordinates()?.getType() === "POLYGON" && doc.getCoordinates()?.getCoords()) {
-        const sourceId = `polygon-${doc.id}`;
+      if (doc.getCoordinates()?.getType() !== "POLYGON") {
+        console.error(`Document ${doc.id} does not have POLYGON coordinates.`);
+        return;
+      }
 
-        // Remove existing source and layers if already present
-        if (mapInstance.getSource(sourceId)) {
-          mapInstance.removeLayer(sourceId);
-          mapInstance.removeSource(sourceId);
-        }
+      const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
 
-        console.error("The position array as Position[][] is: ", doc.getCoordinates()?.getAsPositionArray() as Position[][]);
-        console.error("The position array as number[][][] is: ", doc.getCoordinates()?.getAsPositionArray())
+      const sourceId = `polygon-${doc.id}`;
+      if (mapInstance.getSource(sourceId)) {
+        // Update existing source
+        (mapInstance.getSource(sourceId) as mapboxgl.GeoJSONSource).setData({
+          type: "Feature",
+          geometry: { type: "Polygon", coordinates: polygonCoords },
+          properties: { title: doc.title },
+        });
+        return;
+      }
 
+      // Add source and layer if not already present
+      if (mapInstance.isStyleLoaded()) {
+        console.log("Adding new source:", sourceId);
         mapInstance.addSource(sourceId, {
           type: "geojson",
           data: {
             type: "Feature",
-            geometry: {
-              type: "Polygon",
-              coordinates: doc.getCoordinates()?.getAsPositionArray() as Position[][],
-            },
-            properties: {
-              title: doc.title,
-            },
+            geometry: { type: "Polygon", coordinates: polygonCoords },
+            properties: { title: doc.title },
           },
         });
 
@@ -104,53 +72,43 @@ const Map: React.FC<MapProps> = (props) => {  const [viewport, setViewport] = us
           type: "fill",
           source: sourceId,
           paint: {
-            "fill-color": "rgba(0, 0, 255, 0.3)",
-            "fill-outline-color": "blue",
+            "fill-color": "#FF0000", // Ensure visible color
+            "fill-opacity": 0.6,
           },
         });
-
-        mapInstance.addLayer({
-          id: `${sourceId}-outline`,
-          type: "line",
-          source: sourceId,
-          paint: {
-            "line-color": "blue",
-            "line-width": 2,
-          },
-        });
+      } else {
+        // Delay until style is loaded
+        mapInstance.once("styledata", () => addPolygonsToMap(mapInstance));
       }
     });
   };
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !props.documents) return;
 
-    // Add polygons initially
-    addPolygonsToMap(map);
-
-    // Re-add polygons after style change
-    const handleStyleData = () => {
+    const handleStyleLoad = () => {
+      console.log('Style loaded; adding polygons.');
       addPolygonsToMap(map);
     };
 
-    map.on("styledata", handleStyleData);
-
+    if (map.isStyleLoaded()) {
+      handleStyleLoad();
+    } else {
+      map.on("styledata", handleStyleLoad);
+    }
+  
     return () => {
-      map.off("styledata", handleStyleData);
-    };
-  }, [map]);
+      map.off("styledata", handleStyleLoad);    };
+  },[map, props.documents, mapStyle]);
+    
 
-  const onMove = (event: ViewStateChangeEvent) => {
-    setViewport(event.viewState);
-  };
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <ReactMapGL
         {...viewport}
-        mapboxAccessToken="pk.eyJ1IjoiYWxlemVtZWxvIiwiYSI6ImNtM3NyY2Q5bTAwbWIyanM5dHI5ZDB5bDAifQ.DGkcqcS5WKlEspQ4IHCbiA"
         mapStyle={mapStyle}
-        onMove={onMove}
+        onMove={(event: ViewStateChangeEvent) => setViewport(event.viewState)}
         onLoad={(event) => setMap(event.target as mapboxgl.Map)}
       >
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
