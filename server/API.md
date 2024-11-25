@@ -262,7 +262,7 @@ Point Coordinates
   "type": CoordinatesType.POINT,
   "coords": { 
     "lat": 59.3293,
-    "long": 18.0686
+    "lng": 18.0686
   }
 }
 ```
@@ -273,10 +273,10 @@ Polygon Coordinates
   "type": CoordinatesType.POLYGON, 
   "coords": {
       "coordinates": [
-      { "lat": 59.3293, "long": 18.0686 }
-      { "lat": 60.3293, "long": 4.0686  }
-      { "lat": 43.3293, "long": 44.0686 }
-      { "lat": 3.3293,  "long": 38.0686 }
+      { "lat": 59.3293, "lng": 18.0686 }
+      { "lat": 60.3293, "lng": 4.0686  }
+      { "lat": 43.3293, "lng": 44.0686 }
+      { "lat": 3.3293,  "lng": 38.0686 }
     ]
   }
 }
