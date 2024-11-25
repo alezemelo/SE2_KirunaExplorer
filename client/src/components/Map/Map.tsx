@@ -35,7 +35,7 @@ const Map: React.FC<MapProps> = (props) => {
     setMapStyle((prevStyle) => {
       const newStyle =
         prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-          ? "mapbox://styles/mapbox/streets-v11"
+          ? "mapbox://styles/mapbox/traffic-night-v2"
           : "mapbox://styles/mapbox/satellite-streets-v11";
 
       setButtonText(
@@ -121,7 +121,7 @@ const Map: React.FC<MapProps> = (props) => {
         source: sourceId,
         paint: {
           "fill-color": "#FF0000",
-          "fill-opacity": 0.6,
+          "fill-opacity": 0.3,
         },
       });
     });
