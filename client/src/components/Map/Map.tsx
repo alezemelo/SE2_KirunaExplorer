@@ -12,6 +12,7 @@ mapboxgl.accessToken = accessToken!;
 
 interface MapProps {
   documents: Document[];
+  isDocumentListOpen: boolean; // Add this prop to track sidebar state
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -21,15 +22,59 @@ const Map: React.FC<MapProps> = (props) => {
     zoom: 12,
   });
 
-  const [mapStyle, setMapStyle] = useState("mapbox://styles/mapbox/satellite-streets-v11");
+  const [mapStyle, setMapStyle] = useState(
+    "mapbox://styles/mapbox/satellite-streets-v11"
+  );
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const [buttonText, setButtonText] = useState("Switch to Street View");
+
 
   const toggleMapStyle = () => {
-    setMapStyle((prevStyle) =>
-      prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-        ? "mapbox://styles/mapbox/streets-v11"
-        : "mapbox://styles/mapbox/satellite-streets-v11"
-    );
+    setMapStyle((prevStyle) => {
+      const newStyle =
+        prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
+          ? "mapbox://styles/mapbox/streets-v11"
+          : "mapbox://styles/mapbox/satellite-streets-v11";
+
+      setButtonText(
+        newStyle === "mapbox://styles/mapbox/satellite-streets-v11"
+          ? "Switch to Street View"
+          : "Switch to Satellite View"
+      );
+
+      return newStyle;
+    });
+  };
+
+  useEffect(() => {
+    if (!map) return;
+
+    // Call resize on the map instance whenever `isDocumentListOpen` changes
+    map.resize();
+  }, [props.isDocumentListOpen, map]);
+
+
+  const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
+    console.log("Adding markers to map:", props.documents);
+
+    props.documents.forEach((doc) => {
+      doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
+      if (doc.getCoordinates()?.getType() !== "POINT") {
+        return; // Skip non-POINT documents
+      }
+
+      const pointCoords = doc.getCoordinates()?.getLatLng();
+
+      if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
+        console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
+        return;
+      }
+
+      // Add marker with popup
+      new mapboxgl.Marker({ color: "red" })
+        .setLngLat([pointCoords.lng, pointCoords.lat])
+        .addTo(mapInstance);
+    });
   };
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
@@ -46,7 +91,6 @@ const Map: React.FC<MapProps> = (props) => {
 
       const sourceId = `polygon-${doc.id}`;
       if (mapInstance.getSource(sourceId)) {
-        // Update existing source
         (mapInstance.getSource(sourceId) as mapboxgl.GeoJSONSource).setData({
           type: "Feature",
           geometry: { type: "Polygon", coordinates: polygonCoords },
@@ -55,53 +99,51 @@ const Map: React.FC<MapProps> = (props) => {
         return;
       }
 
-      // Add source and layer if not already present
-      if (mapInstance.isStyleLoaded()) {
-        console.log("Adding new source:", sourceId);
-        mapInstance.addSource(sourceId, {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            geometry: { type: "Polygon", coordinates: polygonCoords },
-            properties: { title: doc.title },
-          },
-        });
+      console.log("Adding new source and layer for polygon:", sourceId);
+      mapInstance.addSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: { type: "Polygon", coordinates: polygonCoords },
+          properties: { title: doc.title },
+        },
+      });
 
-        mapInstance.addLayer({
-          id: sourceId,
-          type: "fill",
-          source: sourceId,
-          paint: {
-            "fill-color": "#FF0000", // Ensure visible color
-            "fill-opacity": 0.6,
-          },
-        });
-      } else {
-        // Delay until style is loaded
-        mapInstance.once("styledata", () => addPolygonsToMap(mapInstance));
-      }
+      mapInstance.addLayer({
+        id: sourceId,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": "#FF0000",
+          "fill-opacity": 0.6,
+        },
+      });
     });
   };
 
   useEffect(() => {
-    if (!map || !props.documents) return;
+    if (!map) return;
 
     const handleStyleLoad = () => {
-      console.log('Style loaded; adding polygons.');
+      console.log("Style loaded; adding markers and polygons.");
+      addMarkersToMap(map);
       addPolygonsToMap(map);
     };
 
-    if (map.isStyleLoaded()) {
-      handleStyleLoad();
-    } else {
-      map.on("styledata", handleStyleLoad);
-    }
-  
-    return () => {
-      map.off("styledata", handleStyleLoad);    };
-  },[map, props.documents, mapStyle]);
-    
+    map.on("styledata", handleStyleLoad);
 
+    return () => {
+      map.off("styledata", handleStyleLoad);
+    };
+  }, [map, props.documents]);
+
+  useEffect(() => {
+    if (!map || !props.documents) return;
+
+    // Re-add markers and polygons whenever the map style changes
+    addMarkersToMap(map);
+    addPolygonsToMap(map);
+  }, [map, mapStyle, props.documents]);
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
@@ -112,7 +154,7 @@ const Map: React.FC<MapProps> = (props) => {
         onLoad={(event) => setMap(event.target as mapboxgl.Map)}
       >
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
-          <button onClick={toggleMapStyle}>Toggle Satellite View</button>
+          <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>
       </ReactMapGL>
     </div>

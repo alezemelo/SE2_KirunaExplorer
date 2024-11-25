@@ -161,7 +161,7 @@ export class CoordinatesAsPoint {
     }
 
     getCoordinates(): { lat: number, lng: number } {
-        return { lat: this.lat, lng: this.lng };
+        return { lng: this.lng, lat: this.lat };
     }
 
     // ============== Static Methods ==============

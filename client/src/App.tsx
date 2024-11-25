@@ -192,6 +192,8 @@ function App() {
                     //adding={adding}
                     //setAdding={setAdding}
                     documents={documents}
+                    isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
+
                     //updating={updating}
                   />
                 </Grid>
