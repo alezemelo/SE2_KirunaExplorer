@@ -73,7 +73,7 @@ export class Coordinates {
         return CoordinatesAsPoint.isPoint(input) || CoordinatesAsPolygon.isPolygon(input);
     }
 
-    getLatLng(): { lat: number | null, lng: number | null } | null {
+    getLatLng(): { lng: number | null, lat: number | null } | null {
         if (this.type === CoordinatesType.POINT && this.coords instanceof CoordinatesAsPoint) {
             return {
                 lat: this.coords.getLat(),

@@ -13,6 +13,8 @@ mapboxgl.accessToken = accessToken!;
 interface MapProps {
   documents: Document[];
   isDocumentListOpen: boolean; // Add this prop to track sidebar state
+  pin: number;
+  setNewPin: (id: number) => void;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -71,9 +73,13 @@ const Map: React.FC<MapProps> = (props) => {
       }
 
       // Add marker with popup
-      new mapboxgl.Marker({ color: "red" })
+      const marker = new mapboxgl.Marker({ color: "red" })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
+
+      marker.getElement()?.addEventListener("click", () => {
+        props.setNewPin(doc.id); // Set the new pin when marker is clicked
+      });
     });
   };
 

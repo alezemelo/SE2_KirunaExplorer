@@ -186,8 +186,8 @@ function App() {
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
                     //fetchDocuments={fetchDocuments}
-                    //pin={pin}
-                    //setNewPin={setNewPin}
+                    pin={pin}
+                    setNewPin={setNewPin}
                     //setCoordMap={setCoordMap}
                     //adding={adding}
                     //setAdding={setAdding}
