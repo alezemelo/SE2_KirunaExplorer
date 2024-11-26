@@ -86,7 +86,6 @@ class DocumentRoutes {
                 try {
                     (req.query.municipality_filter ? this.controller.searchDocuments(req.query,req.query.municipality_filter) : this.controller.searchDocuments(req.query))
                         .then((documents: any) => {
-                            console.log(documents)
                             res.status(200).json(documents)})
                         .catch((err: any) => {
                             console.log("an error while searching for documents!", err);
