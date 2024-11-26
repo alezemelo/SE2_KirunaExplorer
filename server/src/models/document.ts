@@ -24,7 +24,7 @@ class Document {
     language?: string;
     pages?: number;
 
-    stakeholders?: string;
+    stakeholders?: string[];
     scale?: string;
     description?: string;
     public coordinates: Coordinates; // default to municipality type if no coordinates are provided
@@ -32,7 +32,7 @@ class Document {
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
                 issuanceDate: string, language?: string, pages?: number,                 // Optional fields
-                stakeholders?: string, scale?: string,
+                stakeholders?: string[], scale?: string,
                 description?: string, coordinates?: Coordinates) {
         this.id = id;
         this.title = title;
@@ -176,15 +176,23 @@ class Document {
 
     /**
      * Use this when you want to send a Document to the db and let the autoincrement handle the primary key/ID.
-     * This should return the Document's JSON without the ID.
+     * Also removes stakeholders field.
+     * This should return the Document's JSON without the ID and stakeholders field.
      * 
-     * Returns an object without the id field
-     * @returns Object without the id field
+     * Returns an object without the id and stakeholders fields
+     * @returns Object without the id and srakeholders fields
     */
-    toObjectWithoutId(): Object {
-        let object_with_id: any = this.toObject();
-        delete object_with_id.id;
-        return object_with_id;
+    toObjectWithoutIdAndStakeholders(): Object {
+        let object_with_id_stakeholders: any = this.toObject();
+        delete object_with_id_stakeholders.id;
+        delete object_with_id_stakeholders.stakehoders;
+        return object_with_id_stakeholders;
+    }
+
+    toObjectWithoutStakeholders(): Object {
+        let object_with_stakeholders: any = this.toObject();
+        delete object_with_stakeholders.stakeholders;
+        return object_with_stakeholders;
     }
 
     copy(): Document {

@@ -36,7 +36,7 @@ Creates a new document
     "issuanceDate": "2023-10-01T00:00:00Z",
     "language": "English",
     "pages": 10,
-    "stakeholders": "Stakeholder Info",
+    "stakeholders": ["Stakeholder1", "stakeholder3"],
     "scale": "1:1000",
     "description": "Document Description",
     "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
@@ -101,7 +101,7 @@ Allows searching docs by title, the frontend should call this multiple times as 
   - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
 - Response Body Content: list of matching docs
   - Example: 
-  ```
+  ```json
   [
     {
       'id': 1,
@@ -109,7 +109,7 @@ Allows searching docs by title, the frontend should call this multiple times as 
       'issuanceDate': '2007-01-01T00:00:00Z',
       'language': 'Swedish',
       'pages': ,
-      'stakeholders': 'Kiruna commun/Residents',
+      'stakeholders': ["Kiruna commun", "Residents"],
       'scale': 'Text',
       'description': 'This document is a compilation of the responses to the survey What is ...',
       'type': 'Informative document',
@@ -122,7 +122,7 @@ Allows searching docs by title, the frontend should call this multiple times as 
       'issuanceDate': '2007-01-01T00:00:00Z',
       'language': 'Engglish',
       'pages': 20,
-      'stakeholders': 'Kiruna commun/Residents',
+      'stakeholders': ["Kiruna commun", "Residents"],
       'scale': 'Text',
       'description': 'desc',
       'type': 'Informative document',
@@ -153,7 +153,7 @@ Fetches a `Document` object.
       "issuanceDate": "2007-01-01T00:00:00Z",
       "language": "Swedish",
       "pages": ,
-      "stakeholders": "Kiruna commun/Residents",
+      "stakeholders": ["Kiruna commun", "Residents"],
       "scale": "Text",
       "description": "This document is a compilation of the responses to the survey What is ...",
       "type": "Informative document",
@@ -188,7 +188,26 @@ get the links of the document specified by the doc_id
 - Additional Constraints:
 - returns 400 if the id of the docuemnt does not exist.
 
+#### POST `/kiruna_explorer/documents/:id/stakeholders`
 
+adds new stakeholders to a document
+
+- Request Parameters: id of the document
+- Request Body Content: {"stakeholders", ["Residents", "White Arkitekter"]}
+- Response Body Content: None
+- Access contraints: Urban planner
+- Additional Constraints:
+  - 400 if stakeholders are already associated to doc
+  - 401 if unauthorized
+
+#### DELETE `/kiruna_explorer/documents/:id/stakeholders`
+
+- Request Parameters: id of the document
+- Request Body Content: {"stakeholders", ["Residents", "White Arkitekter"]}
+- Response Body Content: {"deletedRows": 2}
+- Access contraints: Urban planner
+- Additional Constraints:
+  - 401 if unauthorized
 #### POST `/kiruna_explorer/linkDocuments/create`
 
 create a link between two documents
@@ -204,6 +223,46 @@ create a link between two documents
 - Additional Constraints:
 - returns 400 if the id of the docuemnt does not exist.
 - returns 422 if the request body content is not correct
+
+### Stakeholders APIs
+
+#### GET `kiruna_explorer/stakeholders`
+
+gets the list of every stakeholder
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  ```json
+  [
+	{
+		"name": "White Arkitekter"
+	},
+	{
+		"name": "Kiruna kommun"
+	},
+	{
+		"name": "Residents"
+	}
+  ]
+  ```
+- Access contraints: None
+
+#### POST `kiruna_explorer/stakeholders`
+
+adds a new stakeholder to the list of possible stakeholders
+
+- Request Parameters: None
+- Request Body Content:
+  `{"name": "new_stakeholder"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: name of new stakeholder
+- Access contraints: Urban Planner
+- Returns `409` if name already esists:
+- returns `422` if the request body content is not correct
+
 
 ### Auth APIs
 

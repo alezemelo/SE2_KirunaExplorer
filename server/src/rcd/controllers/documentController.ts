@@ -1,10 +1,11 @@
-import { DocumentNotFoundError } from "../../errors/documentErrors";
+import { DocumentNotFoundError, StakeholdersNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
 import { Coordinates, CoordinatesAsPoint } from "../../models/coordinates";
 
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
+import StakeholdersDAO from "../daos/stakeholdersDAO";
 
 
 /**
@@ -12,12 +13,13 @@ import dayjs, { Dayjs } from "dayjs";
  */
 class DocumentController {
     private dao: DocumentDAO;
-
+    private stakeholdersDao: StakeholdersDAO;
     /**
      * Constructs a new instance of the DocumentController class.
      */
     constructor() {
         this.dao = new DocumentDAO();
+        this.stakeholdersDao = new StakeholdersDAO();
     }
 
 
@@ -63,8 +65,20 @@ class DocumentController {
         );
     
         try {
+            // if stakeholders were inserted check if they exist
+            if (documentData.stakeholders && documentData.stakeholders.length > 0) {
+                const stakeholdersExist = await this.stakeholdersDao.stakeholdersExists(documentData.stakeholders);
+                if (!stakeholdersExist) {
+                    throw new StakeholdersNotFoundError();
+                }
+            }
             const documentId = await this.dao.addDocument(documentData);
+            if (documentData.stakeholders && documentData.stakeholders.length > 0) {
+                await this.stakeholdersDao.addStakeholdersToDocument(documentData.stakeholders, documentId);
+            }
+            // inserts the new document
             res.status(201).json({ message: 'Document added successfully', documentId });
+            
         } catch (error) {
             console.error('Failed to add document:', error);
             if (error instanceof Error && error.message.includes('Invalid geometry')) {
@@ -160,6 +174,26 @@ class DocumentController {
             const docs = await this.dao.searchDocuments(query.title);
             return docs;
         } catch (error) {
+            throw error;
+        }
+    }
+
+    async addStakeholders(id: number, stakeholders: string[]): Promise<void> {
+        try {
+            const insertedRows = await this.stakeholdersDao.addStakeholdersToDocument(stakeholders, id);
+            return;
+        } catch (error) {
+            console.error("Error in DocumentController - addStakeholders: ", error);
+            throw error;
+        }
+    }
+
+    async removeStakeholders(id: number, stakeholders: string[]): Promise<number> {
+        try {
+            const removedRows = await this.stakeholdersDao.removeStakeholdersFromDocument(stakeholders, id);
+            return removedRows;
+        } catch (error) {
+            console.error("Error in DocumentController - removeStakeholders: ", error);
             throw error;
         }
     }
