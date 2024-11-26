@@ -1,8 +1,22 @@
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-import {Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType} from "./coordinates";
+import {Coordinates, CoordinatesType} from "./coordinates";
 //import { Knex } from "knex";
+
+export interface DocumentJSON {
+    id: number;
+    title: string;
+    type: DocumentType;
+    lastModifiedBy: string;
+    issuanceDate?: string | null;
+    language: string;
+    pages?: number | null;
+    stakeholders: string;
+    scale: string;
+    description: string;
+    coordinates: Coordinates;
+}
 
 enum DocumentType {
     informative_doc = "informative_doc",
@@ -18,18 +32,18 @@ class Document {
     type: DocumentType;
     lastModifiedBy: string;
     connection?: string[];
-    issuanceDate?: Dayjs;
+    issuanceDate?: string;
     language?: string;
     pages?: number;
 
     stakeholders?: string;
     scale?: string;
     description?: string;
-    private coordinates: Coordinates; // default to municipality type if no coordinates are provided
+    coordinates: Coordinates; // default to municipality type if no coordinates are provided
     
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
-                issuanceDate?: Dayjs, language?: string, pages?: number,                 // Optional fields
+                issuanceDate?: string, language?: string, pages?: number,                 // Optional fields
                 stakeholders?: string, scale?: string,
                 description?: string, coordinates?: Coordinates) {
         this.id = id;
@@ -91,43 +105,65 @@ class Document {
         );
     }*/
 
-    /*
-    * Use this when you want to send a Document to the db
+    /* 
+    * Use this when the doc you have is a plain object, but you want to access its methods.
     */
-    toObject(): Object {
-        const my_coordinates = this.coordinates ? this.coordinates : new Coordinates(CoordinatesType.MUNICIPALITY, null);
-        const my_coordinates_type = my_coordinates.getType();
-        let my_coordinates_as_string = my_coordinates.getCoords()?.toGeographyString();
+    static fromJSONfront(json: DocumentJSON): Document {
+        const coordinates_as_coordinates_object = Coordinates.fromJSON(json.coordinates);
+        // console.error("coordinates_as_coordinates_object is instanceof Coordinates: ", coordinates_as_coordinates_object instanceof Coordinates);
 
-        return {
-            id: this.id,
-            title: this.title,
-            issuance_date: this.issuanceDate,
-            language: this.language,
-            pages: this.pages,
-            stakeholders: this.stakeholders,
-            scale: this.scale,
-            description: this.description,
-            type: this.type,
-            last_modified_by: this.lastModifiedBy,
+        return new Document(
+            json.id,
+            json.title,
+            json.type,
+            json.lastModifiedBy,
+            json.issuanceDate ? json.issuanceDate : undefined,
+            json.language !== null ? json.language : undefined,
+            json.pages !== null ? json.pages : undefined,
+            json.stakeholders !== null ? json.stakeholders : undefined,
+            json.scale !== null ? json.scale : undefined,
+            json.description !== null ? json.description : undefined,
+            coordinates_as_coordinates_object
+        );
+    }
+
+    // /*
+    // * Use this when you want to send a Document to the db
+    // */
+    // toObject(): Object {
+    //     const my_coordinates = this.coordinates ? this.coordinates : new Coordinates(CoordinatesType.MUNICIPALITY, null);
+    //     const my_coordinates_type = my_coordinates.getType();
+    //     let my_coordinates_as_string = my_coordinates.getCoords()?.toGeographyString();
+
+    //     return {
+    //         id: this.id,
+    //         title: this.title,
+    //         issuance_date: this.issuanceDate,
+    //         language: this.language,
+    //         pages: this.pages,
+    //         stakeholders: this.stakeholders,
+    //         scale: this.scale,
+    //         description: this.description,
+    //         type: this.type,
+    //         last_modified_by: this.lastModifiedBy,
             
-            coordinates_type: my_coordinates_type, // not nullable
-            coordinates: my_coordinates_as_string ? my_coordinates_as_string : null // db accepts strings fromatted as WKT or WKB
-        };
-    }
+    //         coordinates_type: my_coordinates_type, // not nullable
+    //         coordinates: my_coordinates_as_string ? my_coordinates_as_string : null // db accepts strings fromatted as WKT or WKB
+    //     };
+    // }
 
-    /**
-     * Use this when you want to send a Document to the db and let the autoincrement handle the primary key/ID.
-     * This should return the Document's JSON without the ID.
-     * 
-     * Returns an object without the id field
-     * @returns Object without the id field
-    */
-    toObjectWithoutId(): Object {
-        let object_with_id: any = this.toObject();
-        delete object_with_id.id;
-        return object_with_id;
-    }
+    // /**
+    //  * Use this when you want to send a Document to the db and let the autoincrement handle the primary key/ID.
+    //  * This should return the Document's JSON without the ID.
+    //  * 
+    //  * Returns an object without the id field
+    //  * @returns Object without the id field
+    // */
+    // toObjectWithoutId(): Object {
+    //     let object_with_id: any = this.toObject();
+    //     delete object_with_id.id;
+    //     return object_with_id;
+    // }
 
     copy(): Document {
         return new Document(
@@ -180,6 +216,7 @@ class DocumentLink {
         this.createdAt = createdAt;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static fromJSON(json: any): DocumentLink {
         // check types
         if (typeof json.link_id !== 'number') throw new Error(`Invalid linkId, should be number, got ${json.link_id} with type ${typeof json.link_id}`);
@@ -197,31 +234,31 @@ class DocumentLink {
         );
     }
 
-    toObject(): Object {
-        return {
-            link_id: this.linkId,
-            doc_id1: this.docId1,
-            doc_id2: this.docId2,
-            link_type: this.linkType,
-            created_at: this.createdAt,
-        };
-    }
+    // toObject(): Object {
+    //     return {
+    //         link_id: this.linkId,
+    //         doc_id1: this.docId1,
+    //         doc_id2: this.docId2,
+    //         link_type: this.linkType,
+    //         created_at: this.createdAt,
+    //     };
+    // }
 
-    /**
-     * Use this when you want to send a DocumentLink to the db and let the autoincrement handle the primary key/ID.
-     * This should return the DocumentLink's JSON without the ID.
-     * 
-     * Returns an object without the id field
-     * @returns Object without the id field
-    */
-    toObjectWithoutId(): Object {
-        return {
-            doc_id1: this.docId1,
-            doc_id2: this.docId2,
-            link_type: this.linkType,
-            created_at: this.createdAt,
-        };
-    }
+//     /**
+//      * Use this when you want to send a DocumentLink to the db and let the autoincrement handle the primary key/ID.
+//      * This should return the DocumentLink's JSON without the ID.
+//      * 
+//      * Returns an object without the id field
+//      * @returns Object without the id field
+//     */
+//     toObjectWithoutId(): Object {
+//         return {
+//             doc_id1: this.docId1,
+//             doc_id2: this.docId2,
+//             link_type: this.linkType,
+//             created_at: this.createdAt,
+//         };
+//     }
 }
 
 export { Document, DocumentType, DocumentLink, LinkType };

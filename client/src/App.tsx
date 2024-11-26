@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
-import { LoadScript } from "@react-google-maps/api"; // Import LoadScript
 import Header from "./components/Header/Header";
 import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
@@ -130,7 +129,7 @@ function App() {
   };
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyBIs9B8cOa7rusUEbiyekOZrmQZyM-eCs4">
+    <>
       <CssBaseline />
       <Routes>
         <Route
@@ -186,14 +185,16 @@ function App() {
 
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
-                    fetchDocuments={fetchDocuments}
+                    //fetchDocuments={fetchDocuments}
                     pin={pin}
                     setNewPin={setNewPin}
-                    setCoordMap={setCoordMap}
-                    adding={adding}
-                    setAdding={setAdding}
+                    //setCoordMap={setCoordMap}
+                    //adding={adding}
+                    //setAdding={setAdding}
                     documents={documents}
-                    updating={updating}
+                    isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
+
+                    //updating={updating}
                   />
                 </Grid>
               </Grid>
@@ -211,8 +212,9 @@ function App() {
           }
         />
       </Routes>
-    </LoadScript>
+    </>
   );
 }
 
 export default App;
+

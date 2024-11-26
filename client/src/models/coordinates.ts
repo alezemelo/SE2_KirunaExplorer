@@ -1,5 +1,7 @@
 //import { Knex } from "knex";
 
+import { Position } from "geojson";
+
 export enum CoordinatesType {
     POINT = "POINT",
     POLYGON = "POLYGON",
@@ -53,12 +55,25 @@ export class Coordinates {
         return this.type;
     }
 
+    getAsPositionArray(): Position[][] {
+        if (this.type !== CoordinatesType.POLYGON) {
+            throw new Error("Coordinates must be of type POLYGON to be able to get the position array");
+        }
+        if (this.coords === null) {
+            throw new Error("Coordinates object is null (with type POLYGON), unexpected.");
+        }
+        const coordinates_as_polygon = this.coords as CoordinatesAsPolygon;
+        const vector_of_polygon_jsons = coordinates_as_polygon.getCoordinates(); // This is a vector [{lat, lng}, {lat, lng}, ...]
+        const vector_of_polygon_tuples = vector_of_polygon_jsons.map((point) => [point.getLng(), point.getLat()] as Position); // [[lat, lng], [lat, lng], ...]
+        return [vector_of_polygon_tuples]; // [[ [lat, lng], [lat, lng], ... ]]
+    }
+
     // ============== Static Methods ==============
     static isGeographyString(input: string): boolean {
         return CoordinatesAsPoint.isPoint(input) || CoordinatesAsPolygon.isPolygon(input);
     }
 
-    getLatLng(): { lat: number | null, lng: number | null } | null {
+    getLatLng(): { lng: number | null, lat: number | null } | null {
         if (this.type === CoordinatesType.POINT && this.coords instanceof CoordinatesAsPoint) {
             return {
                 lat: this.coords.getLat(),
@@ -73,6 +88,49 @@ export class Coordinates {
         }
 
         return null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static fromJSON(json: any): Coordinates {
+        console.error("The given json to Coordinates.fromJSON is: ", json)
+
+        // Check that the json is correctly formatted: type
+        if (!json.type || (json.type !== CoordinatesType.MUNICIPALITY && !json.coords) || (json.type === CoordinatesType.MUNICIPALITY && json.coords)) {
+            throw new Error("Invalid coordinates JSON");
+        }
+        // Check that the json is correctly formatted: coords
+        if (json.type === CoordinatesType.POINT && (!json.coords.lat || !json.coords.lng)) {
+            throw new Error("Invalid POINT coordinates: lat and lng are required");
+        }
+        if (json.type === CoordinatesType.POLYGON && (!json.coords || json.coords.length < 4)) {
+            throw new Error("Invalid POLYGON coordinates: at least 4 points are required");
+        }
+        if (json.type === CoordinatesType.POLYGON) {
+            // console.error("DEBUG: json.coords is ", json.coords);
+            for (const coord of json.coords.coordinates) {
+                if (!coord.lat || !coord.lng) {
+                    throw new Error("Invalid POLYGON coordinates: lat and lng are required");
+                }
+            }
+        }
+        // Don't check for compatibilty, also when fetching from db it already ignores it in case
+        // if (json.type === CoordinatesType.MUNICIPALITY && json.coords !== null) {
+        //     throw new Error("Invalid MUNICIPALITY coordinates: coords should be null");
+        // }
+        
+
+        // Do the conversion based on type and use the correct fields
+        if (json.type === CoordinatesType.MUNICIPALITY) {
+            return new Coordinates(CoordinatesType.MUNICIPALITY, null);
+        } else if (json.type === CoordinatesType.POINT) {
+            return new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(json.coords.lat, json.coords.lng));
+        } else if (json.type === CoordinatesType.POLYGON) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const coords = json.coords.coordinates.map((coord: any) => new CoordinatesAsPoint(coord.lat, coord.lng));
+            return new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(coords));
+        } else {
+            throw new Error("Invalid coordinates type");
+        }
     }
 }
 
@@ -100,6 +158,10 @@ export class CoordinatesAsPoint {
 
     getLng(): number {
         return this.lng;
+    }
+
+    getCoordinates(): { lat: number, lng: number } {
+        return { lng: this.lng, lat: this.lat };
     }
 
     // ============== Static Methods ==============
