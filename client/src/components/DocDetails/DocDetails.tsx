@@ -64,8 +64,11 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       <Box display="flex" flexDirection="column" marginTop={1}>
         {connections.length > 0 ? (
            displayedConnections.map((conn: string, index: number) => (
-            <Typography key={index} variant="body2">
-              {conn}
+            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e)=>{
+              //e.stopPropagation();
+              console.log("link navigation")
+              props.setNewPin(props.document.id)}}>
+              <u>{conn}</u>
             </Typography>
           ))
         ) : (

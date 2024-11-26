@@ -3,8 +3,11 @@ import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";
+import * as turf from '@turf/turf';
+
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+console.log(import.meta.env)
 if (!accessToken) {
   console.error("Mapbox access token is missing!");
 }
@@ -94,6 +97,14 @@ const Map: React.FC<MapProps> = (props) => {
       }
 
       const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
+      const polygon = turf.polygon(polygonCoords);
+      const centroid = turf.centerOfMass(polygon);
+      const marker = new mapboxgl.Marker({ color: "red" })
+        .setLngLat([centroid.geometry.coordinates[0], centroid.geometry.coordinates[1]])
+        .addTo(mapInstance);
+        marker.getElement()?.addEventListener("click", () => {
+          props.setNewPin(doc.id);
+        });
 
       const sourceId = `polygon-${doc.id}`;
       if (mapInstance.getSource(sourceId)) {
@@ -114,18 +125,33 @@ const Map: React.FC<MapProps> = (props) => {
           properties: { title: doc.title },
         },
       });
+        mapInstance.addLayer({
+          id: sourceId,
+          type: "fill",
+          source: sourceId,
+          paint: {
+            "fill-color": "#FF0000",
+            "fill-opacity": 0,
+          },
+        });
 
-      mapInstance.addLayer({
-        id: sourceId,
-        type: "fill",
-        source: sourceId,
-        paint: {
-          "fill-color": "#FF0000",
-          "fill-opacity": 0.6,
-        },
-      });
+
     });
   };
+
+  useEffect(()=>{
+    if(!map || !props.pin) return;
+    props.documents.forEach((doc)=>{
+      if (map.getLayer(`polygon-${doc.id}`)) {
+        if(doc.id==props.pin){
+          map.setPaintProperty(`polygon-${doc.id}`, 'fill-opacity', 0.6);
+        }else{
+          map.setPaintProperty(`polygon-${doc.id}`, 'fill-opacity', 0);
+        }
+      }
+    })
+  },[props.pin,map])
+
 
   useEffect(() => {
     if (!map) return;

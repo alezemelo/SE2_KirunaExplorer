@@ -28,7 +28,9 @@ import {
   Card,
   CardContent,
   IconButton,
-  createTheme
+  createTheme,
+  Select,
+  MenuItem
 } from "@mui/material";
 import { DocumentType as DocumentLocal, User, Coordinates as CoordinateLocal } from "../../type";
 import DocDetails from "../DocDetails/DocDetails";
@@ -102,7 +104,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         issuanceDate: "",
         type: "informative_doc",
         connection: [],
-        language: "",
+        language: "English",
         pages: 1,
         description: "",
         coordinates: null
@@ -119,7 +121,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
+  const [linkErrors, setLinkErrors] = useState<string[]>([]);
   const [isChecked, setIsChecked] = useState(false);
+  const [municipality, setMunicipality] = useState(true);
+  const [coordinates_type, setCoordinatesType] = useState(false);
   
   
   //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
@@ -179,6 +184,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetLinkType("direct");
     setLinkDocuments([]);
     setSearchQuery('');
+    setLinkErrors([])
 
   };
 
@@ -224,6 +230,18 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (!newDocument.title) {
       newErrors.push("Title is required.");
     }
+    if (!newDocument.stakeholders) {
+      newErrors.push("stakeholder is required.");
+    }
+    if (!newDocument.description) {
+      newErrors.push("description is required.");
+    }
+    if (!newDocument.language) {
+      newErrors.push("language is required.");
+    }
+    if (!newDocument.scale) {
+      newErrors.push("scale is required.");
+    }
     if (typeof newDocument.title !== 'string') {
       newErrors.push("Title must be a string.");
     }
@@ -266,15 +284,14 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     ) {
       newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
     }
-    
-    /*
-    if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
+    if (newDocument.coordinates?.coords?.lat && isNaN(Number(newDocument.coordinates?.coords?.lat))) {
       newErrors.push("Latitude must be a number.");
+      console.log(newDocument.coordinates?.coords?.lat)
     }
-    if (newDocument.lng !== undefined && typeof newDocument.lng !== 'number') {
+    if (newDocument.coordinates?.coords?.lng && isNaN(Number(newDocument.coordinates?.coords?.lng))) {
       newErrors.push("Longitude must be a number.");
     }
-    */
+    
   
     setErrors(newErrors);
   
@@ -373,35 +390,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const linkDocument = async () => {
    if(currentDocument && targetDocumentId && targetLinkType){
-    /*try {
-      const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          doc_id1: currentDocument?.id,
-          doc_id2: targetDocumentId,
-          link_type: targetLinkType
-        }), 
-      });
-  
-      if (!response.ok) {
-        throw new Error("Error: " + response.statusText);
-      }
-      const result = await response.json();
-      console.log("res:", result);
-      await fetchDocuments();
-    } catch (error) {
-      console.error("Error:", error);
-    }*/
+   try{
     await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
     await props.fetchDocuments();
-    closeLinkingDialog()
-
+    closeLinkingDialog();
+   }
+   catch(error){
+    setLinkErrors([...linkErrors, "A link with this type already exists for this document"]);
+    console.log(error)
+   }
+    
    }
     
   };
+
+  useEffect(()=>{
+    console.log(linkErrors)
+  },[linkErrors])
 
   const handleSearchLinking = async () => {
     try {
@@ -452,6 +457,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     if ( itemRefs.current[props.pin]) {
+      console.log(props.pin)
         itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }, [props.pin]);
@@ -466,12 +472,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         <DialogTitle>Add a New Document</DialogTitle>
           <DialogContent>
             <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" required fullWidth value={newDocument.stakeholders} disabled={props.updating?true:false} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Scale" name="scale" required fullWidth value={newDocument.scale} disabled={props.updating?true:false} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="ex. 2022-01-01" name="issuanceDate" fullWidth value={newDocument.issuanceDate} disabled={props.updating?true:false} onChange={handleChange} />
             <FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
   <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
-  <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
+  <RadioGroup row name="type"  value={newDocument.type} onChange={handleChange}>
         <FormControlLabel
           value="informative_doc"
           control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
@@ -499,11 +505,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         />
       </RadioGroup>
     </FormControl>
-            <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />
+            {/*<TextField className="white-input" margin="dense" required label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />*/}
+            <TextField
+              select name="language"
+              label="Select an option"
+              value={newDocument.language}
+              onChange={handleChange}
+              fullWidth style={{backgroundColor: 'white'}}>
+              <MenuItem value="English">English</MenuItem>
+              <MenuItem value="Swedish">Swedish</MenuItem>
+            </TextField>
             <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
-            <Button color="primary" onClick={handleMapCoord}>Choose on map</Button>
+            <label><input type="checkbox" checked={municipality} name="type_of_coordinates"/>All municipality</label>
+            <Button color="primary" >Coordinates</Button>
+            <Button color="primary" >Draw a polygon</Button>
+            {coordinates_type && <><TextField className="white-input" margin="dense" label="Latitude" type="number" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" type="number" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
+            <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
             <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
           </DialogContent>
           {errors.length > 0 && (
@@ -612,6 +630,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                   <option value="projection">projection</option>
                   <option value="update">update</option>
                 </select>
+                {linkErrors.length > 0 && (
+            <div className="error-messages">
+              {linkErrors.map((error, index) => (
+                <p key={index} style={{ color: 'red' }}>{error}</p> 
+              ))}
+            </div>)}
         </DialogContent>
         <DialogActions>
         <Button onClick={linkDocument}  color="primary">Create</Button>

@@ -119,8 +119,10 @@ async function createLink(doc_id1: number, doc_id2: number, link_type: string) {
         }
         const result = await response.json();
         console.log("res:", result);
+        return result
       } catch (error) {
         console.error("Error:", error);
+        throw error;
       }
 }
 
