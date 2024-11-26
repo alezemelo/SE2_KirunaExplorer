@@ -1,5 +1,6 @@
 import { User } from "./type";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "./models/coordinates";
+import { url } from "inspector";
 async function checkAuth(): Promise<User | null> {
   try {
       const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
@@ -68,9 +69,14 @@ async function getDocuments() {
   return await response.json();
 }
 
-async function searchDocumentsByTitle(title: string) {
+async function searchDocumentsByTitle(title: string,municipality_filter?:boolean) {
   try {
-      const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`, {
+    let url = `http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`;
+
+    if (municipality_filter) {
+      url += `&municipality_filter=${encodeURIComponent(municipality_filter)}`;
+    }
+      const response = await fetch(url, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include", // Include session cookies

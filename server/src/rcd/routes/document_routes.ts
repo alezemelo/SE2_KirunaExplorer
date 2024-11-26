@@ -78,13 +78,16 @@ class DocumentRoutes {
         this.router.get(
             '/search',
             query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            query('municipality_filter').optional().isIn(['true', 'false']).withMessage('municipality_filter must be either "true" or "false"'),
             //this.authService.isLoggedIn,
             //this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => {
                 try {
-                    this.controller.searchDocuments(req.query)
-                        .then((documents: any) => res.status(200).json(documents))
+                    (req.query.municipality_filter ? this.controller.searchDocuments(req.query,req.query.municipality_filter) : this.controller.searchDocuments(req.query))
+                        .then((documents: any) => {
+                            console.log(documents)
+                            res.status(200).json(documents)})
                         .catch((err: any) => {
                             console.log("an error while searching for documents!", err);
                             next(err)

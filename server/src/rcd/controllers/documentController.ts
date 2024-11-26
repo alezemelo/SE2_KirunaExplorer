@@ -147,7 +147,7 @@ class DocumentController {
         }
     }
 
-    async searchDocuments(query: { title: string }): Promise<Document[]> {
+    async searchDocuments(query: { title: string },municipality_filter?: boolean): Promise<Document[]> {
         try {
             /*const docs = await this.dao.searchDocuments(query.title);
             docs.map(doc => {
@@ -157,7 +157,7 @@ class DocumentController {
                 }
             })
             return docs;*/
-            const docs = await this.dao.searchDocuments(query.title);
+            const docs = municipality_filter ? await this.dao.searchDocuments(query.title,municipality_filter) : await this.dao.searchDocuments(query.title);
             return docs;
         } catch (error) {
             throw error;

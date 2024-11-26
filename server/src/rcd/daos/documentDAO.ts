@@ -61,7 +61,7 @@ class DocumentDAO {
         }
     }
 
-    public async searchDocuments(query: string): Promise<Document[]> {
+    public async searchDocuments(query: string, municipality_filter?: boolean): Promise<Document[]> {
         try {
             // gets readable format of coordinates directly from db instead of hex
             // if this query does not work, copy the for loop approach used in the method above
@@ -78,13 +78,18 @@ class DocumentDAO {
                 FROM documents where title ILIKE $1`, [param]);
             return res.rows;*/
             const param = `%${query}%`;
+            let q = `SELECT * FROM documents where title ILIKE $1`
+            if(municipality_filter){
+                q+=` AND coordinates_type='MUNICIPALITY'`
+            }
             const res = await pgdb.client.query(
-                `SELECT * FROM documents where title ILIKE $1`, [param]);
+                q, [param]);
                 const documents: Document[] = await Promise.all(
                     res.rows.map(async (doc) => {
                         return await Document.fromJSON(doc, db);
                     })
                 );
+            //console.log(documents)
             return documents;
        } catch (error) {
            console.error(error);

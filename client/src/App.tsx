@@ -34,6 +34,7 @@ function App() {
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -70,7 +71,7 @@ function App() {
   const handleSearch = async () => {
     try {
       if (searchQuery.trim()) {
-        const matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+        const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery,true) : await API.searchDocumentsByTitle(searchQuery);
         setDocuments(matchingDocs);
       } else {
         fetchDocuments();
@@ -161,6 +162,8 @@ function App() {
                       setAdding={setAdding}
                       loggedIn={loggedIn}
                       user={user}
+                      isMunicipalityChecked = {isMunicipalityChecked}
+                      setIsMunicipalityChecked={setIsMunicipalityChecked}
                     />
                   </Grid>
                 )}

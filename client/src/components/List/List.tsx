@@ -57,7 +57,8 @@ interface DocumentListProps {
   user: User | undefined;
   updating: boolean;
   setUpdating: any;
- 
+  isMunicipalityChecked: boolean;
+  setIsMunicipalityChecked: any;
 }
 
 /*interface DocumentLocal {
@@ -122,7 +123,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
-  const [isChecked, setIsChecked] = useState(false);
   const [municipality, setMunicipality] = useState(true);
   const [coordinates_type, setCoordinatesType] = useState(false);
   
@@ -440,10 +440,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       if(t){
         props.setDocuments(t)
       }
-      setIsChecked(true); 
+      props.setIsMunicipalityChecked(true); 
     }else{
       await props.fetchDocuments();
-      setIsChecked(false); 
+      props.setIsMunicipalityChecked(false); 
     }
     
   }
@@ -554,7 +554,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       <label>
         <input 
           type="checkbox" 
-          checked={isChecked} 
+          checked={props.isMunicipalityChecked} 
           onChange={handleCheckboxChange} 
         />
         All municipality documents
