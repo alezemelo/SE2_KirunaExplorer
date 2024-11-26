@@ -106,9 +106,10 @@ Adds or updates a description for an existing document, the latter being sent th
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
   - May return errors specified in the head of this file or any other generic error
 
-#### GET `/kiruna_explorer/documents/search?title=mytitle`
+#### GET `/kiruna_explorer/documents/search?title=mytitle&municipality_filter=true`
 
 Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
+municipality_filter is an optional parameter to get only the documents related to all municipality. when it is omitted it searchs all documents. if it is present and true, it searchs the documents related to all municipality.
 - Request query: the string to match with the title, it is required.
   - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
 - Response Body Content: list of matching docs
