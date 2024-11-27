@@ -17,7 +17,8 @@ enum DocumentType {
 class Document {
     id: number;
     title: string;
-    type: DocumentType;
+    //type: DocumentType;
+    type: string;
     lastModifiedBy: string;
 
     issuanceDate: string;
@@ -30,7 +31,8 @@ class Document {
     public coordinates: Coordinates; // default to municipality type if no coordinates are provided
     
 
-    constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
+    //constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
+    constructor(id: number, title: string, type: string, lastModifiedBy: string,  // Required fields
                 issuanceDate: string, language?: string, pages?: number,                 // Optional fields
                 stakeholders?: string[], scale?: string,
                 description?: string, coordinates?: Coordinates) {

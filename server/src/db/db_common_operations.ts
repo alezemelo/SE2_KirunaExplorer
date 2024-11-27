@@ -4,6 +4,7 @@ import { Document, DocumentLink, LinkType } from "../models/document";
 import dayjs from "dayjs";
 
 // Data (actual and sample)
+import { ACTUAL_DOCTYPES } from "./actual_data/actual_doctypes";
 import { actualDocuments, docs_stakeholders } from "./actual_data/documents";
 import { ACTUAL_STAKEHOLDERS } from "./actual_data/actual_stakeholders";
 import { SAMPLE_DOC_FILES } from "./sample_data/sample_doc_files";
@@ -58,6 +59,9 @@ export async function dbPopulate() {
             { name: 'Stakeholder A' },
         ]);
         // console.log("Sample document links inserted.");
+        await knex('doctypes').insert([
+            {name: 'informative_doc'},
+        ]);
         
     } catch (error) {
         console.error("Error populating database:", error);
@@ -67,7 +71,7 @@ export async function dbPopulate() {
 
 export async function dbEmpty() {
     try {
-        await knex.raw('TRUNCATE TABLE document_files, document_stakeholders, stakeholders, document_links, files, documents, users RESTART IDENTITY CASCADE');
+        await knex.raw('TRUNCATE TABLE document_files, document_stakeholders, stakeholders, document_links, files, documents, doctypes, users RESTART IDENTITY CASCADE');
         // console.log("Database emptied successfully.");
     } catch (error) {
         console.error("Error emptying database:", error);
@@ -86,8 +90,9 @@ export async function dbRead() {
     const files = await knex("files").select("*");
     const documentFiles = await knex("document_files").select("*");
     const stakeholders = await knex("stakeholders").select("*");
+    const doctypes= await knex("doctypes").select("*");
     const documentStakeholders = await knex("document_stakeholders").select("*");
-    return { users, documents, stakeholders, documentStakeholders, documentLinks, files, documentFiles };
+    return { users, documents, stakeholders, doctypes, documentStakeholders, documentLinks, files, documentFiles };
   } catch (error) {
     console.error("Error reading database:", error);
     return null;
@@ -121,6 +126,10 @@ export async function dbPopulateActualData() {
         // insert actual stakeholders
         for (const stakeholder of ACTUAL_STAKEHOLDERS) {
             await knex('stakeholders').insert(stakeholder);
+        }
+
+        for (const doctype of ACTUAL_DOCTYPES) {
+            await knex('doctypes').insert(doctype);
         }
 
         // Insert __ACTUAL__ documents
