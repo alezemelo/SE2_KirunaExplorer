@@ -49,7 +49,7 @@ const insertSampleDocument = async (title: string = 'Sample Document') => {
     issuance_date: new Date(),
     language: 'English',
     pages: 10,
-    stakeholders: 'Stakeholder A',
+    //stakeholders: 'Stakeholder A',
     scale: '1:1000',
     description: 'A test document',
     type: 'informative_doc',

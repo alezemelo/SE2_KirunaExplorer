@@ -17,7 +17,7 @@ const complete_doc = new Document(
     dayjs.utc("2005").toISOString(), // Issuance date
     "Swedish", // Language
     999, // Pages
-    "Kiruna kommun/Residents", // Stakeholders
+    ["Kiruna kommun", "Residents"], // Stakeholders
     "Text", // Scale
     `This document is a compilation of the responses to ` +
         `the survey 'What is your impression of Kiruna?' ` +
@@ -73,9 +73,8 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
                 dayjs.utc("2005").toISOString(),
             );
 
-            const doc1: any = my_obj.copy().toObject();
-            doc1.issuance_date = date1;
-            delete doc1.id;
+            const doc1: any = my_obj.toObjectWithoutIdAndStakeholders();
+            doc1.issuance_date = date1; 
 
             // Run
             await db("documents").insert(doc1);
@@ -100,9 +99,15 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
                 dayjs.utc("2005").toISOString(),
             );
 
+            /*
             const doc2: any = my_obj.copy().toObject();
             doc2.issuance_date = date2;
             delete doc2.id;
+            */
+
+            const doc2: any = my_obj.toObjectWithoutIdAndStakeholders();
+            doc2.issuance_date = date2; 
+
 
             // Run
             await db("documents").insert(doc2);
@@ -127,9 +132,14 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
                 dayjs.utc("2005").toISOString(),
             );
 
+            /*
             const doc3: any = my_obj.copy().toObject();
             doc3.issuance_date = date3;
             delete doc3.id;
+            */
+
+            const doc3: any = my_obj.toObjectWithoutIdAndStakeholders();
+            doc3.issuance_date = date3; 
 
             // Run
             await db("documents").insert(doc3);
@@ -148,7 +158,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc = new Document(15, "title", DocumentType.design_doc, "admin", "2005",);
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the dates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -162,7 +172,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc = new Document(15, "title", DocumentType.design_doc, "admin", "2005-01",);
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the dates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -176,7 +186,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc = new Document(15, "title", DocumentType.design_doc, "admin", "2005-01-01",);
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the dates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -190,7 +200,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc = new Document(15, "title", DocumentType.design_doc, "admin", dayjs.utc("2005-01-01").toISOString(),);
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the dates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -206,7 +216,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc = complete_doc;
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the coordinates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -228,7 +238,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             doc.setCoordinates(new Coordinates(CoordinatesType.POLYGON, polygon));
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the coordinates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -243,7 +253,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             doc.setCoordinates(new Coordinates(CoordinatesType.MUNICIPALITY, null));
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the coordinates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -256,7 +266,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const doc = minimal_doc;
 
             // Run
-            await db("documents").insert(doc.toObject());
+            await db("documents").insert(doc.toObjectWithoutStakeholders());
 
             // Check that the coordinates are the same
             const res = await db("documents").where({ id: 15 }).first();
@@ -269,7 +279,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         /* ==================-------------- Success and main constraints tests --------------================== */
         it("should successfully insert a complete document", async () => {
             // Setup
-            const doc: any = complete_doc.toObject();
+            const doc: any = complete_doc.toObjectWithoutStakeholders();
             await insertAdmin();
 
             // Run
@@ -279,12 +289,12 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             const res_doc_obj: any = await db("documents").where({id: 15}).first();
             const res_doc = await Document.fromJSON(res_doc_obj, db);
 
-            expect(res_doc).toEqual(complete_doc);
+            expect(res_doc.toObject()).toEqual(doc);
         });
 
         it("should successfully insert a minimal document", async () => {
             // Setup 
-            const doc: any = minimal_doc.toObject();
+            const doc: any = minimal_doc.toObjectWithoutStakeholders();
             await insertAdmin();
 
             // Run
@@ -311,7 +321,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("autincrement won't skip a number if one is already taken by a manual insertion (=> you have to update it manually after)", async () => {
             // Setup
-            const doc = new Document(1, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),).toObject();
+            const doc = new Document(1, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),).toObjectWithoutStakeholders();
             const doc2 = {title: "title2", type: DocumentType.design_doc, last_modified_by: "admin"};
             await insertAdmin();
 
@@ -332,14 +342,14 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         });
 
         it("should fail to insert a document with an invalid type", async () => {
-            const doc = new Document(1, "title", "invalid_type" as DocumentType, "admin", dayjs.utc("2005").toISOString(),).toObject();
+            const doc = new Document(1, "title", "invalid_type" as DocumentType, "admin", dayjs.utc("2005").toISOString(),).toObjectWithoutStakeholders();
             await expect(db("documents").insert(doc)).rejects.toThrow(/documents_type_check/i);
         });
 
         it("should trigger primary key constraint violation", async () => {
             // Setup
             await insertAdmin();
-            const doc = new Document(1, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),).toObject();
+            const doc = new Document(1, "title", DocumentType.design_doc, "admin", dayjs.utc("2005").toISOString(),).toObjectWithoutStakeholders();
             await db("documents").insert(doc);
 
             // Run and Check unique constraint violation
@@ -357,7 +367,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         it("should cascade delete related documents when a user is deleted", async () => {
             // Setup
             await db("users").insert({ username: "test_user", hash: "hash", salt: "salt", type: "urban_planner" });
-            const doc = new Document(1, "title", DocumentType.design_doc, "test_user", dayjs.utc("2005").toISOString(),).toObject();
+            const doc = new Document(1, "title", DocumentType.design_doc, "test_user", dayjs.utc("2005").toISOString(),).toObjectWithoutStakeholders();
             await db("documents").insert(doc);
         
             // Run
@@ -414,6 +424,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             await expect(db("documents").insert(doc)).rejects.toThrow(/type/i);
         });
 
+        /*
         it("should not allow stakeholders longer than 255 characters", async () => {
             // Setup
             const doc = {title: "title", type: DocumentType.design_doc, last_modified_by: "admin", stakeholders: "a".repeat(256)};
@@ -422,6 +433,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             // Run and Check length constraint violation
             await expect(db("documents").insert(doc)).rejects.toThrow(/value too long/i);
         });
+        */
 
         it("should not allow scale longer than 255 characters", async () => {
             // Setup
@@ -451,11 +463,11 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             await insertAdmin();
 
             // Run
-            await db("documents").insert(doc1.toObject());
-            await db("documents").insert(doc2.toObject());
-            await db("documents").insert(doc3.toObject());
-            await db("documents").insert(doc4.toObject());
-            await db("documents").insert(doc5.toObject());
+            await db("documents").insert(doc1.toObjectWithoutStakeholders());
+            await db("documents").insert(doc2.toObjectWithoutStakeholders());
+            await db("documents").insert(doc3.toObjectWithoutStakeholders());
+            await db("documents").insert(doc4.toObjectWithoutStakeholders());
+            await db("documents").insert(doc5.toObjectWithoutStakeholders());
 
             // Check that the documents are the same
             const res1 = await db("documents").where({ id: 1 }).first().then((res) => Document.fromJSON(res, db));
@@ -540,9 +552,9 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             await insertAdmin();
 
             // Run
-            await db("documents").insert(doc1.toObject());
-            await db("documents").insert(doc2.toObject());
-            await db("documents").insert(doc3.toObject());
+            await db("documents").insert(doc1.toObjectWithoutStakeholders());
+            await db("documents").insert(doc2.toObjectWithoutStakeholders());
+            await db("documents").insert(doc3.toObjectWithoutStakeholders());
 
             // Check that the coordinates are the same
             const res1 = await db("documents").where({ id: 1 }).first().then((res) => Document.fromJSON(res, db));

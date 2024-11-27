@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from '../../../index';
 import db from '../../db/db';
 import pgdb from '../../db/temp_db';
-import { dbEmpty, dbPopulate } from '../../db/db_common_operations';
+import { dbEmpty, dbPopulate, dbPopulateActualData } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 
 import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login} from "./test_utility";
@@ -31,7 +31,8 @@ beforeAll(async () => {
 beforeEach(async () => {
     await dbEmpty(); // Clear the database before each test
     //await dbPopulate(); // Populate the database with sample dat
-    await populate();
+    //await populate();
+    await dbPopulateActualData();
 })
 
 afterAll(async () => {
@@ -50,7 +51,7 @@ describe('POST /kiruna_explorer/documents', () => {
             issuanceDate: '2023-01-01',
             language: 'en',
             pages: 10,
-            stakeholders: 'City Council',
+            stakeholders: ['Residents'],
             scale: '1:1000',
             description: 'A document with POINT coordinates',
             coordinates: {

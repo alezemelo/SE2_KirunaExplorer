@@ -1,26 +1,34 @@
 
-import {Client} from 'pg';
+import { Client } from 'pg';
 import pgdb from '../../db/temp_db';
 import { dbUpdate } from '../../db/db_common_operations';
 import db from '../../db/db';
 
-import {Document} from '../../models/document';
-import {Coordinates, CoordinatesAsPoint, CoordinatesType} from '../../models/coordinates';
+import { Document } from '../../models/document';
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
+import { groupEntriesById } from './helperDaos';
 
 class DocumentDAO {
     private db: any;
 
     constructor() {
-        this.db = pgdb.client; 
+        this.db = pgdb.client;
     }
 
     public async getDocument(docId: number): Promise<Document | null> {
         try {
-            const res = await db('documents').where({ id: docId }).first();
-            if (!res) {
+            const res = await db('documents')
+                .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
+                .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
+                .where({ 'documents.id': docId })
+                .select('documents.*', 'stakeholders.name as stakeholder')
+                .orderBy('stakeholders.name', 'asc');
+            if (!res || res.length === 0) {
                 return null;
             } else {
-                return Document.fromJSON(res, db);
+                const { stakeholder, ...docProps } = res[0];
+                const document = { ...docProps, stakeholders: res.map(row => row.stakeholder) };
+                return Document.fromJSON(document, db);
             }
         } catch (error) {
             console.error(error);
@@ -47,13 +55,20 @@ class DocumentDAO {
                 }
             }
             return res.rows;*/
-            let res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
+            //let res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
+            const res = await db('documents')
+                .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
+                .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
+                .select('documents.*', 'stakeholders.name as stakeholders')
+                .orderBy('documents.id', 'asc');
+            /*
             let documents:Document[] = []
             for(let i=0;i<res.rows.length;i++){
                 let doc = await Document.fromJSON(res.rows[i],db)
                 documents.push(doc)
             }
-   
+            */
+            const documents = groupEntriesById(res);
             return documents;
         } catch (error) {
             console.error(error);
@@ -78,18 +93,21 @@ class DocumentDAO {
                 FROM documents where title ILIKE $1`, [param]);
             return res.rows;*/
             const param = `%${query}%`;
-            const res = await pgdb.client.query(
-                `SELECT * FROM documents where title ILIKE $1`, [param]);
-                const documents: Document[] = await Promise.all(
-                    res.rows.map(async (doc) => {
-                        return await Document.fromJSON(doc, db);
-                    })
-                );
+            //const res = await pgdb.client.query(`SELECT * FROM documents where title ILIKE $1`, [param]);
+
+            const res = await db('documents')
+                .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
+                .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
+                .select('documents.*', 'stakeholders.name as stakeholders')
+                .where('documents.title', 'ILIKE', `%${query}%`)
+                .orderBy('documents.id', 'asc');
+
+            const documents = groupEntriesById(res);
             return documents;
-       } catch (error) {
-           console.error(error);
-           throw error;
-       }
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     }
 
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
@@ -108,15 +126,15 @@ class DocumentDAO {
     public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
         try {
             let update_count;
-            if (newCoordinates.getType() === CoordinatesType.MUNICIPALITY){
-                update_count = await dbUpdate('documents', {id: docId}, {coordinates_type: CoordinatesType.MUNICIPALITY, coordinates: null});
+            if (newCoordinates.getType() === CoordinatesType.MUNICIPALITY) {
+                update_count = await dbUpdate('documents', { id: docId }, { coordinates_type: CoordinatesType.MUNICIPALITY, coordinates: null });
             } else {
                 if (newCoordinates.getType() !== CoordinatesType.POINT && newCoordinates.getType() !== CoordinatesType.POLYGON) {
                     throw new Error("Invalid coordinates type. Shouldn't be possible");
                 }
                 const newType = newCoordinates.getType();
                 const newWktCoords = newCoordinates.toGeographyString();
-                update_count = await dbUpdate('documents', {id: docId}, {coordinates_type: newType, coordinates: newWktCoords});
+                update_count = await dbUpdate('documents', { id: docId }, { coordinates_type: newType, coordinates: newWktCoords });
             }
 
             return update_count;
@@ -126,9 +144,15 @@ class DocumentDAO {
         }
     }
 
-    
+
+
+    /**
+     * Adds a new document and links it with stakeholders if they are present
+     * @param doc The document to add
+     * @returns 
+     */
     public async addDocument(doc: Document): Promise<number> {
-    
+
         /* This is not really needed if you use Document instead of any for doc, but I'll leave it here for reference */
         // let coordinates = null;
         //
@@ -168,18 +192,53 @@ class DocumentDAO {
         //     doc.lastModifiedBy,
         // ];
         /* */
-    
+
         console.error(doc.coordinates instanceof Coordinates);
 
         try {
+            // starts a transaction
+
+            //console.log(doc);
+            const document_to_insert = doc.toObjectWithoutIdAndStakeholders();
+
+            console.log("before transaction")
+            const documentId = await db.transaction(async (trx) => {
+                // Insert the document
+                const res = await trx('documents')
+                    .insert(document_to_insert)
+                    .returning('id');
+    
+                if (res.length !== 1) {
+                    throw new Error('Error adding document to the database');
+                }
+                const documentId = res[0].id;
+    
+                // Insert the stakeholders relationships
+                if (doc.stakeholders && doc.stakeholders.length > 0) {
+                    const stakeholdersRows = doc.stakeholders.map((stakeholder) => ({
+                        doc_id: documentId,
+                        stakeholder_id: stakeholder,
+                    }));
+    
+                    await trx('document_stakeholders').insert(stakeholdersRows);
+                }
+    
+                // Return the document ID if all operations succeed
+                return documentId;
+            });
+            console.log("after transaction")
+            
+            return documentId;
+
+            /*
             const res = await db('documents')
-                .insert(doc.toObjectWithoutId())
+                .insert(doc.toObjectWithoutIdAndStakeholders())
                 .returning('id');
-        
             if (res.length !== 1) {
                 throw new Error('Error adding document to the database');
             }
             return res[0].id;
+            */
         } catch (error) {
             console.error('Error adding document to the database:', error);
             if (error instanceof Error && (error as any).code === 'XX000') {
@@ -189,8 +248,10 @@ class DocumentDAO {
             }
         }
     }
-    
-    
+
+
 }
+
+
 
 export default DocumentDAO;

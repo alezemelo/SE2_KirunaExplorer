@@ -1,3 +1,6 @@
+import { populate } from "../test/populate_for_some_tests";
+import { dbPopulateActualData } from "./db_common_operations";
+
 const { dbPopulate, dbEmpty, dbRead, dbUpdate } = require('./db_common_operations');
 const knex = require('./db').default;
 
@@ -15,6 +18,7 @@ describe('DB Common Operations', () => {
   beforeEach(async () => {
     await dbEmpty(); // Clear the database before each test
     await dbPopulate(); // Populate the database with sample data
+    //await dbPopulateActualData();
     // await knex('documents').where({ last_modified_by: 'user1' }).del();
 });
 
@@ -31,6 +35,9 @@ describe('DB Common Operations', () => {
 
     const documentLinks = await knex('document_links').select();
     expect(documentLinks).toHaveLength(1); // Verify one document link was inserted
+
+    const stakeholders = await knex('document_links').select();
+    expect(stakeholders).toHaveLength(1);
 });
 
     it('should read data from the database', async () => {
@@ -39,6 +46,7 @@ describe('DB Common Operations', () => {
       expect(result).toBeDefined(); // Ensure the read function returns data
       expect(result.users.length).toBeGreaterThan(0);
       expect(result.documents.length).toBeGreaterThan(0);
+      expect(result.stakeholders.length).toBeGreaterThan(0);
     });
 
     it('should update a record in the database', async () => {
