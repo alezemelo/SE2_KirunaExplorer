@@ -4,7 +4,7 @@ import mapboxgl from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";
 import * as turf from "@turf/turf";
-import { feature, point } from "@turf/turf";
+// import { feature, point } from "@turf/turf";
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 if (!accessToken) {
@@ -66,98 +66,6 @@ const Map: React.FC<MapProps> = (props) => {
   }, [props.isDocumentListOpen, map]);
 
 
-  // const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
-  //   console.log("Adding markers to map:", props.documents);
-
-  //   props.documents.forEach((doc) => {
-  //     doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-  //     if (doc.getCoordinates()?.getType() !== "POINT") {
-  //       return; // Skip non-POINT documents
-  //     }
-
-  //     const pointCoords = doc.getCoordinates()?.getLatLng();
-
-  //     if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
-  //       console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
-  //       return;
-  //     }
-
-  //     // Add marker with popup
-  //     const marker = new mapboxgl.Marker({ color: "red" })
-  //       .setLngLat([pointCoords.lng, pointCoords.lat])
-  //       .addTo(mapInstance);
-
-  //     marker.getElement()?.addEventListener("click", () => {
-  //       props.setNewPin(doc.id); // Set the new pin when marker is clicked
-  //     });
-  //   });
-  // };
-  // const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
-  //   console.log("Adding markers to map:", props.documents);
-  
-  //   props.documents.forEach((doc) => {
-  //     doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-  
-  //     if (doc.getCoordinates()?.getType() !== "POINT") {
-  //       return; // Skip non-POINT documents
-  //     }
-  
-  //     const pointCoords = doc.getCoordinates()?.getLatLng();
-  
-  //     if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
-  //       console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
-  //       return;
-  //     }
-  
-  //     // Add marker with popup
-  //     const marker = new mapboxgl.Marker({ color: "red" })
-  //       .setLngLat([pointCoords.lng, pointCoords.lat])
-  //       .addTo(mapInstance);
-  
-  //     // Marker click handler to display the area
-  //     marker.getElement()?.addEventListener("click", () => {
-  //       console.log(`Marker for Document ${doc.id} clicked`);
-  
-  //       // Remove any previous area layer
-  //       const areaLayerId = `area-layer-${doc.id}`;
-  //       if (mapInstance.getSource(areaLayerId)) {
-  //         mapInstance.removeLayer(areaLayerId);
-  //         mapInstance.removeSource(areaLayerId);
-  //       }
-  
-  //       // Add a circular area (e.g., 500m radius) around the point
-  //       const radiusInMeters = 500;
-  //       if (pointCoords.lng !== null && pointCoords.lat !== null) {
-  //         const circleFeature = turf.point([pointCoords.lng, pointCoords.lat]);
-
-  //       const circle = turf.circle(circleFeature, radiusInMeters / 1000, {
-  //         steps: 64,
-  //         units: "kilometers",
-  //       });
-  
-  //       mapInstance.addSource(areaLayerId, {
-  //         type: "geojson",
-  //         data: circle,
-  //       });
-  
-  //       mapInstance.addLayer({
-  //         id: areaLayerId,
-  //         type: "fill",
-  //         source: areaLayerId,
-  //         paint: {
-  //           "fill-color": "#007cbf",
-  //           "fill-opacity": 0.4,
-  //         },
-  //       });
-  
-  //       // Zoom to the area
-  //       mapInstance.fitBounds(turf.bbox(circle) as mapboxgl.LngLatBoundsLike, {
-  //         padding: 20,
-  //         });
-  //       }
-  //     })
-  //   })
-  // };  
   const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
     console.log("Adding markers to map:", props.documents);
   
@@ -204,52 +112,7 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
   
-  
-  // // const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-  //   console.log("Adding polygons to map:", props.documents);
 
-  //   props.documents.forEach((doc) => {
-  //     doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-  //     if (doc.getCoordinates()?.getType() !== "POLYGON") {
-  //       console.error(`Document ${doc.id} does not have POLYGON coordinates.`);
-  //       return;
-  //     }
-
-  //     const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
-
-  //     const sourceId = `polygon-${doc.id}`;
-  //     if (mapInstance.getSource(sourceId)) {
-  //       (mapInstance.getSource(sourceId) as mapboxgl.GeoJSONSource).setData({
-  //         type: "Feature",
-  //         geometry: { type: "Polygon", coordinates: polygonCoords },
-  //         properties: { title: doc.title },
-  //       });
-  //       return;
-  //     }
-
-  //     console.log("Adding new source and layer for polygon:", sourceId);
-  //     mapInstance.addSource(sourceId, {
-  //       type: "geojson",
-  //       data: {
-  //         type: "Feature",
-  //         geometry: { type: "Polygon", coordinates: polygonCoords },
-  //         properties: { title: doc.title },
-  //       },
-  //     });
-
-  //     mapInstance.addLayer({
-  //       id: sourceId,
-  //       type: "fill",
-  //       source: sourceId,
-  //       paint: {
-  //         // make color random
-          
-  //         "fill-color": getRandomColor(),
-  //         "fill-opacity": 0.3,
-  //       },
-  //     });
-  //   });
-  // };
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
     console.log("Adding polygons to map as points:", props.documents);
   
@@ -299,7 +162,7 @@ const Map: React.FC<MapProps> = (props) => {
           type: "fill",
           source: sourceId,
           paint: {
-            "fill-color": "#FF5733", // Highlight the polygon with a distinct color
+            "fill-color": getRandomColor(), // Highlight the polygon with a distinct color
             "fill-opacity": 0.5,
           },
         });
@@ -354,3 +217,4 @@ const Map: React.FC<MapProps> = (props) => {
 };
 
 export default Map;
+

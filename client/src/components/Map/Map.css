@@ -33,12 +33,11 @@
   
   .markerTitle {
     position: absolute;
-    top: 35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 3px 8px;
+    top: -20px;
+    left: -10px;
+    background-color: #fff;
+    color: #000;
+    padding: 2px 5px;
     border-radius: 4px;
     font-size: 12px;
     white-space: nowrap;

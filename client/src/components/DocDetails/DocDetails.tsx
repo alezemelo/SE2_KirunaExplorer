@@ -69,7 +69,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Typography>
           ))
         ) : (
-          <Typography variant="body2" color="textSecondary">
+          <Typography variant="body2" color="white">
             No connections available.
           </Typography>
         )}
