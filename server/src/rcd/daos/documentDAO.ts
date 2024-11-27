@@ -23,10 +23,11 @@ class DocumentDAO {
                 .where({ 'documents.id': docId })
                 .select('documents.*', 'stakeholders.name as stakeholder')
                 .orderBy('stakeholders.name', 'asc');
-            if (!res) {
+            if (!res || res.length === 0) {
                 return null;
             } else {
-                const document = { ...res, stakeholders: res.map(row => row.stakeholder) };
+                const { stakeholder, ...docProps } = res[0];
+                const document = { ...docProps, stakeholders: res.map(row => row.stakeholder) };
                 return Document.fromJSON(document, db);
             }
         } catch (error) {
@@ -145,6 +146,11 @@ class DocumentDAO {
 
 
 
+    /**
+     * Adds a new document and links it with stakeholders if they are present
+     * @param doc The document to add
+     * @returns 
+     */
     public async addDocument(doc: Document): Promise<number> {
 
         /* This is not really needed if you use Document instead of any for doc, but I'll leave it here for reference */
@@ -190,6 +196,41 @@ class DocumentDAO {
         console.error(doc.coordinates instanceof Coordinates);
 
         try {
+            // starts a transaction
+
+            //console.log(doc);
+            const document_to_insert = doc.toObjectWithoutIdAndStakeholders();
+
+            console.log("before transaction")
+            const documentId = await db.transaction(async (trx) => {
+                // Insert the document
+                const res = await trx('documents')
+                    .insert(document_to_insert)
+                    .returning('id');
+    
+                if (res.length !== 1) {
+                    throw new Error('Error adding document to the database');
+                }
+                const documentId = res[0].id;
+    
+                // Insert the stakeholders relationships
+                if (doc.stakeholders && doc.stakeholders.length > 0) {
+                    const stakeholdersRows = doc.stakeholders.map((stakeholder) => ({
+                        doc_id: documentId,
+                        stakeholder_id: stakeholder,
+                    }));
+    
+                    await trx('document_stakeholders').insert(stakeholdersRows);
+                }
+    
+                // Return the document ID if all operations succeed
+                return documentId;
+            });
+            console.log("after transaction")
+            
+            return documentId;
+
+            /*
             const res = await db('documents')
                 .insert(doc.toObjectWithoutIdAndStakeholders())
                 .returning('id');
@@ -197,6 +238,7 @@ class DocumentDAO {
                 throw new Error('Error adding document to the database');
             }
             return res[0].id;
+            */
         } catch (error) {
             console.error('Error adding document to the database:', error);
             if (error instanceof Error && (error as any).code === 'XX000') {

@@ -177,12 +177,21 @@ class DocumentRoutes {
                 .optional()
                 .isInt()
                 .withMessage('Pages must be an integer'),
+            /*
             body('stakeholders')
                 .optional()
                 .isString()
                 .withMessage('Stakeholders must be a string')
-                .customSanitizer((value) => value.replace(/s*, \s*/g, ',')) // deletes whitespaces
+                .customSanitizer((value) => value.replace(/s*, \s*\/g, ',')) 
                 .matches(/^(|w+)(,\w+)*$/).withMessage("Must be a single word or comma-separated list of words"),
+            */
+            body('stakeholders').isArray().withMessage('Stakeholders must be an array')
+            .custom((stakeholders) => {
+                if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
+                    throw new Error('Each stakeholder must be a non-empty string');
+                }
+                return true;
+            }),
             body('scale')
                 .optional()
                 .isString()

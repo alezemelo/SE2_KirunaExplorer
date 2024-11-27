@@ -185,7 +185,7 @@ class Document {
     toObjectWithoutIdAndStakeholders(): Object {
         let object_with_id_stakeholders: any = this.toObject();
         delete object_with_id_stakeholders.id;
-        delete object_with_id_stakeholders.stakehoders;
+        delete object_with_id_stakeholders.stakeholders;
         return object_with_id_stakeholders;
     }
 

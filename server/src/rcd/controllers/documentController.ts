@@ -49,7 +49,7 @@ class DocumentController {
             description,
             coordinates,
         } = req.body;
-    
+
         const documentData = new Document(
             id,
             title,
@@ -66,21 +66,29 @@ class DocumentController {
     
         try {
             // if stakeholders were inserted check if they exist
+            /*
             if (documentData.stakeholders && documentData.stakeholders.length > 0) {
                 const stakeholdersExist = await this.stakeholdersDao.stakeholdersExists(documentData.stakeholders);
                 if (!stakeholdersExist) {
                     throw new StakeholdersNotFoundError();
                 }
             }
+            */
+
             const documentId = await this.dao.addDocument(documentData);
+            /*
             if (documentData.stakeholders && documentData.stakeholders.length > 0) {
                 await this.stakeholdersDao.addStakeholdersToDocument(documentData.stakeholders, documentId);
+                console.log("stakeholders added to doc")
             }
+            */
             // inserts the new document
             res.status(201).json({ message: 'Document added successfully', documentId });
             
         } catch (error) {
             console.error('Failed to add document:', error);
+            if (error instanceof Error && error.message.includes('foreign key constraint')) {
+                res.status(400).json({ error: 'One or more stakeholders do not exist in the system.' });
             if (error instanceof Error && error.message.includes('Invalid geometry')) {
                 res.status(400).json({ error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.' });
             } else if (error instanceof Error && error.message.includes('Invalid coordinates type')) {
@@ -89,6 +97,7 @@ class DocumentController {
                 next(error);
             }
         }
+    }
     }
     
 

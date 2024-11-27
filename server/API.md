@@ -47,12 +47,13 @@ Creates a new document
  - Response Body Content : 
     ```json
     {
-    "Message" : "Docuent added Successfully"
+    "Message" : "Document added Successfully"
     } 
 - Access Constraints:
    Only urban planner (Urban Developer)
 - Additional Constraints:
   - Title and coordinates are required fields
+  - Returns 400 if inserted stakeholders are unknown
   - May return errors specified in the head of this file
 
 #### Explanation:
