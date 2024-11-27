@@ -28,7 +28,7 @@ export async function dbPopulate() {
                 issuance_date: new Date(),
                 language: 'English',
                 pages: 5,
-                stakeholders: 'Stakeholder A',
+                //stakeholders: 'Stakeholder A',
                 scale: '1:1000',
                 description: 'Test Document 1',
                 type: 'informative_doc',
@@ -39,7 +39,7 @@ export async function dbPopulate() {
                 issuance_date: new Date(),
                 language: 'Spanish',
                 pages: 3,
-                stakeholders: 'Stakeholder B',
+                //stakeholders: 'Stakeholder B',
                 scale: '1:2000',
                 description: 'Test Document 2',
                 type: 'technical_doc',
@@ -52,6 +52,10 @@ export async function dbPopulate() {
         // Insert document links using valid document IDs
         await knex('document_links').insert([
             { doc_id1: doc1[0].id, doc_id2: doc2[0].id, link_type: 'direct', created_at: new Date() }
+        ]);
+        
+        await knex('stakeholders').insert([
+            { name: 'Stakeholder A' },
         ]);
         // console.log("Sample document links inserted.");
         

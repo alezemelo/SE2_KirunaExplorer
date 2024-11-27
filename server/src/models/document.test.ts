@@ -19,7 +19,7 @@ describe('Document', () => {
                 '2023',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -32,7 +32,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -47,7 +47,7 @@ describe('Document', () => {
                 '2023-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -60,7 +60,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -75,7 +75,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -88,7 +88,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -103,7 +103,7 @@ describe('Document', () => {
                 dayjs('2023-01-01').toISOString(),
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -116,7 +116,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe(dayjs('2023-01-01').toISOString());
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -132,7 +132,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -145,7 +145,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -169,7 +169,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POLYGON, polygon)
@@ -182,7 +182,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -199,7 +199,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.MUNICIPALITY, null)
@@ -212,7 +212,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -230,7 +230,7 @@ describe('Document', () => {
                 '2023',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -242,7 +242,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -263,7 +263,7 @@ describe('Document', () => {
                 '2023-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -275,7 +275,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -296,7 +296,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -308,7 +308,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -329,7 +329,7 @@ describe('Document', () => {
                 dayjs.utc('2023-01-01').toISOString(),
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -341,7 +341,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -362,7 +362,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -374,7 +374,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -403,7 +403,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(coordinates))
@@ -415,7 +415,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -437,7 +437,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.MUNICIPALITY, null)
@@ -449,7 +449,7 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -462,7 +462,7 @@ describe('Document', () => {
             expect(document.toObject()).toEqual(expectedObject);
         });
 
-        it('should correctly convert a Document instance to an object without the id', () => {
+        it('should correctly convert a Document instance to an object without the id and stakeholders', () => {
             const document = new Document(
                 1,
                 'Test Title',
@@ -471,7 +471,7 @@ describe('Document', () => {
                 dayjs('2023-01-01').format('YYYY-MM-DD'),
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -482,7 +482,6 @@ describe('Document', () => {
                 issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
@@ -492,7 +491,7 @@ describe('Document', () => {
                 date_type: 'FULL',
             };
 
-            expect(document.toObjectWithoutId()).toEqual(expectedObject);
+            expect(document.toObjectWithoutIdAndStakeholders()).toEqual(expectedObject);
         });
     });
 
@@ -506,7 +505,7 @@ describe('Document', () => {
                 issuance_date: '2023',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -523,7 +522,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -547,7 +546,7 @@ describe('Document', () => {
                 issuance_date: '2023-10',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -564,7 +563,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-10');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -588,7 +587,7 @@ describe('Document', () => {
                 issuance_date: '2023-10-12',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -605,7 +604,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-10-12');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -629,7 +628,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-10-10').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -646,7 +645,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-10-10T00:00:00.000Z');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -671,7 +670,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -688,7 +687,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -752,7 +751,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POLYGON,
@@ -769,7 +768,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -800,7 +799,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.MUNICIPALITY,
@@ -817,7 +816,7 @@ describe('Document', () => {
             expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -838,7 +837,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: null,
@@ -857,7 +856,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -876,7 +875,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POLYGON,
@@ -895,7 +894,7 @@ describe('Document', () => {
                 issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: "invalid",
@@ -916,7 +915,7 @@ describe('Document', () => {
                 '2023',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
@@ -931,7 +930,7 @@ describe('Document', () => {
             expect(documentCopy.issuanceDate).toBe('2023');
             expect(documentCopy.language).toBe('English');
             expect(documentCopy.pages).toBe(10);
-            expect(documentCopy.stakeholders).toBe('Stakeholder A');
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
             expect(documentCopy.scale).toBe('1:1000');
             expect(documentCopy.description).toBe('A test document');
             expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
@@ -946,7 +945,7 @@ describe('Document', () => {
                 '2023-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
@@ -961,7 +960,7 @@ describe('Document', () => {
             expect(documentCopy.issuanceDate).toBe('2023-01');
             expect(documentCopy.language).toBe('English');
             expect(documentCopy.pages).toBe(10);
-            expect(documentCopy.stakeholders).toBe('Stakeholder A');
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
             expect(documentCopy.scale).toBe('1:1000');
             expect(documentCopy.description).toBe('A test document');
             expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
@@ -976,7 +975,7 @@ describe('Document', () => {
                 '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
@@ -991,7 +990,7 @@ describe('Document', () => {
             expect(documentCopy.issuanceDate).toBe('2023-01-01');
             expect(documentCopy.language).toBe('English');
             expect(documentCopy.pages).toBe(10);
-            expect(documentCopy.stakeholders).toBe('Stakeholder A');
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
             expect(documentCopy.scale).toBe('1:1000');
             expect(documentCopy.description).toBe('A test document');
             expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
@@ -1006,7 +1005,7 @@ describe('Document', () => {
                 dayjs('2023-01-01').toISOString(),
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
@@ -1021,7 +1020,7 @@ describe('Document', () => {
             expect(documentCopy.issuanceDate).toBe(dayjs('2023-01-01').toISOString());
             expect(documentCopy.language).toBe('English');
             expect(documentCopy.pages).toBe(10);
-            expect(documentCopy.stakeholders).toBe('Stakeholder A');
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
             expect(documentCopy.scale).toBe('1:1000');
             expect(documentCopy.description).toBe('A test document');
             expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
