@@ -158,8 +158,10 @@ class DocumentRoutes {
             body('type')
                 .isString()
                 .withMessage('Type must be a string')
-                .isIn(["informative_doc", "prescriptive_doc", "design_doc", "technical_doc", "material_effect"])
-                .withMessage("Type of doc must be either: 'informative_doc',  'prescriptive_doc', 'design_doc', 'technical_doc', 'material_effect"),
+                .notEmpty()
+                .withMessage('Type is required'),
+                //.isIn(["informative_doc", "prescriptive_doc", "design_doc", "technical_doc", "material_effect"])
+                //.withMessage("Type of doc must be either: 'informative_doc',  'prescriptive_doc', 'design_doc', 'technical_doc', 'material_effect"),
             body('lastModifiedBy')
                 .isString()
                 .withMessage('Last modified by must be a string')
@@ -235,17 +237,20 @@ class DocumentRoutes {
                     await this.controller.addDocument(req, res, next);
                 } catch (error) {
                     console.error('Unexpected Error:', error);
-        
                     // Check if it's a database error
                     if ((error as any).code === 'XX000') {
                         res.status(400).json({
                             error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.',
                         });
-                    } else {
+                    }
+                    /*
+                    else {
                         res.status(500).json({
                             error: 'Internal Server Error',
                         });
                     }
+                    */
+                    next(error);
                 }
             }
         );

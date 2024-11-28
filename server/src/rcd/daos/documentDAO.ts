@@ -7,6 +7,8 @@ import db from '../../db/db';
 import { Document } from '../../models/document';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
 import { groupEntriesById } from './helperDaos';
+import { UniqueConstraintError } from '../../errors/dbErrors';
+import { DocumentTypeNotFoundError } from '../../errors/documentErrors';
 
 class DocumentDAO {
     private db: any;
@@ -239,8 +241,14 @@ class DocumentDAO {
             }
             return res[0].id;
             */
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error adding document to the database:', error);
+            if (error.code === '23505') {
+                throw new UniqueConstraintError();
+            }
+            if (error.code === '23503' && error.message.includes('documents_type_foreign')) {
+                throw new DocumentTypeNotFoundError();
+            }
             if (error instanceof Error && (error as any).code === 'XX000') {
                 throw new Error('Invalid geometry: Ensure coordinates are valid and formatted correctly.');
             } else {

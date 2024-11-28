@@ -264,6 +264,41 @@ adds a new stakeholder to the list of possible stakeholders
 - Returns `409` if name already esists:
 - returns `422` if the request body content is not correct
 
+### Doctype APIs
+
+These allow to get a list of every valid doctype and add a new doctype.
+
+#### GET `kiruna_explorer/doctypes`
+
+returns the list of all valid doctypes
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"name": "prescriptive_doc"},
+  {"name": "informative_doc"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/doctypes`
+
+adds a new valid doctype
+
+- Request Parameters: None
+- Request body content:
+  `{"name": "new_doctype"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: name of new doctype
+- Access contraints: Urban Planner
+- Returns `409` if name already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string)
 
 ### Auth APIs
 
