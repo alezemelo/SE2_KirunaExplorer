@@ -70,7 +70,7 @@ class DocumentDAO {
                 documents.push(doc)
             }
             */
-            const documents = groupEntriesById(res);
+            const documents = await groupEntriesById(res, db);
             return documents;
         } catch (error) {
             console.error(error);
@@ -104,7 +104,7 @@ class DocumentDAO {
                 .where('documents.title', 'ILIKE', `%${query}%`)
                 .orderBy('documents.id', 'asc');
 
-            const documents = groupEntriesById(res);
+            const documents = groupEntriesById(res, db);
             return documents;
         } catch (error) {
             console.error(error);
