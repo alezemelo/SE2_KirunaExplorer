@@ -266,7 +266,6 @@ class DocumentDAO {
             //console.log(doc);
             const document_to_insert = doc.toObjectWithoutIdAndStakeholders();
 
-            console.log("before transaction")
             const documentId = await db.transaction(async (trx) => {
                 // Insert the document
                 const res = await trx('documents')
@@ -291,7 +290,6 @@ class DocumentDAO {
                 // Return the document ID if all operations succeed
                 return documentId;
             });
-            console.log("after transaction")
             
             return documentId;
 
@@ -311,6 +309,9 @@ class DocumentDAO {
             }
             if (error.code === '23503' && error.message.includes('documents_type_foreign')) {
                 throw new DocumentTypeNotFoundError();
+            }
+            if (error.code === '23503' && error.message.includes('document_stakeholders_stakeholder_id_foreign')) {
+                throw new StakeholdersNotFoundError();
             }
             if (error instanceof Error && (error as any).code === 'XX000') {
                 throw new Error('Invalid geometry: Ensure coordinates are valid and formatted correctly.');
