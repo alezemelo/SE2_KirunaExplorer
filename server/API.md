@@ -7,18 +7,31 @@ Specific error scenarios will have their corresponding error code.
 
 CORS methods to use: GET, DELETE, POST (for adding new things -- NOT idempotent), PUT (for updating things -- idempotent)
 
-### Static API
+### Index
 
-#### GET `/kiruna_explorer/xxx`
+- [Documents API](#documents-api)
+  - [POST `/kiruna_explorer/documents`](#post-kiruna_explorerdocuments)
+  - [PATCH `/kiruna_explorer/documents/:id/coordinates`](#patch-kiruna_explorerdocumentsidcoordinates)
+  - [PATCH `/kiruna_explorer/documents/:id/description`](#patch-kiruna_explorerdocumentsiddescription)
+  - [GET `/kiruna_explorer/documents/search?title=mytitle`](#get-kiruna_explorerdocumentssearchtitlemytitle)
+  - [GET `/kiruna_explorer/documents/:id`](#get-kiruna_explorerdocumentsid)
+  - [POST `/kiruna_explorer/documents/:id/stakeholders`](#post-kiruna_explorerdocumentsidstakeholders)
+  - [DELETE `/kiruna_explorer/documents/:id/stakeholders`](#delete-kiruna_explorerdocumentsidstakeholders)
+- [Link Documents API](#link-documents-api)
+  - [GET `/kiruna_explorer/linkDocuments/:doc_id`](#get-kiruna_explorerlinkdocumentsdoc_id)
+  - [POST `/kiruna_explorer/linkDocuments/create`](#post-kiruna_explorerlinkdocumentscreate)
+- [Stakeholders API](#stakeholders-api)
+  - [GET `/kiruna_explorer/stakeholders`](#get-kiruna_explorerstakeholders)
+  - [POST `/kiruna_explorer/stakeholders`](#post-kiruna_explorerstakeholders)
+- [Auth API](#auth-api)
+  - [POST `/kiruna_explorer/sessions`](#post-kiruna_explorersessions)
+  - [DELETE `/kiruna_explorer/sessions/current`](#delete-kiruna_explorersessionscurrent)
+  - [GET `/kiruna_explorer/sessions/current`](#get-kiruna_explorersessionscurrent)
+- [Files API](#files-api)
+  - [POST `/files/upload`](#post-filesupload)
+  - [GET `/files/download/:fileId`](#get-filesdownloadfileid)
+- [Coordinates Format](#coordinates-format-point-polygon-municipality)
 
-xxx
-
-- Request Parameters: 
-- Request Body Content: 
-- Response Body Content: 
-- Access Constraints: 
-- Additional Constraints:
-  - 
 
 ### Documents API
 
@@ -313,6 +326,36 @@ Retrieves information about the currently logged in user.
 - Response Body Content: A **User** object that represents the logged in user
   - Example: `{username: "Gianni Verdi", type: "resident"}`
 - Access Constraints: Can only be called by a logged in User
+
+### Files API
+
+#### POST `/files/upload`
+
+Uploads a file and associates it with a document.
+
+- **Request Body Content**:
+  - Form-data with the following fields:
+    - `file`: The file to be uploaded.
+- **Response Code**:
+  - `201` if the file is uploaded successfully.
+  - `400` if no file is uploaded.
+- **Response Body Content**: None
+- **Access Constraints**: Can only be called by a logged in User
+  
+
+#### GET `/files/download/:fileId`
+
+Downloads a file by its ID.
+
+- **Request Parameters**:
+  - `fileId`: The ID of the file to be downloaded.
+- **Response Code**:
+  - `200` if the file is found and downloaded successfully.
+  - `404` if the file is not found.
+- **Response Body Content**: The file content.
+- **Access Constraints**: None
+- **Additional Constraints**: None
+
 
 # Coordinates Format (Point, Polygon, Municipality)
 
