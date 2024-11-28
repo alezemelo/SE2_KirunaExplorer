@@ -141,7 +141,17 @@ class DocumentController {
         }
     }
 
-
+    /**
+     * Calls Dao to update a document 
+     * 
+     * @param id - The ID of the document to update.
+     * @param body.stakeholders - The new stakeholders for the document (list of strings).
+     * @param body.scale - The new scale for the document.
+     * @param body.type - The new type for the document.
+     */
+    async updateDocument(id: number, body: any): Promise<void> {
+        await this.dao.updateDocument(id, body);
+    }
 
     /**
     * Retrieves a document by its ID.

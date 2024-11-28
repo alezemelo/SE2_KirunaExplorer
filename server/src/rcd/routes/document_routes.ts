@@ -341,6 +341,29 @@ class DocumentRoutes {
     );
 
 
+    this.router.patch('/:id',
+        this.authService.isLoggedIn,
+        this.authService.isUserAuthorized(UserType.UrbanPlanner),
+        param('id').isInt().toInt(),
+        body('doctype').optional().isString().withMessage('Doctype must be a string').notEmpty().withMessage('Doctype must not be empty'),
+        body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty'),
+        body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty'),
+        body('stakeholders').optional().isArray().withMessage('Stakeholders must be an array')
+        .custom((stakeholders) => {
+            if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
+                throw new Error('Each stakeholder must be a non-empty string');
+            }
+            return true;
+        }),
+        this.errorHandler.validateRequest,
+        async (req: any, res: any, next: any) => {
+            this.controller.updateDocument(req.params.id, req.body)
+            .then(() => res.status(200).end())
+            .catch((err: any) => {
+                next(err)
+            })
+        }
+    );
     }
     /**
      * Returns the router instance.

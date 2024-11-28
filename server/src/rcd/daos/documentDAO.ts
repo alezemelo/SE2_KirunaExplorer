@@ -8,7 +8,7 @@ import { Document } from '../../models/document';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
 import { groupEntriesById } from './helperDaos';
 import { UniqueConstraintError } from '../../errors/dbErrors';
-import { DocumentTypeNotFoundError } from '../../errors/documentErrors';
+import { DocumentNotFoundError, DocumentTypeNotFoundError, StakeholdersNotFoundError } from '../../errors/documentErrors';
 
 class DocumentDAO {
     private db: any;
@@ -146,6 +146,69 @@ class DocumentDAO {
         }
     }
 
+    /**
+     * Overwrites a document's stakeholders, scale and/or type, depending on the body content.
+     * 
+     * @param id - The ID of the document to update.
+     * @param body.stakeholders - The new stakeholders for the document (list of strings).
+     * @param body.scale - The new scale for the document.
+     * @param body.type - The new type for the document.
+     */
+    public async updateDocument(id: number, body: any): Promise<void> {
+        try {
+            console.log("sbout to start transaction...")
+            await db.transaction(async (trx) => {
+
+                // checks if doc exists
+                const documentExists = await trx('documents')
+                    .where({ id })
+                    .first();
+
+                if (!documentExists) {
+                    throw new Error(`Document with ID ${id} does not exist.`);
+                }
+
+                if (body.scale) {
+                    await trx('documents')
+                        .where({ id })
+                        .update({ scale: body.scale });
+                }
+                if (body.type) {
+                    await trx('documents')
+                        .where({ id })
+                        .update({ type: body.type });
+                }
+                if (body.stakeholders) {
+                    const deletedRows = await trx('document_stakeholders')
+                        .where({ doc_id: id })
+                        .delete();
+                    console.log(`Deleted ${deletedRows} rows for document with ID ${id}.`);
+                    if (body.stakeholders.length > 0) {
+                        console.log("adding new stakeholders...")
+                        const stakeholdersRows = body.stakeholders.map((stakeholder: any) => ({
+                        doc_id: id,
+                        stakeholder_id: stakeholder,
+                        }));
+                        console.log(stakeholdersRows)
+                        await trx('document_stakeholders').insert(stakeholdersRows);
+                    }
+                }
+            });
+        } catch (error: any) {
+            console.error(`Failed to update document with ID ${id}:`, error);
+            if (error.message.includes('does not exist')) {
+                // Handle the case where the document does not exist
+                throw new DocumentNotFoundError([body.id]);
+            }
+            if (error.code === '23503' && error.message.includes('documents_type_foreign')) {
+                throw new DocumentTypeNotFoundError();
+            }
+            if (error.code === '23503' && error.message.includes('document_stakeholders_stakeholder_id_foreign')) {
+                throw new StakeholdersNotFoundError();
+            }
+            throw error;
+        }
+    }
 
 
     /**
