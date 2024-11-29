@@ -32,12 +32,12 @@ class FileController {
     /**
     * Marks a file as uploaded and associates it with a document.
     */
-    async mark_as_uploaded(documentId: number): Promise<number> {
+    async mark_as_uploaded(documentId: number, fileName: string): Promise<number> {
         try {
             const file_url = `${files_dir_name}/${documentId}`;
             
             // Update the files table with the file URL and get the assigned ID
-            const file_id = await this.dao.mark_file_as_uploaded(file_url, dayjs.utc());
+            const file_id = await this.dao.mark_file_as_uploaded(file_url, fileName, dayjs.utc());
 
             if (!file_id) {
                 throw new Error('Failed to mark the file as uploaded');

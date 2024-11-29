@@ -11,9 +11,9 @@ class FileDAO {
     * @returns the ID of the newly added file.
     * @throws an error if the operation fails.
     */
-    public async mark_file_as_uploaded(file_url: string, uploaded_at: Dayjs): Promise<number> {
+    public async mark_file_as_uploaded(file_url: string, file_name: string, uploaded_at: Dayjs): Promise<number> {
         try {
-            const [file_id] = await db('files').insert({ file_url, uploaded_at }).returning('id');
+            const [file_id] = await db('files').insert({ file_url, file_name, uploaded_at }).returning('id');
             return file_id;
         } catch (err) {
             throw err;

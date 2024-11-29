@@ -4,7 +4,7 @@ import FileController from '../controllers/fileController';
 import ErrorHandler from './helper';
 import Authenticator from '../../authentication/auth';
 import { UserType } from '../../models/user';
-import { param } from 'express-validator';
+import { body, param } from 'express-validator';
 import { FileInfo } from '../controllers/fileController';
 
 export const files_dir_name = 'staticfiles';
@@ -49,10 +49,11 @@ class FileRoutes {
             this.authService.isLoggedIn,
             this.authService.isUserAuthorized(UserType.UrbanPlanner),
             param('documentId').notEmpty().isInt().toInt(),
+            body('fileName').notEmpty().isString(),
             checkFilePresence,
             this.errorHandler.validateRequest,
             upload.single('file'),
-            (req: any, res: any, next: any) => this.controller.mark_as_uploaded(req.params.id)
+            (req: any, res: any, next: any) => this.controller.mark_as_uploaded(req.params.id, req.body.fileName)
                 .then((file_id: number) => res.status(200).json({ fileId: file_id }))
                 .catch((err: any) => {next(err)})
         );            
