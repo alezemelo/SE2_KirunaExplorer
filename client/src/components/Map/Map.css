@@ -23,11 +23,15 @@
   
   .marker {
     position: relative;
+    transform: translate(-50%, -50%);
     cursor: pointer;
+  }
+  .marker img {
+    width: 30px;
+    height: 30px;
   }
   
   .markerTitle {
-    display: none;
     position: absolute;
     top: -20px;
     left: -10px;
@@ -35,6 +39,7 @@
     color: #000;
     padding: 2px 5px;
     border-radius: 4px;
+    font-size: 12px;
     white-space: nowrap;
   }
   
