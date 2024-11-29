@@ -53,7 +53,7 @@ Creates a new document
    Only urban planner (Urban Developer)
 - Additional Constraints:
   - Title and coordinates are required fields
-  - Returns 400 if inserted stakeholders are unknown
+  - Returns 400 if inserted stakeholders, type or scale are unknown
   - May return errors specified in the head of this file
 
 #### Explanation:
@@ -116,7 +116,7 @@ Able to overwrite stakeholders, scale, and document type.
   - May return errors specified in the head of this file or any other generic error
 - Additional constraints:
   - All fields are optional, if no field is specified, nothing will be changed in the db.
-  - Scale must be in the format 1:integer_positive_number
+  - Scale must be in the format 1:integer_positive_number, or "Text" or "blueprint/effect"
 
 #### GET `/kiruna_explorer/documents/search?title=mytitle`
 
