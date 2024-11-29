@@ -167,32 +167,6 @@ const doc_41 = {
 }
 */
 
-const p1 = {
-  doc_id: 15,
-  stakeholder_id: "Kiruna kommun",
-}
-
-const p2 = {
-  doc_id: 15,
-  stakeholder_id: "Residents",
-} 
-
-const p3 = {
-  doc_id: 18,
-  stakeholder_id: "Kiruna kommun",
-}
-
-const p4 = {
-  doc_id: 41,
-  stakeholder_id: "Kiruna kommun",
-}
-
-const p5 = {
-  doc_id: 41,
-  stakeholder_id: "White Arkitekter",
-}
-
-
 const doc_45 = new Document(
   45, 
   "Deformation forecast (45)",
@@ -293,7 +267,6 @@ const doc_63 = new Document(
   "Construction of Scandic Hotel begins (63)", // 2: Title
   DocumentType.material_effect, // 3: Type
   "user1", // 4: Last modified by
-
   "2019-04-01", // 5: Issuance date
   "-", // 6: Language
   undefined, // 7: Pages
@@ -355,10 +328,74 @@ const doc_69 = new Document(
 
 
 
+const ds1 = {
+  doc_id: 15,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds2 = {
+  doc_id: 15,
+  stakeholder_id: "Residents",
+} 
+
+const ds3 = {
+  doc_id: 18,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds4 = {
+  doc_id: 41,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds5 = {
+  doc_id: 41,
+  stakeholder_id: "White Arkitekter",
+}
+
+const ds6 = {
+  doc_id: 45,
+  stakeholder_id: "LKAB",
+}
+
+const ds7 = {
+  doc_id: 50,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds8 = {
+  doc_id: 47,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds9 = {
+  doc_id: 47,
+  stakeholder_id: "White Arkitekter",
+}
+
+const ds10 = {
+  doc_id: 63,
+  stakeholder_id: "LKAB",
+}
+
+const ds11 = {
+  doc_id: 64,
+  stakeholder_id: "LKAB",
+}
+
+const ds12 = {
+  doc_id: 65,
+  stakeholder_id: "LKAB",
+}
+
+const ds13 = {
+  doc_id: 69,
+  stakeholder_id: "LKAB",
+}
 
 
 const actualDocuments = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
 //const actualDocuments = [doc_15, doc_18, doc_41]
-const docs_stakeholders = [p1, p2, p3, p4, p5]
+const docs_stakeholders = [ds1,ds2,ds3,ds4,ds5,ds6,ds7,ds8,ds9,ds10,ds11,ds12,ds13]
 
 export { actualDocuments, docs_stakeholders }

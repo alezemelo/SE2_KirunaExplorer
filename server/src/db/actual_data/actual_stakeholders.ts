@@ -7,5 +7,8 @@ export const ACTUAL_STAKEHOLDERS = [
     },
     {
         name: "Residents"
+    },
+    {
+        name:"LKAB"
     }
 ];
