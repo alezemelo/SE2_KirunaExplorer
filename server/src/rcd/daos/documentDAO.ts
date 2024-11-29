@@ -28,16 +28,15 @@ class DocumentDAO {
             } else {
                 const { stakeholder, ...docProps } = res[0];
                 const document = { ...docProps, stakeholders: res.map(row => row.stakeholder) };
-                return Document.fromJSON(document, db);
 
-                // // I'll leave this commented for the time being bc idk how to deal with the getDocumentS method as it would need many many calls
-                // // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
-                // const fileRes = await db('document_files')
-                //     .where({ doc_id: docId })
-                //     .select('file_id');
-                // const fileIds = fileRes.map(row => row.file_id);
+                // As soon as I talk to angelo to finalize these two methods (getDocument and getDocuments), I will do everything in a single big join query
+                // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+                const fileRes = await db('document_files')
+                    .where({ doc_id: docId })
+                    .select('file_id');
+                const fileIds = fileRes.map(row => row.file_id);
 
-                // return Document.fromJSON({ ...document, fileIds }, db);
+                return Document.fromJSON({ ...document, fileIds }, db);
             }
         } catch (error) {
             console.error(error);
@@ -78,6 +77,17 @@ class DocumentDAO {
             }
             */
             const documents = groupEntriesById(res);
+
+            // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
+            // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+            for (const doc of documents) {
+                const fileRes = await db('document_files')
+                    .where({ doc_id: doc.id })
+                    .select('file_id');
+                const fileIds = fileRes.map(row => row.file_id);
+                doc.fileIds = fileIds;
+            }
+
             return documents;
         } catch (error) {
             console.error(error);
