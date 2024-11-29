@@ -28,12 +28,14 @@ class Document {
     scale?: string;
     description?: string;
     public coordinates: Coordinates; // default to municipality type if no coordinates are provided
+
+    fileIds?: number[];
     
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
                 issuanceDate: string, language?: string, pages?: number,                 // Optional fields
                 stakeholders?: string[], scale?: string,
-                description?: string, coordinates?: Coordinates) {
+                description?: string, coordinates?: Coordinates, fileIds?: number[]) {
         this.id = id;
         this.title = title;
         this.type = type;
@@ -53,6 +55,8 @@ class Document {
         // Convert the issuance date to a string
         const date_type = Document.infer_date_type(issuanceDate);
         this.issuanceDate = Document.date_to_our_date(issuanceDate, date_type);
+
+        this.fileIds = fileIds;
     }
 
     /* 
@@ -139,7 +143,8 @@ class Document {
             json.stakeholders !== null ? json.stakeholders : undefined,
             json.scale !== null ? json.scale : undefined,
             json.description !== null ? json.description : undefined,
-            json.coordinates
+            json.coordinates,
+            json.file_ids !== null ? json.file_ids : undefined,
         );
     }
 
@@ -171,6 +176,7 @@ class Document {
             coordinates_type: my_coordinates_type, // not nullable
             coordinates: my_coordinates_as_string ? my_coordinates_as_string : null, // db accepts strings fromatted as WKT or WKB
             date_type: date_type,
+            // file_ids isn't really a field in the db because we have the document_files table
         };
     }
 
@@ -208,6 +214,7 @@ class Document {
             this.scale,
             this.description,
             this.coordinates,
+            this.fileIds
         );
     }
 

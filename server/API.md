@@ -10,26 +10,28 @@ CORS methods to use: GET, DELETE, POST (for adding new things -- NOT idempotent)
 ### Index
 
 - [Documents API](#documents-api)
-  - [POST `/kiruna_explorer/documents`](#post-kiruna_explorerdocuments)
-  - [PATCH `/kiruna_explorer/documents/:id/coordinates`](#patch-kiruna_explorerdocumentsidcoordinates)
-  - [PATCH `/kiruna_explorer/documents/:id/description`](#patch-kiruna_explorerdocumentsiddescription)
-  - [GET `/kiruna_explorer/documents/search?title=mytitle`](#get-kiruna_explorerdocumentssearchtitlemytitle)
-  - [GET `/kiruna_explorer/documents/:id`](#get-kiruna_explorerdocumentsid)
-  - [POST `/kiruna_explorer/documents/:id/stakeholders`](#post-kiruna_explorerdocumentsidstakeholders)
-  - [DELETE `/kiruna_explorer/documents/:id/stakeholders`](#delete-kiruna_explorerdocumentsidstakeholders)
+  - [POST `/kiruna_explorer/documents`](#post-kiruna_explorerdocuments) - Create a new document
+  - [PATCH `/kiruna_explorer/documents/:id/coordinates`](#patch-kiruna_explorerdocumentsidcoordinates) - Update coordinates
+  - [POST `/kiruna_explorer/documents/:id/description`](#patch-kiruna_explorerdocumentsiddescription) - Update description
+  - [GET `/kiruna_explorer/documents/search?title=mytitle`](#get-kiruna_explorerdocumentssearchtitlemytitle) - Search documents by title
+  - [GET `/kiruna_explorer/documents/:id`](#get-kiruna_explorerdocumentsid) - Get document by ID
+  - [POST `/kiruna_explorer/documents/:id/stakeholders`](#post-kiruna_explorerdocumentsidstakeholders) - Add stakeholders to a document
+  - [DELETE `/kiruna_explorer/documents/:id/stakeholders`](#delete-kiruna_explorerdocumentsidstakeholders) - Remove stakeholders from a document
 - [Link Documents API](#link-documents-api)
-  - [GET `/kiruna_explorer/linkDocuments/:doc_id`](#get-kiruna_explorerlinkdocumentsdoc_id)
-  - [POST `/kiruna_explorer/linkDocuments/create`](#post-kiruna_explorerlinkdocumentscreate)
+  - [GET `/kiruna_explorer/linkDocuments/:doc_id`](#get-kiruna_explorerlinkdocumentsdoc_id) - Get links of a document
+  - [POST `/kiruna_explorer/linkDocuments/create`](#post-kiruna_explorerlinkdocumentscreate) - Create a link between documents
 - [Stakeholders API](#stakeholders-api)
-  - [GET `/kiruna_explorer/stakeholders`](#get-kiruna_explorerstakeholders)
-  - [POST `/kiruna_explorer/stakeholders`](#post-kiruna_explorerstakeholders)
+  - [GET `/kiruna_explorer/stakeholders`](#get-kiruna_explorerstakeholders) - Get all stakeholders
+  - [POST `/kiruna_explorer/stakeholders`](#post-kiruna_explorerstakeholders) - Add a new stakeholder
 - [Auth API](#auth-api)
-  - [POST `/kiruna_explorer/sessions`](#post-kiruna_explorersessions)
-  - [DELETE `/kiruna_explorer/sessions/current`](#delete-kiruna_explorersessionscurrent)
-  - [GET `/kiruna_explorer/sessions/current`](#get-kiruna_explorersessionscurrent)
+  - [POST `/kiruna_explorer/sessions`](#post-kiruna_explorersessions) - Login
+  - [DELETE `/kiruna_explorer/sessions/current`](#delete-kiruna_explorersessionscurrent) - Logout
+  - [GET `/kiruna_explorer/sessions/current`](#get-kiruna_explorersessionscurrent) - Get current session
 - [Files API](#files-api)
-  - [POST `/files/upload`](#post-filesupload)
-  - [GET `/files/download/:fileId`](#get-filesdownloadfileid)
+  - [POST `/files/upload`](#post-filesupload) - Upload a file
+  - [GET `/files/download/:fileId`](#get-filesdownloadfileid) - Download a file
+  - [GET `/files/:documentId`](#get-filesdocumentid) - Get file IDs and names associated with a document
+  - [GET `/files`](#get-files) - Get all file IDs and names
 - [Coordinates Format](#coordinates-format-point-polygon-municipality)
 
 
@@ -95,7 +97,8 @@ Edits the coordinates of a document
 - Additional Constraints:
   - May return errors specified in the head of this file
 
-#### PATCH `/kiruna_explorer/documents/:id/description`
+#### POST `/kiruna_explorer/documents/:id/description`  
+*(of course this should be a PATCH but there was an error so we'll keep it like this for the time being)*
 
 Adds or updates a description for an existing document, the latter being sent through the body of the request.
 
@@ -329,10 +332,12 @@ Retrieves information about the currently logged in user.
 
 ### Files API
 
-#### POST `/files/upload`
+#### POST `/files/upload/documentId`
 
 Uploads a file and associates it with a document.
 
+- **Request Parameters**:
+  - `documentId`: the document related to the file that was sent
 - **Request Body Content**:
   - Form-data with the following fields:
     - `file`: The file to be uploaded.
@@ -356,6 +361,39 @@ Downloads a file by its ID.
 - **Access Constraints**: None
 - **Additional Constraints**: None
 
+
+#### GET `/files/:documentId`
+
+Retrieves all file IDs associated with a document.
+
+- **Request Parameters**:
+  - `documentId`: The ID of the document to retrieve file IDs for.
+- **Response Status Code**:
+  - `200` if the file IDs are retrieved successfully.
+  - `404` if the document is not found.
+- **Response Body Content**:
+  ```json
+  [
+    {"id": 1, "name": "file1"}, 
+    {"id": 2, "name": "file2"}
+  ]
+  ```
+
+#### GET `/files`
+
+Retrieves all file IDs and names.
+
+- **Request Parameters**: None
+- **Response Status Code**:
+  - `200` if the file IDs and names are retrieved successfully.
+  - `404` if no files are found.
+- **Response Body Content**:
+  ```json
+  [
+    { "id": 1, "name": "file1" },
+    { "id": 2, "name": "file2" }
+  ]
+  ```
 
 # Coordinates Format (Point, Polygon, Municipality)
 
