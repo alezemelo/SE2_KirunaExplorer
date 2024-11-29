@@ -7,7 +7,7 @@ import { UserType } from '../../models/user';
 import { param } from 'express-validator';
 import { FileInfo } from '../controllers/fileController';
 
-export const files_dir_name = 'files';
+export const files_dir_name = 'staticfiles';
 const upload = multer({ dest: `${files_dir_name}/` });
 
 // Middleware to check if a file was uploaded
@@ -77,7 +77,7 @@ class FileRoutes {
         * @throws an error if the operation fails.
         * @throws 404 if the document does not exist.
         */
-        this.router.get('/files/:documentId/',
+        this.router.get('/:documentId',
             param('documentId').notEmpty().isInt().toInt(),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.get_file_ids_and_names(req.params.id)
@@ -92,7 +92,7 @@ class FileRoutes {
         * @throws an error if the operation fails.
         * @throws 404 if no files are found.
         */
-        this.router.get('/files/',
+        this.router.get('/',
             (req: any, res: any, next: any) => this.controller.get_all_file_ids_and_names()
                 .then((file_ids_and_names: FileInfo[]) => res.status(200).json( file_ids_and_names )) // [{id: 1, name: 'file1'}, {id: 2, name: 'file2'}]
                 .catch((err: any) => {next(err)})
