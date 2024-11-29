@@ -201,7 +201,7 @@ const doc_45 = new Document(
   "2014-12-17",
   "swedish",
   1,
-  "LKAB",
+  ["LKAB"],
   "1:12000",
   `This document is a development plan that shapes the form of the` +
 `new city of Kiruna. The document is written entirely in Swedish,` +
@@ -233,7 +233,7 @@ const doc_50 = new Document(
   "2016-06-22",
   "Swedish",
   43,
-  "Kiruna kommun",
+  ["Kiruna kommun"],
   "1:1000",
   `This plan, approved in July 2016, is the first detailed plan to be implemented from the` +
   `new masterplan (Adjusted development plan). The document defines the entire area near` +
@@ -265,7 +265,7 @@ const doc_47 = new Document(
   "2015-00-00",
   "Swedish",
   1,
-  "Kiruna kommun/White Arkitekter",
+  ["Kiruna kommun", "White Arkitekter"],
   "1:7500",
   `This document is the update of the Development Plan, one year after its creation. `+
   `Modifications are made to the general master plan, which is published under the name` +
@@ -297,7 +297,7 @@ const doc_63 = new Document(
   "2019-04-01", // 5: Issuance date
   "-", // 6: Language
   undefined, // 7: Pages
-  "LKAB", // 8: Stakeholders
+  ["LKAB"], // 8: Stakeholders
   "blueprints/effects", // 9: Scale
   `After two extensions of the land acquisition agreement, necessary because this document in Sweden ` +
     `is valid for only two years, construction of the hotel finally began in 2019.`, // 10: Description
@@ -312,7 +312,7 @@ const doc_64 = new Document(
   "2019-04-01", // 5: Issuance date
   "-", // 6: Language
   undefined, // 7: Pages
-  "LKAB", // 8: Stakeholders
+  ["LKAB"], // 8: Stakeholders
   "blueprints/effects", // 9: Scale
   `After the construction of the new town hall was completed, the old building, nicknamed "The Igloo," ` +
     `was demolished. The only elements preserved were the door handles, a masterpiece of Sami art made ` +
@@ -329,7 +329,7 @@ const doc_65 = new Document(
   "2019-05-01", // 5: Issuance date
   "-", // 6: Language
   undefined, // 7: Pages
-  "LKAB", // 8: Stakeholders
+  ["LKAB"], // 8: Stakeholders
   "blueprints/effects", // 9: Scale
   `Shortly after the construction of the Scandic hotel began, work on the Aurora Center also started, ` +
     `a multifunctional complex that includes the municipal library of Kiruna. The two buildings are ` +
@@ -345,7 +345,7 @@ const doc_69 = new Document(
   "2019-06-01", // 5: Issuance date
   "-", // 6: Language
   undefined, // 7: Pages
-  "LKAB", // 8: Stakeholders
+  ["LKAB"], // 8: Stakeholders
   "blueprints/effects", // 9: Scale
   `Simultaneously with the start of construction on the Aurora Center, work also began on Block 1, ` +
     `another mixed-use building overlooking the main square and the road leading to old Kiruna. ` +
@@ -357,16 +357,8 @@ const doc_69 = new Document(
 
 
 
-
-
-
-
-
-
-
-
-const documents = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
-const actualDocuments = [doc_15, doc_18, doc_41]
+const actualDocuments = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
+//const actualDocuments = [doc_15, doc_18, doc_41]
 const docs_stakeholders = [p1, p2, p3, p4, p5]
 
 export { actualDocuments, docs_stakeholders }
