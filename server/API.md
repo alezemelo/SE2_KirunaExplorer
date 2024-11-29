@@ -175,7 +175,8 @@ Fetches a `Document` object.
       "description": "This document is a compilation of the responses to the survey What is ...",
       "type": "Informative document",
       "lastModifiedBy": "user123",
-      "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
+      "coordinates": { ***valid coordinates JSON. See bottom of the file!*** },
+      "fileIds": [1, 2, 3]
     }
     ```
 - **Access Constraints:** `None`
