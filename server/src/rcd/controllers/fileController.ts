@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import FileDAO from "../daos/fileDAO";
 import { files_dir_name } from "../routes/file_routes";
+import path from "path";
 
 class NoFilesFoundError extends Error {
     code: number;
@@ -34,20 +35,22 @@ class FileController {
     */
     async mark_as_uploaded(documentId: number, fileName: string): Promise<number> {
         try {
-            const file_url = `${files_dir_name}/${documentId}`;
+            const file_url = `http://localhost:3000/static/${fileName}`;
             
             // Update the files table with the file URL and get the assigned ID
             const file_id = await this.dao.mark_file_as_uploaded(file_url, fileName, dayjs.utc());
-
+            
             if (!file_id) {
                 throw new Error('Failed to mark the file as uploaded');
             }
             
             // Update the document_files table with the document ID and the file ID
             await this.dao.associate_file_with_document(documentId, file_id);
-
+            console.error(`Inside mark_as_uploaded: file_id is ${file_id}`);
+            
             return file_id;
         } catch (err) {
+            console.log(`Error in mark_as_uploaded: ${err}`);
             throw err;
         }
     }
@@ -55,13 +58,18 @@ class FileController {
     /**
      * Downloads a file.
      */
-    async download(fileId: number): Promise<string> {
+    async get_file_location_in_server(fileId: number): Promise<string> {
         try {
             const file = await this.dao.get_file(fileId);
             if (!file) {
                 throw new Error('The file does not exist');
             }
-            return file.file_url;
+
+            const file_url = file.file_url;  // like http://localhost:3000/static/loremipsum.txt
+            const file_name_with_extension = file_url.split('/').pop();  // like loremipsum.txt
+            const file_location_in_server = path.join(files_dir_name, file_name_with_extension); 
+
+            return file_location_in_server;
         } catch (err) {
             throw err;
         }
@@ -72,6 +80,8 @@ class FileController {
      */
     async get_file_ids_and_names(documentId: number): Promise<FileInfo[]> {
         try {
+            // console.error(`Inside get_file_ids_and_names: documentId is ${documentId}`);
+
             const files = await this.dao.get_files(documentId);
 
             if (!files || files.length === 0) {
@@ -79,11 +89,13 @@ class FileController {
             }
 
             const file_ids_and_names = files.map((file: any) => {
+                console.log(`fileid = ${file.id}, filename = ${file.file_name}`);
                 return { id: file.id, name: file.file_name };
             });
 
             return file_ids_and_names;
         } catch (err) {
+            console.error(err);
             throw err;
         }
     }
@@ -110,6 +122,7 @@ class FileController {
 
             return file_ids_and_names;
         } catch (err) {
+            console.error(err)
             throw err;
         }
     }

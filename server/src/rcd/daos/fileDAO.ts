@@ -13,8 +13,8 @@ class FileDAO {
     */
     public async mark_file_as_uploaded(file_url: string, file_name: string, uploaded_at: Dayjs): Promise<number> {
         try {
-            const [file_id] = await db('files').insert({ file_url, file_name, uploaded_at }).returning('id');
-            return file_id;
+            const [res] = await db('files').insert({ file_url, file_name, uploaded_at }).returning('id');
+            return res.id;
         } catch (err) {
             throw err;
         }
@@ -29,7 +29,7 @@ class FileDAO {
     */
     public async associate_file_with_document(documentId: number, file_id: number): Promise<void> {
         try {
-            await db('document_files').insert({ document_id: documentId, file_id });
+            await db('document_files').insert({ doc_id: documentId, file_id: file_id, role: "attachment" });
         } catch (err: any) {
             // Check for foreign key and primary constraint violation
             if (err.code === '23503') {
@@ -59,7 +59,10 @@ class FileDAO {
     */
     public async get_files(documentId: number): Promise<any[]> {
         try {
-            const files = await db('document_files').where('document_id', documentId);
+            const files = await db('document_files')
+                .join('files', 'document_files.file_id', 'files.id')
+                .select('files.id', 'files.file_name', 'files.file_url', 'files.uploaded_at')
+                .where('document_files.doc_id', documentId);
             return files;
         } catch (err) {
             throw err;
@@ -71,7 +74,8 @@ class FileDAO {
     */
     public async get_all_files(): Promise<any[]> {
         try {
-            const files = await db('files');
+            const files = await db('files')
+                .select('id', 'file_name', 'file_url', 'uploaded_at');
             return files;
         } catch (err) {
             throw err;
