@@ -9,7 +9,7 @@ import DocumentController from '../../rcd/controllers/documentController';
 import DocumentDAO from "../../rcd/daos/documentDAO";
 import { DocumentNotFoundError } from '../../errors/documentErrors';
 
-import { dbEmpty } from '../../db/db_common_operations';
+import { dbEmpty, dbPopulateActualData } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 import db from '../../db/db';
 
@@ -27,7 +27,8 @@ describe('update_description Integration Tests', () => {
 
   beforeEach(async () => {
     await dbEmpty();
-    await populate();
+    //await populate();
+    await dbPopulateActualData();
   });
 
   afterAll(async () => {

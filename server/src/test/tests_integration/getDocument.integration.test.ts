@@ -9,7 +9,7 @@ import DocumentController from '../../rcd/controllers/documentController';
 import DocumentDAO from "../../rcd/daos/documentDAO";
 import { DocumentNotFoundError } from '../../errors/documentErrors';
 
-import { dbEmpty } from '../../db/db_common_operations';
+import { dbEmpty, dbPopulateActualData } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 import db from '../../db/db';
 import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
@@ -49,7 +49,7 @@ const complete_doc = new Document(
   dayjs.utc('2005').toISOString(), // Issuance date
   "Swedish", // Language
   999, // Pages
-  "Kiruna kommun/Residents", // Stakeholders
+  ["Kiruna kommun", "Residents"], // Stakeholders
   "Text", // Scale
   "This is a sample test doc",
   new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(20, 20)) // Coordinates
@@ -92,7 +92,8 @@ describe('get_document Integration Tests', () => {
 
   beforeEach(async () => {
     await dbEmpty();
-    await populate();
+    //await populate();
+    await dbPopulateActualData();
   });
 
   afterAll(async () => {
@@ -112,7 +113,7 @@ describe('get_document Integration Tests', () => {
         // Setting data
         await dbEmpty();
         await insertAdmin();
-        await db("documents").insert(minimal_doc.toObject());
+        await db("documents").insert(minimal_doc.toObjectWithoutStakeholders());
 
         // Running test target function(s)
         let response = await documentDAO.getDocument(99);
@@ -128,7 +129,6 @@ describe('get_document Integration Tests', () => {
           expect(response.issuanceDate).toBe(`2005-01-01T00:00:00.000Z`);
           expect(response.language).toBeUndefined();
           expect(response.pages).toBeUndefined();
-          expect(response.stakeholders).toBeUndefined();
           expect(response.scale).toBeUndefined();
           expect(response.description).toBeUndefined();
           
@@ -147,7 +147,7 @@ describe('get_document Integration Tests', () => {
         // Setting data
         await dbEmpty();
         await insertAdmin();
-        await db("documents").insert(complete_doc.toObject());
+        await db("documents").insert(complete_doc.toObjectWithoutStakeholders());
 
         // Running test target function(s)
         const response = await documentDAO.getDocument(99);
@@ -163,7 +163,6 @@ describe('get_document Integration Tests', () => {
           expect(response.issuanceDate).toBe(`2005-01-01T00:00:00.000Z`);
           expect(response.language).toBe(`Swedish`);
           expect(response.pages).toBe(999);
-          expect(response.stakeholders).toBe(`Kiruna kommun/Residents`);
           expect(response.scale).toBe(`Text`);
           expect(response.description).toContain(`This is a sample test doc`);
           
@@ -199,7 +198,7 @@ describe('get_document Integration Tests', () => {
 
         let polygon_doc = complete_doc.copy();
         polygon_doc.setCoordinates(new Coordinates(CoordinatesType.POLYGON, polygon));
-        await db("documents").insert(polygon_doc.toObject());
+        await db("documents").insert(polygon_doc.toObjectWithoutStakeholders());
 
         // Running test target function(s)
         const response = await documentDAO.getDocument(99);
@@ -215,7 +214,6 @@ describe('get_document Integration Tests', () => {
           expect(response.issuanceDate).toBe(`2005-01-01T00:00:00.000Z`);
           expect(response.language).toBe(`Swedish`);
           expect(response.pages).toBe(999);
-          expect(response.stakeholders).toBe(`Kiruna kommun/Residents`);
           expect(response.scale).toBe(`Text`);
           expect(response.description).toContain(`This is a sample test doc`);
           

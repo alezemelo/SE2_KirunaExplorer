@@ -124,7 +124,7 @@ class DocumentRoutes {
                 })
         )
 
-        /* 
+        /*
         * [route names: get documents, get all documents]
         * GET /documents
         * Retrieves all documents.
@@ -177,10 +177,21 @@ class DocumentRoutes {
                 .optional()
                 .isInt()
                 .withMessage('Pages must be an integer'),
+            /*
             body('stakeholders')
                 .optional()
                 .isString()
-                .withMessage('Stakeholders must be a string'),
+                .withMessage('Stakeholders must be a string')
+                .customSanitizer((value) => value.replace(/s*, \s*\/g, ',')) 
+                .matches(/^(|w+)(,\w+)*$/).withMessage("Must be a single word or comma-separated list of words"),
+            */
+            body('stakeholders').isArray().withMessage('Stakeholders must be an array')
+            .custom((stakeholders) => {
+                if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
+                    throw new Error('Each stakeholder must be a non-empty string');
+                }
+                return true;
+            }),
             body('scale')
                 .optional()
                 .isString()
@@ -247,7 +258,6 @@ class DocumentRoutes {
         * Updates the coordinates of a document.
         */
         this.router.patch('/:id/coordinates',
-            // TODO: CHECK IF AUTH MIDDLEWARE WORKS
             this.authService.isLoggedIn,
             this.authService.isUserAuthorized(UserType.UrbanPlanner),
             param('id').isInt().toInt(),
@@ -278,8 +288,55 @@ class DocumentRoutes {
                 })
             }
         );
-    }
+    
 
+    /*
+        Adds stakeholders to a document
+    */
+    this.router.post('/:id/stakeholders', 
+        this.authService.isLoggedIn,
+        this.authService.isUserAuthorized(UserType.UrbanPlanner),
+        param('id').isInt().toInt(),
+        body('stakeholders').isArray({min: 1}).withMessage('Stakeholders must be a non empty array')
+        .custom((stakeholders) => {
+            if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
+                throw new Error('Each stakeholder must be a non-empty string');
+            }
+            return true;
+        }),
+        this.errorHandler.validateRequest,
+        async (req: any, res: any, next: any) => {
+            this.controller.addStakeholders(req.params.id, req.body.stakeholders)
+            .then(() => res.status(200).end())
+            .catch((err: any) => {
+                next(err)
+            })
+        }
+    );
+
+    this.router.delete('/:id/stakeholders', 
+        this.authService.isLoggedIn,
+        this.authService.isUserAuthorized(UserType.UrbanPlanner),
+        param('id').isInt().toInt(),
+        body('stakeholders').isArray({min: 1}).withMessage('Stakeholders must be a non empty array')
+        .custom((stakeholders) => {
+            if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
+                throw new Error('Each stakeholder must be a non-empty string');
+            }
+            return true;
+        }),
+        this.errorHandler.validateRequest,
+        async (req: any, res: any, next: any) => {
+            this.controller.removeStakeholders(req.params.id, req.body.stakeholders)
+            .then((deletedRows) => res.status(200).json({deletedRows}))
+            .catch((err: any) => {
+                next(err)
+            })
+        }
+    );
+
+
+    }
     /**
      * Returns the router instance.
      */

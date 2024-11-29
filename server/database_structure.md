@@ -63,3 +63,19 @@ each row represents a single file
 * PRIMARY KEY (document_id, file_id)
 
 models n to n relationship between docs and files, also specifies the type of relationship (original resource or attachment)
+
+---
+
+# STAKEHOLDERS
+
+* name: VARCHAR(255) NOT NULLABLE PRIMARY
+
+just holds valid stakeholders, their names are the keys
+
+# DOCUMENT_STAKEHOLDERS
+
+* doc_id: INTEGER REFERENCES documents(id) ON DELETE CASCADE
+* stakeholder_id: STRING REFERENCES stakeholders(name) ON DELETE CASCADE
+* PRIMARY KEY (doc_id, stakeholder_id)
+
+models the n to n relationship between stakeholders and docs, if row is duplicated the unique constraint is violated.
