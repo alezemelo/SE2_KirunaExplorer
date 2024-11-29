@@ -898,7 +898,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         /* ==================-------------- Success and main constraints tests --------------================== */
         it("should successfully insert a complete file", async () => {
             // Setup
-            const file = { id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() };
+            const file = { id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() };
 
             // Run
             await db("files").insert(file);
@@ -910,7 +910,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("should succesfully insert a minimal file", async () => {
             // Setup
-            const file = { id: 1, file_url: "url" };
+            const file = { id: 1, file_url: "url", file_name: "file1" };
 
             // Run
             await db("files").insert(file);
@@ -924,7 +924,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("should put 1 as autoincremented id when not specifiying id", async () => {
             // Setup
-            const file = { file_url: "url" };
+            const file = { file_url: "url", file_name: "file1" };
 
             // Run
             await db("files").insert(file);
@@ -936,8 +936,8 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("autincrement won't skip a number if one is already taken by a manual insertion (=> you have to update it manually after)", async () => {
             // Setup
-            const file = { id: 1, file_url: "url" };
-            const file2 = { file_url: "url2" };
+            const file = { id: 1, file_url: "url", file_name: "file1" };
+            const file2 = { file_url: "url2", file_name: "file2" };
 
             // Run
             await db("files").insert(file);
@@ -948,7 +948,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("should trigger primary key constraint violation", async () => {
             // Setup
-            const file = { id: 1, file_url: "url" };
+            const file = { id: 1, file_url: "url", file_name: "file1" };
             await db("files").insert(file);
 
             // Run and Check unique constraint violation
@@ -996,7 +996,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             // Setup
             await insertAdmin();
             await db("documents").insert({ id: 1, title: "title", type: DocumentType.design_doc, last_modified_by: "admin" });
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             const doc_file = { doc_id: 1, file_id: 1, role: "attachment" };
 
             // Run
@@ -1011,7 +1011,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             // Setup
             await insertAdmin();
             await db("documents").insert({ id: 1, title: "title", type: DocumentType.design_doc, last_modified_by: "admin" });
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             const doc_file = { doc_id: 1, file_id: 1, role: "attachment" };
             await db("document_files").insert(doc_file);
 
@@ -1022,7 +1022,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         it("should trigger foreign key constraint violation if doc_id doesn't exist in documents", async () => {
             // Setup
             await insertAdmin();
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             const doc_file = { doc_id: 1, file_id: 1, role: "attachment" };
 
             // Run and Check foreign key constraint violation
@@ -1043,7 +1043,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             // Setup
             await insertAdmin();
             await db("documents").insert({ id: 1, title: "title", type: DocumentType.design_doc, last_modified_by: "admin" });
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             const doc_file = { doc_id: 1, file_id: 1, role: "attachment" };
             await db("document_files").insert(doc_file);
 
@@ -1059,7 +1059,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
             // Setup
             await insertAdmin();
             await db("documents").insert({ id: 1, title: "title", type: DocumentType.design_doc, last_modified_by: "admin" });
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             const doc_file = { doc_id: 1, file_id: 1, role: "attachment" };
             await db("document_files").insert(doc_file);
 
@@ -1075,7 +1075,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         it("should not allow doc_id to be anything other than a number", async () => {
             // Setup
             await insertAdmin();
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             const doc_file = { doc_id: "nan", file_id: 1, role: "attachment" };
 
             // Run and Check type constraint violation
@@ -1103,8 +1103,8 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         it("should work with 'attachment' and 'original_resource' roles", async () => {
             // Setup
             await insertAdmin();
-            await db("files").insert({ id: 1, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
-            await db("files").insert({ id: 2, file_url: "url", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 1, file_url: "url", file_name: "file1", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
+            await db("files").insert({ id: 2, file_url: "url", file_name: "file2", uploaded_at: dayjs.utc("2023-01-01").toISOString() });
             await db("documents").insert({ id: 1, title: "title", type: DocumentType.design_doc, last_modified_by: "admin" });
             const doc_file1 = { doc_id: 1, file_id: 1, role: "attachment" };
             const doc_file2 = { doc_id: 1, file_id: 2, role: "attachment" };
