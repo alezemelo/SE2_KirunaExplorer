@@ -95,6 +95,28 @@ Adds or updates a description for an existing document, the latter being sent th
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
   - May return errors specified in the head of this file or any other generic error
 
+
+#### PATCH `/kiruna_explorer/documents/:id`
+
+Generic patch api for a document: content of the fields will be overwritten with the sent data.
+Able to overwrite stakeholders, scale, and document type.
+
+- Request Parameters: `id`, an integer number representing the document unique ID
+- Request Body Content:
+  ```json
+  {
+    "stakeholders": ["Stakeholder1", "Stakeholder2"],
+    "type": "new_type",
+    "scale": "new scale"
+  }
+  ```
+- Response Body Content: `None`
+- Access Constraints: `Urban Planner` only
+  - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
+  - May return errors specified in the head of this file or any other generic error
+- Additional constraints:
+  - All fields are optional, if no field is specified, nothing will be changed in the db.
+
 #### GET `/kiruna_explorer/documents/search?title=mytitle`
 
 Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
@@ -264,6 +286,41 @@ adds a new stakeholder to the list of possible stakeholders
 - Returns `409` if name already esists:
 - returns `422` if the request body content is not correct
 
+### Doctype APIs
+
+These allow to get a list of every valid doctype and add a new doctype.
+
+#### GET `kiruna_explorer/doctypes`
+
+returns the list of all valid doctypes
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"name": "prescriptive_doc"},
+  {"name": "informative_doc"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/doctypes`
+
+adds a new valid doctype
+
+- Request Parameters: None
+- Request body content:
+  `{"name": "new_doctype"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: name of new doctype
+- Access contraints: Urban Planner
+- Returns `409` if name already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string)
 
 ### Auth APIs
 

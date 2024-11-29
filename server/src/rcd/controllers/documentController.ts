@@ -1,4 +1,4 @@
-import { DocumentNotFoundError, StakeholdersNotFoundError } from "../../errors/documentErrors";
+import { DocumentAlreadyExistsError, DocumentNotFoundError, StakeholdersNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
 import { Coordinates, CoordinatesAsPoint } from "../../models/coordinates";
@@ -6,6 +6,7 @@ import { Coordinates, CoordinatesAsPoint } from "../../models/coordinates";
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
 import StakeholdersDAO from "../daos/stakeholdersDAO";
+import { UniqueConstraintError } from "../../errors/dbErrors";
 
 
 /**
@@ -85,20 +86,23 @@ class DocumentController {
             // inserts the new document
             res.status(201).json({ message: 'Document added successfully', documentId });
             
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to add document:', error);
-            if (error instanceof Error && error.message.includes('foreign key constraint')) {
-                res.status(400).json({ error: 'One or more stakeholders do not exist in the system.' });
-            if (error instanceof Error && error.message.includes('Invalid geometry')) {
+            if (error instanceof Error && error.message.includes('documents_type_check')) {
+                res.status(400).json({ error: 'Invalid document type' });
+            //} else if (error instanceof Error && error.message.includes('foreign key constraint')) {
+            //    res.status(400).json({ error: 'One or more stakeholders do not exist in the system.' });
+            } else if (error instanceof Error && error.message.includes('Invalid geometry')) {
                 res.status(400).json({ error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.' });
             } else if (error instanceof Error && error.message.includes('Invalid coordinates type')) {
                 res.status(400).json({ error: 'Unsupported or invalid coordinates type' });
             } else {
+                console.log("propagating to next...")
                 next(error);
             }
         }
     }
-    }
+    
     
 
 
@@ -125,8 +129,6 @@ class DocumentController {
 
     async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
         try {
-            // console.log("id: ", id);
-            // console.log("coordinates: ", coordinates);
             console.log(coordinates)
             const amount_updated = await this.dao.updateCoordinates(id, coordinates);
             if (amount_updated === 0) {
@@ -139,7 +141,17 @@ class DocumentController {
         }
     }
 
-
+    /**
+     * Calls Dao to update a document 
+     * 
+     * @param id - The ID of the document to update.
+     * @param body.stakeholders - The new stakeholders for the document (list of strings).
+     * @param body.scale - The new scale for the document.
+     * @param body.type - The new type for the document.
+     */
+    async updateDocument(id: number, body: any): Promise<void> {
+        await this.dao.updateDocument(id, body);
+    }
 
     /**
     * Retrieves a document by its ID.

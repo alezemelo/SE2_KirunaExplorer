@@ -4,7 +4,7 @@ dayjs.extend(utc);
 
 import db from "../db/db";
 import {Document, DocumentType} from "../models/document";
-import { dbEmpty } from "../db/db_common_operations";
+import { dbEmpty, dbPopulateActualData } from "../db/db_common_operations";
 import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../models/coordinates";
 import { exitCode } from "process";
 
@@ -43,10 +43,24 @@ async function insertAdmin() {
     await db("users").insert({ username: "admin", hash: "hash", salt: "salt", type: "urban_planner" });
 }
 
+async function insertDoctypes() {
+    await db("doctypes").insert([
+        { name: "informative_doc"},
+        { name: "technical_doc"},
+        { name: "prescriptive_doc"},
+        { name: "design_doc"},
+        { name: "material_effect"}]);
+}
+
+async function insertStakeholders() {
+    await db("stakeholders").insert([
+        { name: "Kiruna Kommun"},
+        { name: "Residents"}]);
+    }
+
 describe("DB structure (constraints, basic insertions, column types)", () => {
     beforeAll(async () => {
         await db.migrate.latest();
-        await dbEmpty();
     });
 
     afterAll(async () => {
@@ -56,6 +70,9 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
     beforeEach(async () => {
         await dbEmpty();
+        //await dbPopulateActualData();
+        await insertDoctypes();
+        await insertStakeholders();
     });
 
     describe("timezone for issuance_date in documents table tests", () => {
@@ -343,7 +360,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
 
         it("should fail to insert a document with an invalid type", async () => {
             const doc = new Document(1, "title", "invalid_type" as DocumentType, "admin", dayjs.utc("2005").toISOString(),).toObjectWithoutStakeholders();
-            await expect(db("documents").insert(doc)).rejects.toThrow(/documents_type_check/i);
+            await expect(db("documents").insert(doc)).rejects.toThrow(/\"documents\" violates foreign key constraint/i);
         });
 
         it("should trigger primary key constraint violation", async () => {

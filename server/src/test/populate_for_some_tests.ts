@@ -1,11 +1,11 @@
+import knex from "../db/db";
 import { SAMPLE_USERS } from "../db/sample_data/sample_users";
 import { docs_stakeholders, actualDocuments } from "../db/actual_data/documents";
 import { DocumentLink, LinkType } from "../models/document";
 import dayjs from "dayjs";
 import { SAMPLE_FILES } from "../db/sample_data/sample_files";
 import { SAMPLE_DOC_FILES } from "../db/sample_data/sample_doc_files";
-
-import knex from "../db/db";
+import { ACTUAL_DOCTYPES } from "../db/actual_data/actual_doctypes";
 import { ACTUAL_STAKEHOLDERS } from "../db/actual_data/actual_stakeholders";
 
 
@@ -20,6 +20,10 @@ export async function populate() {
         // insert actual stakeholders
         for (const stakeholder of ACTUAL_STAKEHOLDERS) {
             await knex('stakeholders').insert(stakeholder);
+        }
+
+        for (const doctype of ACTUAL_DOCTYPES) {
+            await knex('doctypes').insert(doctype);
         }
         
         // Insert __ACTUAL__ documents

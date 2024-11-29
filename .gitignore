@@ -3,3 +3,4 @@ client/node_modules/
 server/src/test/manual_test.ts
 server/random_testing.ts
 server/jest_report.json
+.DS_Store
