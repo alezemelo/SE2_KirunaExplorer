@@ -11,6 +11,7 @@ import { SAMPLE_DOC_FILES } from "./sample_data/sample_doc_files";
 import { SAMPLE_FILES } from "./sample_data/sample_files";
 import { SAMPLE_USERS } from "./sample_data/sample_users";
 import db from "./db";
+import ACTUAL_SCALES from "./actual_data/actual_scales";
 
 // Database Populate function
 export async function dbPopulate() {
@@ -24,6 +25,14 @@ export async function dbPopulate() {
         await knex('doctypes').insert([
             {name: 'informative_doc'},
             {name: 'technical_doc'},
+        ]);
+        await knex('scales').insert([
+            {value: 'text'},
+            {value: '1:8000'},
+            {value: '1:7500'},
+            {value: '1:12000'},
+            {value: '1:1000'},
+            {value: 'blueprints/effects'}
         ]);
 
 
@@ -53,7 +62,7 @@ export async function dbPopulate() {
                 language: 'Spanish',
                 pages: 3,
                 //stakeholders: 'Stakeholder B',
-                scale: '1:2000',
+                scale: '1:8000',
                 description: 'Test Document 2',
                 type: 'technical_doc',
                 last_modified_by: 'user2'
@@ -77,7 +86,7 @@ export async function dbPopulate() {
 
 export async function dbEmpty() {
     try {
-        await knex.raw('TRUNCATE TABLE document_files, document_stakeholders, stakeholders, document_links, files, documents, doctypes, users RESTART IDENTITY CASCADE');
+        await knex.raw('TRUNCATE TABLE document_files, document_stakeholders, stakeholders, document_links, files, documents, doctypes, scales, users RESTART IDENTITY CASCADE');
         // console.log("Database emptied successfully.");
     } catch (error) {
         console.error("Error emptying database:", error);
@@ -97,8 +106,9 @@ export async function dbRead() {
     const documentFiles = await knex("document_files").select("*");
     const stakeholders = await knex("stakeholders").select("*");
     const doctypes= await knex("doctypes").select("*");
+    const scales = await knex("scales").select("*");
     const documentStakeholders = await knex("document_stakeholders").select("*");
-    return { users, documents, stakeholders, doctypes, documentStakeholders, documentLinks, files, documentFiles };
+    return { users, documents, stakeholders, doctypes, scales, documentStakeholders, documentLinks, files, documentFiles };
   } catch (error) {
     console.error("Error reading database:", error);
     return null;
@@ -136,6 +146,10 @@ export async function dbPopulateActualData() {
 
         for (const doctype of ACTUAL_DOCTYPES) {
             await knex('doctypes').insert(doctype);
+        }
+
+        for (const scale of ACTUAL_SCALES) {
+            await knex('scales').insert(scale);
         }
 
         // Insert __ACTUAL__ documents
