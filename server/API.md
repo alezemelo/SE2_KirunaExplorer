@@ -342,10 +342,12 @@ Uploads a file and associates it with a document.
 - **Request Body Content**:
   - Form-data with the following fields:
     - `file`: The file to be uploaded.
+    - `fileName`: The file name
 - **Response Code**:
   - `201` if the file is uploaded successfully.
   - `400` if no file is uploaded.
-- **Response Body Content**: None
+- **Response Body Content**:
+  - `file_id`: the id assigned by the DB to the file, should be autoincremental
 - **Access Constraints**: Can only be called by a logged in User
   
 
