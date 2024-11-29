@@ -193,6 +193,179 @@ const p5 = {
 }
 
 
+const doc_45 = new Document(
+  45, 
+  "Deformation forecast (45)",
+  DocumentType.technical_doc,
+  "user1",
+  "2014-12-17",
+  "swedish",
+  1,
+  "LKAB",
+  "1:12000",
+  `This document is a development plan that shapes the form of the` +
+`new city of Kiruna. The document is written entirely in Swedish,` +
+`targeting the citizens of Kiruna. The development plan integrates `+
+`many elements of the winning masterplan from the competition,` +
+`some recommended by the jury and others deemed appropriate to add later.` +
+`The document is divided into four parts, with the third part` +
+`consisting of 80 pages. This section describes the shape the` +
+`new city will take and the strategies to be implemented for its` +
+`relocation. It includes plans, sections, images, diagrams, and` +
+`texts. Additionally, the document incorporates numerous studies` +
+`aimed at demonstrating the future success of the project.`,
+
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.835724, 20.237934),
+    new CoordinatesAsPoint(67.835788, 20.224887),
+    new CoordinatesAsPoint(67.851067, 20.215103),
+    new CoordinatesAsPoint(67.860368, 20.218170),
+    new CoordinatesAsPoint(67.853833, 20.240657),
+    new CoordinatesAsPoint(67.835724, 20.237934),
+  ]))
+);
+
+const doc_50 = new Document(
+  50,
+  "Detail plan for square and commercial street (50)",
+  DocumentType.prescriptive_doc,
+  "user1",
+  "2016-06-22",
+  "Swedish",
+  43,
+  "Kiruna kommun",
+  "1:1000",
+  `This plan, approved in July 2016, is the first detailed plan to be implemented from the` +
+  `new masterplan (Adjusted development plan). The document defines the entire area near` +
+  `the town hall, comprising a total of 9 blocks known for their density. Among these are` +
+  `the 6 buildings that will face the main square. The functions are mixed, both public` +
+  `and private, with residential being prominent, as well as the possibility of incorporating` +
+  `accommodation facilities such as hotels. For all buildings in this plan, the only height` +
+  `limit is imposed by air traffic.`,
+ 
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.848442, 20.277820
+
+    ),
+    new CoordinatesAsPoint(67.849228, 20.297395),
+    new CoordinatesAsPoint(67.850736, 20.278475),
+    new CoordinatesAsPoint(67.854793, 20.274170),
+    new CoordinatesAsPoint(67.858639, 20.278943),
+    new CoordinatesAsPoint(67.851547, 20.312264),
+    new CoordinatesAsPoint(67.848195, 20.316289),
+    new CoordinatesAsPoint(67.847665, 20.315915),
+    new CoordinatesAsPoint(67.848442, 20.277820),
+  ]))
+);
+const doc_47 = new Document(
+  47,
+  "Adjusted development plan (47)",
+  DocumentType.design_doc,
+  "user1",
+  "2015-00-00",
+  "Swedish",
+  1,
+  "Kiruna kommun/White Arkitekter",
+  "1:7500",
+  `This document is the update of the Development Plan, one year after its creation. `+
+  `Modifications are made to the general master plan, which is published under the name` +
+  `'Adjusted Development Plan91,' and still represents the version used today after 10 years. `+
+  `Certainly, there are no drastic differences compared to the previous plan, but upon careful` +
+  `comparison, several modified elements stand out. For example, the central square now takes` +
+  `its final shape, as well as the large school complex just north of it, which appears for the` +
+  `first time. `,
+  
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.853500, 20.323000),  // Top-left
+    new CoordinatesAsPoint(67.856800, 20.306000),  // Top-right
+    new CoordinatesAsPoint(67.859700, 20.285000),  // Bottom-right
+    new CoordinatesAsPoint(67.857100, 20.271000),  // Middle-right
+    new CoordinatesAsPoint(67.853000, 20.277000),  // Bottom-center
+    new CoordinatesAsPoint(67.849500, 20.290000),  // Bottom-left
+    new CoordinatesAsPoint(67.850500, 20.317000),  // Center-left
+    new CoordinatesAsPoint(67.853500, 20.323000),  // Closing the loop
+    
+  ]))
+);
+
+const doc_63 = new Document(
+  63, // 1: ID
+  "Construction of Scandic Hotel begins (63)", // 2: Title
+  DocumentType.material_effect, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2019-04-01", // 5: Issuance date
+  "-", // 6: Language
+  undefined, // 7: Pages
+  "LKAB", // 8: Stakeholders
+  "blueprints/effects", // 9: Scale
+  `After two extensions of the land acquisition agreement, necessary because this document in Sweden ` +
+    `is valid for only two years, construction of the hotel finally began in 2019.`, // 10: Description
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.848528, 20.304778)) // 11: Coordinates
+);
+const doc_64 = new Document(
+  64, // 1: ID
+  "Town Hall demolition (64)", // 2: Title
+  DocumentType.material_effect, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2019-04-01", // 5: Issuance date
+  "-", // 6: Language
+  undefined, // 7: Pages
+  "LKAB", // 8: Stakeholders
+  "blueprints/effects", // 9: Scale
+  `After the construction of the new town hall was completed, the old building, nicknamed "The Igloo," ` +
+    `was demolished. The only elements preserved were the door handles, a masterpiece of Sami art made ` +
+    `of wood and bone, and the clock tower, which once stood on the roof of the old town hall. The clock ` +
+    `tower was relocated to the central square of New Kiruna, in front of the new building.`, // 10: Description
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.852500, 20.222444)) // 11: Coordinates
+);
+const doc_65 = new Document(
+  65, // 1: ID
+  "Construction of Aurora Center begins (65)", // 2: Title
+  DocumentType.material_effect, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2019-05-01", // 5: Issuance date
+  "-", // 6: Language
+  undefined, // 7: Pages
+  "LKAB", // 8: Stakeholders
+  "blueprints/effects", // 9: Scale
+  `Shortly after the construction of the Scandic hotel began, work on the Aurora Center also started, ` +
+    `a multifunctional complex that includes the municipal library of Kiruna. The two buildings are ` +
+    `close to each other and connected by a skywalk, just like in the old town center.`, // 10: Description
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.849167, 20.304389)) // 11: Coordinates
+);
+const doc_69 = new Document(
+  69, // 1: ID
+  "Construction of Block 1 begins (69)", // 2: Title
+  DocumentType.material_effect, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2019-06-01", // 5: Issuance date
+  "-", // 6: Language
+  undefined, // 7: Pages
+  "LKAB", // 8: Stakeholders
+  "blueprints/effects", // 9: Scale
+  `Simultaneously with the start of construction on the Aurora Center, work also began on Block 1, ` +
+    `another mixed-use building overlooking the main square and the road leading to old Kiruna. ` +
+    `These are the first residential buildings in the new town.`, // 10: Description
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.848567, 20.300333)) // 11: Coordinates
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+const documents = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
 const actualDocuments = [doc_15, doc_18, doc_41]
 const docs_stakeholders = [p1, p2, p3, p4, p5]
 

@@ -21,6 +21,7 @@
     "@mui/material": "^6.1.5",
     "@mui/styles": "^6.1.5",
     "@react-google-maps/api": "^2.20.3",
+    "@turf/turf": "^7.1.0",
     "@vis.gl/react-google-maps": "^1.4.0",
     "animate.css": "^4.1.1",
     "dayjs": "^1.11.13",
