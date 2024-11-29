@@ -4,7 +4,7 @@ import request from "supertest";
 import { app, server } from "../../../index";
 import pgdb from "../../db/temp_db";
 import DocumentDAO from "../../rcd/daos/documentDAO";
-import { dbEmpty } from "../../db/db_common_operations";
+import { dbEmpty, dbPopulate, dbPopulateActualData } from "../../db/db_common_operations";
 import { populate } from "../populate_for_some_tests";
 import db from "../../db/db";
 import { CoordinatesType } from "../../models/coordinates";
@@ -21,7 +21,8 @@ describe("PATCH /documents/:id/coordinates Route Tests", () => {
 
   beforeEach(async () => {
     await dbEmpty();
-    await populate();
+    //await populate();
+    await dbPopulateActualData();
   });
 
   afterAll(async () => {

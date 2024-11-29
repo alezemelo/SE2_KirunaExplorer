@@ -14,6 +14,7 @@ import { populate } from '../populate_for_some_tests';
 import db from '../../db/db';
 import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 import dayjs from "dayjs";
+import knex from "knex";
 
 /*
 const complete_doc = new Document(
@@ -45,7 +46,6 @@ const complete_doc = new Document(
   "Sample test doc", // Title
   DocumentType.informative_doc, // Type
   "admin", // Last modified by
-
   dayjs.utc('2005').toISOString(), // Issuance date
   "Swedish", // Language
   999, // Pages
@@ -111,8 +111,8 @@ describe('get_document Integration Tests', () => {
   describe('DAO Tests', () => {
       test('OK document found', async () => {
         // Setting data
-        await dbEmpty();
-        await insertAdmin();
+        //await dbEmpty();
+        //await insertAdmin();
         await db("documents").insert(minimal_doc.toObjectWithoutStakeholders());
 
         // Running test target function(s)
@@ -145,12 +145,13 @@ describe('get_document Integration Tests', () => {
 
       test('OK document with Point coordinates found', async () => {
         // Setting data
-        await dbEmpty();
-        await insertAdmin();
+        //await dbEmpty();
+        //await insertAdmin();
         await db("documents").insert(complete_doc.toObjectWithoutStakeholders());
 
         // Running test target function(s)
         const response = await documentDAO.getDocument(99);
+
 
         // Checking results
         expect(response).not.toBeNull();
@@ -186,8 +187,8 @@ describe('get_document Integration Tests', () => {
 
       test('OK document with Polygon coordinates found', async () => {
         // Setting data
-        await dbEmpty();
-        await insertAdmin();
+        //await dbEmpty();
+        //await insertAdmin();
         const polygon = new CoordinatesAsPolygon([
             new CoordinatesAsPoint(20.123, 30.456),
             new CoordinatesAsPoint(40.789, 50.012),

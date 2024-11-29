@@ -15,6 +15,18 @@ import db from "./db";
 // Database Populate function
 export async function dbPopulate() {
     try {
+
+
+        // inserts sample stakeholder and sample doctypes
+        await knex('stakeholders').insert([
+            { name: 'Stakeholder A' },
+        ]);
+        await knex('doctypes').insert([
+            {name: 'informative_doc'},
+            {name: 'technical_doc'},
+        ]);
+
+
         // Insert users
         await knex('users').insert([
             { username: 'user1', hash: 'hash1', salt: 'salt1', type: 'resident' },
@@ -55,13 +67,7 @@ export async function dbPopulate() {
             { doc_id1: doc1[0].id, doc_id2: doc2[0].id, link_type: 'direct', created_at: new Date() }
         ]);
         
-        await knex('stakeholders').insert([
-            { name: 'Stakeholder A' },
-        ]);
-        // console.log("Sample document links inserted.");
-        await knex('doctypes').insert([
-            {name: 'informative_doc'},
-        ]);
+        
         
     } catch (error) {
         console.error("Error populating database:", error);

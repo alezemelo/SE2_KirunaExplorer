@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app } from '../../../index';
+import { app, server } from '../../../index';
 import db from '../../db/db';
 import pgdb from '../../db/temp_db';
 import { dbEmpty, dbPopulate, dbPopulateActualData } from '../../db/db_common_operations';
@@ -8,7 +8,7 @@ import { populate } from '../populate_for_some_tests';
 import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login} from "./test_utility";
 
 const testPort = 3001; 
-let server: any;
+//let server: any;
 
 beforeAll(async () => {
     await dbEmpty(); 
@@ -25,7 +25,7 @@ beforeAll(async () => {
     }
     */
 
-    server = app.listen(testPort);
+    //server = app.listen(testPort);
 });
 
 beforeEach(async () => {
@@ -36,9 +36,13 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
+    await dbEmpty();
+    /*
     if (server) {
         await new Promise<void>((resolve) => server.close(() => resolve()));
     }
+    */
+   server.close();
     await pgdb.disconnect();
     await db.destroy();
 });
