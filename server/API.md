@@ -333,21 +333,26 @@ Retrieves information about the currently logged in user.
 
 ### Files API
 
-#### POST `/files/upload/documentId`
+#### POST `/files/upload/:documentId/:fileName`
 
 Uploads a file and associates it with a document.
 
 - **Request Parameters**:
   - `documentId`: the document related to the file that was sent
+  - `fileName`: The file name
 - **Request Body Content**:
   - Form-data with the following fields:
     - `file`: The file to be uploaded.
-    - `fileName`: The file name
 - **Response Code**:
   - `201` if the file is uploaded successfully.
   - `400` if no file is uploaded.
-- **Response Body Content**:
-  - `file_id`: the id assigned by the DB to the file, should be autoincremental
+- **Response Body Content**: the id assigned by the DB to the file, should be autoincremental
+  - Example
+  ```json
+  {
+      "fileId": 5
+  }
+  ```
 - **Access Constraints**: Can only be called by a logged in User
   
 
@@ -377,8 +382,10 @@ Retrieves all file IDs associated with a document.
 - **Response Body Content**:
   ```json
   [
-    {"id": 1, "name": "file1"}, 
-    {"id": 2, "name": "file2"}
+      {
+          "id": 1,
+          "name": "loremipsum"
+      },
   ]
   ```
 
@@ -393,8 +400,14 @@ Retrieves all file IDs and names.
 - **Response Body Content**:
   ```json
   [
-    { "id": 1, "name": "file1" },
-    { "id": 2, "name": "file2" }
+      {
+          "id": 1,
+          "name": "loremipsum"
+      },
+      {
+          "id": 2,
+          "name": "kiruna_map"
+      }
   ]
   ```
 
