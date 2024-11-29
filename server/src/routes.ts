@@ -9,6 +9,7 @@ import LinkRouter from "./rcd/routes/LinksRoute"
 import StakeholdersRoutes from "./rcd/routes/stakeholders_routes"
 import Authenticator from "./authentication/auth"
 import { AuthRoutes } from "./rcd/routes/user_routes"
+import FileRoutes from "./rcd/routes/file_routes"
 
 /**
  * Initializes the routes for the application.
@@ -28,13 +29,12 @@ function initRoutes(app: express.Application) {
     const linkDocumentRouter = new LinkRouter(authenticator);
     const stakeholdersRoutes = new StakeholdersRoutes(authenticator);
     const authRoutes = new AuthRoutes(authenticator);
+    const fileRoutes = new FileRoutes(authenticator);
 
 
     /**
      * Add your routers here, like the documents router was added
      */
-    
-
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
     console.log("doc routes initialized!");
     app.use(`${prefix}/linkDocuments`, linkDocumentRouter.getRouter());
@@ -43,6 +43,8 @@ function initRoutes(app: express.Application) {
     console.log("auth routes initialized!");
     app.use(`${prefix}/stakeholders`, stakeholdersRoutes.getRouter())
     console.log("stakeholders routes initialized!");
+    app.use(`${prefix}/files`, fileRoutes.getRouter())
+    console.log("file routes initialized!");
 
     ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");
