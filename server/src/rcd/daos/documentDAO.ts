@@ -8,7 +8,7 @@ import { Document } from '../../models/document';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
 import { groupEntriesById } from './helperDaos';
 import { UniqueConstraintError } from '../../errors/dbErrors';
-import { DocumentNotFoundError, DocumentTypeNotFoundError, StakeholdersNotFoundError } from '../../errors/documentErrors';
+import { DocumentNotFoundError, DocumentTypeNotFoundError, ScaleNotFoundError, StakeholdersNotFoundError } from '../../errors/documentErrors';
 
 class DocumentDAO {
     private db: any;
@@ -156,7 +156,6 @@ class DocumentDAO {
      */
     public async updateDocument(id: number, body: any): Promise<void> {
         try {
-            console.log("sbout to start transaction...")
             await db.transaction(async (trx) => {
 
                 // checks if doc exists
@@ -173,10 +172,10 @@ class DocumentDAO {
                         .where({ id })
                         .update({ scale: body.scale });
                 }
-                if (body.type) {
+                if (body.doctype) {
                     await trx('documents')
                         .where({ id })
-                        .update({ type: body.type });
+                        .update({ type: body.doctype });
                 }
                 if (body.stakeholders) {
                     const deletedRows = await trx('document_stakeholders')
@@ -202,6 +201,9 @@ class DocumentDAO {
             }
             if (error.code === '23503' && error.message.includes('documents_type_foreign')) {
                 throw new DocumentTypeNotFoundError();
+            }
+            if (error.code === '23503' && error.message.includes('documents_scale_foreign')) {
+                throw new ScaleNotFoundError();
             }
             if (error.code === '23503' && error.message.includes('document_stakeholders_stakeholder_id_foreign')) {
                 throw new StakeholdersNotFoundError();

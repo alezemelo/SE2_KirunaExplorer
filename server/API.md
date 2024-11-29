@@ -107,7 +107,7 @@ Able to overwrite stakeholders, scale, and document type.
   {
     "stakeholders": ["Stakeholder1", "Stakeholder2"],
     "type": "new_type",
-    "scale": "new scale"
+    "scale": "1:new_scale"
   }
   ```
 - Response Body Content: `None`
@@ -116,6 +116,7 @@ Able to overwrite stakeholders, scale, and document type.
   - May return errors specified in the head of this file or any other generic error
 - Additional constraints:
   - All fields are optional, if no field is specified, nothing will be changed in the db.
+  - Scale must be in the format 1:integer_positive_number
 
 #### GET `/kiruna_explorer/documents/search?title=mytitle`
 
@@ -321,6 +322,44 @@ adds a new valid doctype
 - Access contraints: Urban Planner
 - Returns `409` if name already esists:
 - returns `422` if the request body content is not correct (must be a non-empty string)
+
+
+### Scale APIs
+
+These allow to get a list of every valid scale value and add a new scale value.
+
+#### GET `kiruna_explorer/scales`
+
+returns the list of all valid scale values 
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"value": "blueprint/effect"},
+  {"value": "text"},
+  {"value": "1:10000"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/scales`
+
+adds a new valid scale
+
+- Request Parameters: None
+- Request body content:
+  `{"value": "1:20000"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: value of new scale 
+- Access contraints: Urban Planner
+- Returns `409` if value already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string and with format 1:positive_integer)
 
 ### Auth APIs
 

@@ -41,7 +41,7 @@ const doc_18 = new Document(
   32, // 7: Pages
   //"Kiruna kommun", // 8: Stakeholders
   ["Kiruna kommun"], // 8: Stakeholders
-  "1:8.000", // 9: Scale
+  "1:8000", // 9: Scale
   `This is the first of 8 detailed plans located in the old center of Kiruna, aimed at transforming the ` +
     `residential areas into mining industry zones to allow the demolition of buildings. The area includes the ` +
     `town hall, the Ullspiran district, and the A10 highway, and it will be the first to be dismantled. ` +
@@ -62,7 +62,7 @@ const doc_41 = new Document(
   111, // 7: Pages
   ["Kiruna kommun", "White Arkitekter"], // 8: Stakeholders
   //"Kiruna kommun/White Arkitekter", // 8: Stakeholders
-  "1:7.500", // 9: Scale
+  "1:7500", // 9: Scale
   `The development plan shapes the form of the new ` +
     `city. The document, unlike previous competition ` +
     `documents, is written entirely in Swedish, which ` +
@@ -325,8 +325,6 @@ const doc_69 = new Document(
     `These are the first residential buildings in the new town.`, // 10: Description
   new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.848567, 20.300333)) // 11: Coordinates
 );
-
-
 
 const ds1 = {
   doc_id: 15,

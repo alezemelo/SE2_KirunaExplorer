@@ -346,8 +346,19 @@ class DocumentRoutes {
         this.authService.isUserAuthorized(UserType.UrbanPlanner),
         param('id').isInt().toInt(),
         body('doctype').optional().isString().withMessage('Doctype must be a string').notEmpty().withMessage('Doctype must not be empty'),
-        body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty'),
-        body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty'),
+        body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty')
+            // standardizes
+            .customSanitizer((value) => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue === 'text') return 'Text';
+                if (lowerValue === 'blueprint/effects') return 'blueprint/effects';
+                return value; // Return unmodified if not matching the cases
+            })
+            .customSanitizer((value) => {
+                return value.replace(/:([\d.]+)/, (_: any, num: any) => `:${num.replace(/\./g, '')}`);
+            })
+        // checks that the format is 1:some_positive_integer
+        .matches(/^(1:\d+|Text|blueprint\/effects)$/).withMessage('Value must follow the format "1:number", where number is a positive integer or be "Text" or "blueprint/effects"'),
         body('stakeholders').optional().isArray().withMessage('Stakeholders must be an array')
         .custom((stakeholders) => {
             if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
