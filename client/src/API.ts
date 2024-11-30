@@ -124,21 +124,37 @@ async function createLink(doc_id1: number, doc_id2: number, link_type: string) {
       }
 }
 
-async function addDocument(finalDocument: any){
-    const response = await fetch('http://localhost:3000/kiruna_explorer/documents', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(finalDocument),
-      });
+// async function addDocument(finalDocument: any){
+//     const response = await fetch('http://localhost:3000/kiruna_explorer/documents', {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         credentials: "include",
+//         body: JSON.stringify(finalDocument),
+//       });
 
 
-      if (!response.ok) {
-        throw new Error("Error: " + response.statusText);
-      }
-      const result = await response.json();
-      console.log("res:", result);
+//       if (!response.ok) {
+//         throw new Error("Error: " + response.statusText);
+//       }
+//       const result = await response.json();
+//       console.log("res:", result);
+// }
+async function addDocument(finalDocument: any) {
+  const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(finalDocument),
+  });
+
+  if (!response.ok) {
+    const errorDetails = await response.json(); // Check if error details exist
+    throw new Error(errorDetails.message || `Error: ${response.statusText}`);
+  }
+
+  return response.json(); // Ensure this returns a valid JSON response
 }
+
 
 async function updateCoordinates(id: number, coordinates: Coordinates) {
     try {
@@ -171,6 +187,65 @@ async function updateDescription(id: number, description: string){
         console.error("Error:", error);
       }
 }
+async function addStakeholder(stakeholder: { name: string }): Promise<Response> {
+  try {
+    const response = await fetch('http://localhost:3000/kiruna_explorer/doctypes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Include authorization headers if required
+      },
+      credentials: 'include', // Include cookies if needed
+      body: JSON.stringify(stakeholder),
+    });
+
+    if (!response.ok) {
+      // Handle specific errors for better UX
+      if (response.status === 409) {
+        throw new Error('Stakeholder already exists.');
+      }
+      if (response.status === 422) {
+        throw new Error('Invalid stakeholder name. It must be a non-empty string.');
+      }
+
+      throw new Error(`Failed to add stakeholder. Status: ${response.status}`);
+    }
+
+    return response; // Return the response for further processing in the component
+  } catch (error) {
+    console.error('Error adding stakeholder:', error);
+    throw error;
+  }
+}
+async function addDoctype(doctype: { name: string }): Promise<Response> {
+  try {
+    const response = await fetch('http://localhost:3000/kiruna_explorer/doctypes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add any necessary authorization headers here
+      },
+      credentials: 'include', // Include cookies if needed
+      body: JSON.stringify(doctype),
+    });
+
+    if (!response.ok) {
+      if (response.status === 409) {
+        throw new Error('Doctype already exists.');
+      }
+      if (response.status === 422) {
+        throw new Error('Invalid doctype name. It must be a non-empty string.');
+      }
+      throw new Error(`Failed to add doctype. Status: ${response.status}`);
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error adding doctype:', error);
+    throw error;
+  }
+}
+
 
 const API = {
     getDocuments,
@@ -183,7 +258,9 @@ const API = {
     updateDescription, 
     login,
     logout,
-    checkAuth
+    checkAuth,
+    addStakeholder,
+    addDoctype
 }
 
 export default API 
