@@ -45,8 +45,10 @@ const Map: React.FC<MapProps> = (props) => {
   }
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [buttonText, setButtonText] = useState("Switch to Street View");
-  const [markers,setMarkers] = useState<mapboxgl.Marker[]>([]);
+  const [markers, setMarkers] = useState<{ id: number, marker: mapboxgl.Marker }[]>([]);
   const [geojson, setGeojson] = useState(null);
+  const [confirmChanges, setConfirmChanges] = useState(false); //open the dialog for confirmation
+  const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations of the coordinates for updating
 
 
   const toggleMapStyle = () => {
@@ -95,8 +97,7 @@ const Map: React.FC<MapProps> = (props) => {
       const marker = new mapboxgl.Marker({ color: "red", draggable:true })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
-      marker.getElement().setAttribute("marker_id",doc.id.toString());
-      markers.push(marker);
+      markers.push({ id: doc.id, marker });
   
       // Add a popup with the document's title and details
       const popup = new mapboxgl.Popup({ offset: 25 }) // Offset for better positioning
@@ -123,23 +124,26 @@ const Map: React.FC<MapProps> = (props) => {
       marker.on('dragend', (e) => {
         const currentLngLat = e.target.getLngLat();
         const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat,currentLngLat.lng))
-        handleDrag(doc.id,coordinates)
+        //handleDrag(doc.id,coordinates)
+        setConfirmChanges(true);
+        setCoordinatesInfo({id: doc.id, coordinates: coordinates});
       });
     });
     setMarkers(markers);
   };
 
   useEffect(()=>{
-    props.documents.forEach((doc) => {
-      const markerElement = document.querySelector(`[marker_id='${doc.id}']`);
-      if (markerElement) {
-        markerElement
-      }
-    })
-  },[props.pin])
+    const marker = markers.find((marker)=>marker.id == props.pin);
+    if(marker?.marker.getElement()){
+      marker.marker.getElement().style.transform = 'scale(2)';
+    }
+  },[props.pin, markers])
 
   const handleDrag = async (id:number,coordinates:Coordinates) => {
-        await API.updateCoordinates(id,coordinates)
+    if(coordinatesInfo){
+      await API.updateCoordinates(id,coordinates)
+    }
+    setConfirmChanges(false)
   }
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
@@ -238,8 +242,50 @@ const Map: React.FC<MapProps> = (props) => {
     }
   }, [props.adding, props.updating, props.setCoordMap]);
 
+  const overlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Sfondo semi-trasparente
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  };
+
+  const modalStyle: React.CSSProperties = {
+    backgroundColor: 'white',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    textAlign: 'center',
+  };
+  
+  const buttonStyle: React.CSSProperties = {
+    padding: '10px 20px',
+    fontSize: '16px',
+    backgroundColor: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    margin: '5px',
+  };
+
   return (
     <div style={{ height: "100vh", width: "100%" }}>
+      {confirmChanges && <div style={overlayStyle} >
+      <div style={modalStyle}>
+        <h3>Do you want to change the coordinates of this document</h3>
+          <button style={buttonStyle} onClick={() => {
+            if(coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
+            handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
+            }} >Confirm</button>
+          <button style={buttonStyle} onClick={()=>{setConfirmChanges(false)}}>Cancel</button>
+        </div>
+      </div>}
       <ReactMapGL
         {...viewport}
         mapStyle={mapStyle}
