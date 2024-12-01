@@ -7,6 +7,7 @@ import { SAMPLE_FILES } from "../db/sample_data/sample_files";
 import { SAMPLE_DOC_FILES } from "../db/sample_data/sample_doc_files";
 import { ACTUAL_DOCTYPES } from "../db/actual_data/actual_doctypes";
 import { ACTUAL_STAKEHOLDERS } from "../db/actual_data/actual_stakeholders";
+import ACTUAL_SCALES from "../db/actual_data/actual_scales";
 
 
 export async function populate() {
@@ -24,6 +25,10 @@ export async function populate() {
 
         for (const doctype of ACTUAL_DOCTYPES) {
             await knex('doctypes').insert(doctype);
+        }
+
+        for (const scale of ACTUAL_SCALES) {
+            await knex('scales').insert(scale);
         }
         
         // Insert __ACTUAL__ documents

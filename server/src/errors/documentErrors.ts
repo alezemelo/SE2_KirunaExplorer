@@ -1,6 +1,7 @@
 const DOCUMENT_NOT_FOUND = "Document ID not found in the db";
 const STAKEHOLDERS_NOT_FOUND = "Stakeholders not found in the db";
 const DOCUMENT_TYPE_NOT_FOUND = "Document type not found in the db";
+const SCALE_NOT_FOUND = "Scale value not found in the db";
 const STAKEHOLDER_ALREADY_EXISTS = "A stakeholder with the same name is already in the db";
 const DOCUMENT_ALREADY_EXISTS = "A document with the same id is already in the db";
 
@@ -60,6 +61,17 @@ class DocumentTypeNotFoundError extends Error {
     }
 }
 
+class ScaleNotFoundError extends Error {
+    customCode: number;
+    customMessage: string;
+
+    constructor() {
+        super();
+        this.customMessage = SCALE_NOT_FOUND;
+        this.customCode = 404;
+    }
+}
+
 /**
  * Represents an error when a document is not added to the database.
  */
@@ -74,4 +86,4 @@ class DocumentNotAddedError extends Error {
     }
 }
 
-export { DocumentNotFoundError, DocumentNotAddedError, StakeholdersNotFoundError, DocumentAlreadyExistsError, DocumentTypeNotFoundError };
+export { DocumentNotFoundError, DocumentNotAddedError, StakeholdersNotFoundError, DocumentAlreadyExistsError, DocumentTypeNotFoundError, ScaleNotFoundError};

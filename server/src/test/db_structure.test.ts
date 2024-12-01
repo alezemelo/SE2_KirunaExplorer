@@ -56,7 +56,18 @@ async function insertStakeholders() {
     await db("stakeholders").insert([
         { name: "Kiruna Kommun"},
         { name: "Residents"}]);
-    }
+}
+
+async function insertScales() {
+    await db("scales").insert([
+        {value: "Text"},
+	    {value: "1:8000"},
+	    {value: "1:7500"},
+	    {value: "1:12000"},
+	    {value: "1:1000"},
+	    {value: "blueprints/effects"}
+    ]);
+}
 
 describe("DB structure (constraints, basic insertions, column types)", () => {
     beforeAll(async () => {
@@ -73,6 +84,7 @@ describe("DB structure (constraints, basic insertions, column types)", () => {
         //await dbPopulateActualData();
         await insertDoctypes();
         await insertStakeholders();
+        await insertScales();
     });
 
     describe("timezone for issuance_date in documents table tests", () => {
