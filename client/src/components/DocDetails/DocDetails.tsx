@@ -48,10 +48,16 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     }
   });
 
-
-
-
-
+  const getLinks = async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>,i:number,doc: Document) => {
+    e.stopPropagation();
+    console.log("link navigation");
+    const links = await API.getLinks(props.document.id);
+    const l = links[i]
+    if(l){
+      if(l.docId1!=doc.id) {props.setNewPin(l.docId1)}
+      else if(l.docId2!=doc.id) {props.setNewPin(l.docId2)}
+    }
+  }
 
   const connections = props.document.connection || []; 
   const displayedConnections = expand ? connections : connections.slice(0, 3);
@@ -65,9 +71,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         {connections.length > 0 ? (
            displayedConnections.map((conn: string, index: number) => (
             <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e)=>{
-              //e.stopPropagation();
-              console.log("link navigation")
-              props.setNewPin(props.document.id)}}>
+              getLinks(e,index,props.document)
+              }}>
               <u>{conn}</u>
             </Typography>
           ))

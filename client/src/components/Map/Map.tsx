@@ -95,6 +95,8 @@ const Map: React.FC<MapProps> = (props) => {
       const marker = new mapboxgl.Marker({ color: "red", draggable:true })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
+      marker.getElement().setAttribute("marker_id",doc.id.toString());
+      markers.push(marker);
   
       // Add a popup with the document's title and details
       const popup = new mapboxgl.Popup({ offset: 25 }) // Offset for better positioning
@@ -117,19 +119,24 @@ const Map: React.FC<MapProps> = (props) => {
         // Call setNewPin to handle additional actions when a marker is clicked
         props.setNewPin(doc.id);
       });
-      marker.on('dragend', (e) => {
-        const currentLngLat = e.target.getLngLat();
-        const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat,currentLngLat.lng))
-        handleDrag(doc.id,coordinates)
-      });
+
       marker.on('dragend', (e) => {
         const currentLngLat = e.target.getLngLat();
         const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat,currentLngLat.lng))
         handleDrag(doc.id,coordinates)
       });
     });
-    //setMarkers(markers);
+    setMarkers(markers);
   };
+
+  useEffect(()=>{
+    props.documents.forEach((doc) => {
+      const markerElement = document.querySelector(`[marker_id='${doc.id}']`);
+      if (markerElement) {
+        markerElement
+      }
+    })
+  },[props.pin])
 
   const handleDrag = async (id:number,coordinates:Coordinates) => {
         await API.updateCoordinates(id,coordinates)
@@ -164,6 +171,8 @@ const Map: React.FC<MapProps> = (props) => {
       // Marker click handler to display the polygon
       marker.getElement()?.addEventListener("click", () => {
         console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
+        
+        props.setNewPin(doc.id);
   
         const sourceId = `polygon-${doc.id}`;
         if (mapInstance.getSource(sourceId)) {
@@ -228,17 +237,6 @@ const Map: React.FC<MapProps> = (props) => {
       props.setCoordMap(c);
     }
   }, [props.adding, props.updating, props.setCoordMap]);
-
-  /*useEffect(() => {
-    const getMunicipality = async() => {
-      
-    }
-    getMunicipality();
-  },[])*/
-
-/*  useEffect(() => {
-    console.log(geojson)
-  },[geojson])*/
 
   return (
     <div style={{ height: "100vh", width: "100%" }}>
