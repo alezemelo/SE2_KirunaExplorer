@@ -1,14 +1,22 @@
 import request from 'supertest';
-import { app } from '../../../index';
+
+/* Changelog: imported server too and used server directly instead of server = app.listen(testPort), cause it was keeping handle open and failing other test that used port 3001 */
+
+import { app, server } from '../../../index';
 import db from '../../db/db';
 import pgdb from '../../db/temp_db';
-import { dbEmpty, dbPopulate } from '../../db/db_common_operations';
+import { dbEmpty, dbPopulate, dbPopulateActualData } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 
 import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login} from "./test_utility";
 
-const testPort = 3001; 
-let server: any;
+
+
+
+
+// const testPort = 3001; 
+// let server: any;
+
 
 beforeAll(async () => {
     await dbEmpty(); 
@@ -25,19 +33,31 @@ beforeAll(async () => {
     }
     */
 
-    server = app.listen(testPort);
+    // server = app.listen(testPort);
+
 });
 
 beforeEach(async () => {
     await dbEmpty(); // Clear the database before each test
     //await dbPopulate(); // Populate the database with sample dat
-    await populate();
+    //await populate();
+    await dbPopulateActualData();
 })
 
 afterAll(async () => {
+    await dbEmpty();
+    /*
     if (server) {
         await new Promise<void>((resolve) => server.close(() => resolve()));
     }
+    */
+   server.close();
+
+
+
+
+
+
     await pgdb.disconnect();
     await db.destroy();
 });
@@ -50,7 +70,7 @@ describe('POST /kiruna_explorer/documents', () => {
             issuanceDate: '2023-01-01',
             language: 'en',
             pages: 10,
-            stakeholders: 'City Council',
+            stakeholders: ['Residents'],
             scale: '1:1000',
             description: 'A document with POINT coordinates',
             coordinates: {

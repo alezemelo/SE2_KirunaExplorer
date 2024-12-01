@@ -9,7 +9,7 @@ import { DocumentLink, LinkType } from "../../models/document";
 import { app, server } from '../../../index';
 import dbpg from '../../db/temp_db';
 
-import { dbEmpty } from '../../db/db_common_operations';
+import { dbEmpty, dbPopulateActualData } from '../../db/db_common_operations';
 import { populate } from '../populate_for_some_tests';
 import db from '../../db/db';
 import { URBAN_DEVELOPER, URBAN_PLANNER, RESIDENT, login } from "./test_utility";
@@ -38,7 +38,8 @@ describe('get links integretion', () => {
     test('createLink OK', async () => {
         await dbpg.client.query('DELETE FROM document_links');
         await dbEmpty();
-        await populate();
+        //await populate();
+        await dbPopulateActualData();
         const response = await linksDAO.createLink(15,18,LinkType.projection);
         expect(response).toBe(1);
         

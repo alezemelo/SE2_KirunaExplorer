@@ -72,7 +72,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Typography>
           ))
         ) : (
-          <Typography variant="body2" color="textSecondary">
+          <Typography variant="body2" color="white">
             No connections available.
           </Typography>
         )}
@@ -210,7 +210,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   };*/
 
   return (
-    <Card elevation={6} onClick={() => setPin(props.document.id)} style={{ margin: "5px", padding: "5px" }}>
+    <Card elevation={6} onClick={() => setPin(props.document.id)} style={{ margin: "5px", padding: "5px", backgroundColor: "#2A2A2A", color: "#FFFFFF" }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{props.document.title}
@@ -242,12 +242,12 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                   variant="outlined"
                   size="small"
                   placeholder="Enter latitude"
-                  style={{ marginLeft: '8px', width: '120px' }}
+                  style={{ marginLeft: '8px', width: '120px', backgroundColor: "#2A2A2A", color: "#FFFFFF"}}
                 />
               ) : (
                 <Typography
                   variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
+                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
                   /*onClick={() => setEditLat(true)}*/
                 >
                   {/*lat || "Enter latitude"*/lat?lat:''}
@@ -269,12 +269,12 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                   variant="outlined"
                   size="small"
                   placeholder="Enter longitude"
-                  style={{ marginLeft: '8px', width: '120px' }}
+                  style={{ marginLeft: '8px', width: '120px', backgroundColor: "#2A2A2A", color: "#FFFFFF" }}
                 />
               ) : (
                 <Typography
                   variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: '#f3f3f3', padding: '4px', borderRadius: '8px' }}
+                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
                   /*onClick={() => setEditLng(true)}*/
                 >
                   {/*lng || "Enter longitude"*/lng?lng:''}

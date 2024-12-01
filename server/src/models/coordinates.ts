@@ -70,6 +70,44 @@ export class Coordinates {
     static isGeographyString(input: string): boolean {
         return CoordinatesAsPoint.isPoint(input) || CoordinatesAsPolygon.isPolygon(input);
     }
+
+    static fromJSON(json: any): Coordinates {
+        // Check that the json is correctly formatted: type
+        if (!json.type || (json.type !== CoordinatesType.MUNICIPALITY && !json.coords) || (json.type === CoordinatesType.MUNICIPALITY && json.coords)) {
+            throw new Error("Invalid coordinates JSON");
+        }
+        // Check that the json is correctly formatted: coords
+        if (json.type === CoordinatesType.POINT && (!json.coords.lat || !json.coords.lng)) {
+            throw new Error("Invalid POINT coordinates: lat and lng are required");
+        }
+        if (json.type === CoordinatesType.POLYGON) {
+            if (!Array.isArray(json.coords.coordinates) || json.coords.coordinates.length < 4) {
+                throw new Error("Invalid POLYGON coordinates: at least 4 points are required");
+            }
+            for (const coord of json.coords.coordinates) {
+                if (!coord.lat || !coord.lng) {
+                    throw new Error("Invalid POLYGON coordinates: lat and lng are required");
+                }
+            }
+        }
+        // Don't check for compatibilty, also when fetching from db it already ignores it in case
+        // if (json.type === CoordinatesType.MUNICIPALITY && json.coords !== null) {
+        //     throw new Error("Invalid MUNICIPALITY coordinates: coords should be null");
+        // }
+        
+
+        // Do the conversion based on type and use the correct fields
+        if (json.type === CoordinatesType.MUNICIPALITY) {
+            return new Coordinates(CoordinatesType.MUNICIPALITY, null);
+        } else if (json.type === CoordinatesType.POINT) {
+            return new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(json.coords.lat, json.coords.lng));
+        } else if (json.type === CoordinatesType.POLYGON) {
+            const coords = json.coords.coordinates.map((coord: any) => new CoordinatesAsPoint(coord.lat, coord.lng));
+            return new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(coords));
+        } else {
+            throw new Error("Invalid coordinates type");
+        }
+    }
 }
 
 export class CoordinatesAsPoint {

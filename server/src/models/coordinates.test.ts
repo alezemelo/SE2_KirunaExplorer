@@ -476,8 +476,99 @@ describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
                 expect(Coordinates.isGeographyString(invalidGeographyString)).toBe(false);
             });
         });
+
+        describe('fromJSON', () => {
+            it('should create an instance from a JSON object with a Point', () => {
+                const json = {
+                    type: 'POINT',
+                    coords: { lat: 20, lng: 30 },
+                };
+                const coords = Coordinates.fromJSON(json);
+                expect(coords.getType()).toBe(CoordinatesType.POINT);
+                const point = coords.getCoords() as CoordinatesAsPoint;
+                expect(point.getLat()).toBe(20);
+                expect(point.getLng()).toBe(30);
+            });
+
+            it('should create an instance from a JSON object with a Polygon', () => {
+                const json = {
+                    type: 'POLYGON',
+                    coords: { coordinates: [
+                            { lat: 20, lng: 30 },
+                            { lat: 40, lng: 50 },
+                            { lat: 60, lng: 70 },
+                            { lat: 20, lng: 30 },
+                        ]
+                    },
+                };
+                const coords = Coordinates.fromJSON(json);
+                expect(coords.getType()).toBe(CoordinatesType.POLYGON);
+                const polygon = coords.getCoords() as CoordinatesAsPolygon;
+                const polygon_coords = polygon.getCoordinates();
+                expect(polygon_coords[0].getLat()).toBe(20);
+                expect(polygon_coords[0].getLng()).toBe(30);
+                expect(polygon_coords[1].getLat()).toBe(40);
+                expect(polygon_coords[1].getLng()).toBe(50);
+                expect(polygon_coords[2].getLat()).toBe(60);
+                expect(polygon_coords[2].getLng()).toBe(70);
+                expect(polygon_coords[3].getLat()).toBe(20);
+                expect(polygon_coords[3].getLng()).toBe(30);
+            });
+
+            it('should create an instance from a JSON object with a MUNICIPALITY type', () => {
+                const json = {
+                    type: 'MUNICIPALITY',
+                };
+                const coords = Coordinates.fromJSON(json);
+                expect(coords.getType()).toBe(CoordinatesType.MUNICIPALITY);
+                expect(coords.getCoords()).toBe(null);
+            });
+
+            it('should throw an error for an invalid type', () => {
+                const json = {
+                    type: 'INVALID_TYPE',
+                };
+                expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid coordinates JSON/);
+            });
+
+            it('should throw an error for a missing type', () => {
+                const json = {
+                    coords: { lat: 20, lng: 30 },
+                };
+                expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid coordinates JSON/);
+            });
+
+            it('should throw an error for a missing coords with POINT', () => {
+                const json = {
+                    type: 'POINT',
+                };
+                expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid coordinates JSON/);
+            });
+
+            it('should throw an error for a missing coords with POLYGON', () => {
+                const json = {
+                    type: 'POLYGON',
+                };
+                expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid coordinates JSON/);
+            });
+
+            it('should throw an error for an invalid coords with POINT', () => {
+                const json = {
+                    type: 'POINT',
+                    coords: 'INVALID_COORDS',
+                };
+                expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid POINT coordinates/);
+            });
+
+            it('should throw an error for an invalid coords with POLYGON #1', () => {
+                const json = {
+                    type: 'POLYGON',
+                    coords: 'INVALID_COORDS',
+                };
+                expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid POLYGON coordinates/);
+            });
+        });
     });
-    // test coordinates allow for whole municipality
 
     describe('CoordinatesAsPolygon', () => {
         describe('Constructor and to GeographyString', () => {

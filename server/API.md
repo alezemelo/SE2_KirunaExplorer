@@ -36,16 +36,10 @@ Creates a new document
     "issuanceDate": "2023-10-01T00:00:00Z",
     "language": "English",
     "pages": 10,
-    "stakeholders": "Stakeholder Info",
+    "stakeholders": ["Stakeholder1", "stakeholder3"],
     "scale": "1:1000",
     "description": "Document Description",
-    "coordinates": {
-      "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
-      "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
-        "lat": 59.3293,
-        "long": 18.0686
-      }
-    }
+    "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
   }
 - Response Status code:
   - If created: `201`
@@ -53,12 +47,13 @@ Creates a new document
  - Response Body Content : 
     ```json
     {
-    "Message" : "Docuent added Successfully"
+    "Message" : "Document added Successfully"
     } 
 - Access Constraints:
    Only urban planner (Urban Developer)
 - Additional Constraints:
   - Title and coordinates are required fields
+  - Returns 400 if inserted stakeholders, type or scale are unknown
   - May return errors specified in the head of this file
 
 #### Explanation:
@@ -77,13 +72,7 @@ Edits the coordinates of a document
 - Request Parameters: `:id`, the doc id
 - Request Body Content:
 ```json
-{
-  "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
-  "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
-    "lat": 59.3293,
-    "long": 18.0686
-  }
-}
+{ ***valid coordinates JSON. See bottom of the file!*** }
 ```
 - Response Status code:
   - If ok:  `200`
@@ -106,7 +95,30 @@ Adds or updates a description for an existing document, the latter being sent th
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
   - May return errors specified in the head of this file or any other generic error
 
-#### GET `/kiruna_explorer/documents/search?title=mytitle&municipality_filter=true`
+
+#### PATCH `/kiruna_explorer/documents/:id`
+
+Generic patch api for a document: content of the fields will be overwritten with the sent data.
+Able to overwrite stakeholders, scale, and document type.
+
+- Request Parameters: `id`, an integer number representing the document unique ID
+- Request Body Content:
+  ```json
+  {
+    "stakeholders": ["Stakeholder1", "Stakeholder2"],
+    "type": "new_type",
+    "scale": "1:new_scale"
+  }
+  ```
+- Response Body Content: `None`
+- Access Constraints: `Urban Planner` only
+  - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
+  - May return errors specified in the head of this file or any other generic error
+- Additional constraints:
+  - All fields are optional, if no field is specified, nothing will be changed in the db.
+  - Scale must be in the format 1:integer_positive_number, or "Text" or "blueprint/effect"
+
+#### GET `/kiruna_explorer/documents/search?title=mytitle`
 
 Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
 municipality_filter is an optional parameter to get only the documents related to all municipality. when it is omitted it searchs all documents. if it is present and true, it searchs the documents related to all municipality.
@@ -114,7 +126,7 @@ municipality_filter is an optional parameter to get only the documents related t
   - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
 - Response Body Content: list of matching docs
   - Example: 
-  ```
+  ```json
   [
     {
       'id': 1,
@@ -122,7 +134,7 @@ municipality_filter is an optional parameter to get only the documents related t
       'issuanceDate': '2007-01-01T00:00:00Z',
       'language': 'Swedish',
       'pages': ,
-      'stakeholders': 'Kiruna commun/Residents',
+      'stakeholders': ["Kiruna commun", "Residents"],
       'scale': 'Text',
       'description': 'This document is a compilation of the responses to the survey What is ...',
       'type': 'Informative document',
@@ -135,7 +147,7 @@ municipality_filter is an optional parameter to get only the documents related t
       'issuanceDate': '2007-01-01T00:00:00Z',
       'language': 'Engglish',
       'pages': 20,
-      'stakeholders': 'Kiruna commun/Residents',
+      'stakeholders': ["Kiruna commun", "Residents"],
       'scale': 'Text',
       'description': 'desc',
       'type': 'Informative document',
@@ -166,18 +178,12 @@ Fetches a `Document` object.
       "issuanceDate": "2007-01-01T00:00:00Z",
       "language": "Swedish",
       "pages": ,
-      "stakeholders": "Kiruna commun/Residents",
+      "stakeholders": ["Kiruna commun", "Residents"],
       "scale": "Text",
       "description": "This document is a compilation of the responses to the survey What is ...",
       "type": "Informative document",
       "lastModifiedBy": "user123",
-      "coordinates": {
-        "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
-        "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
-          "lat": 59.3293,
-          "long": 18.0686
-        }
-      }
+      "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
     }
     ```
 - **Access Constraints:** `None`
@@ -207,7 +213,26 @@ get the links of the document specified by the doc_id
 - Additional Constraints:
 - returns 400 if the id of the docuemnt does not exist.
 
+#### POST `/kiruna_explorer/documents/:id/stakeholders`
 
+adds new stakeholders to a document
+
+- Request Parameters: id of the document
+- Request Body Content: {"stakeholders", ["Residents", "White Arkitekter"]}
+- Response Body Content: None
+- Access contraints: Urban planner
+- Additional Constraints:
+  - 400 if stakeholders are already associated to doc
+  - 401 if unauthorized
+
+#### DELETE `/kiruna_explorer/documents/:id/stakeholders`
+
+- Request Parameters: id of the document
+- Request Body Content: {"stakeholders", ["Residents", "White Arkitekter"]}
+- Response Body Content: {"deletedRows": 2}
+- Access contraints: Urban planner
+- Additional Constraints:
+  - 401 if unauthorized
 #### POST `/kiruna_explorer/linkDocuments/create`
 
 create a link between two documents
@@ -223,6 +248,119 @@ create a link between two documents
 - Additional Constraints:
 - returns 400 if the id of the docuemnt does not exist.
 - returns 422 if the request body content is not correct
+
+### Stakeholders APIs
+
+#### GET `kiruna_explorer/stakeholders`
+
+gets the list of every stakeholder
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  ```json
+  [
+	{
+		"name": "White Arkitekter"
+	},
+	{
+		"name": "Kiruna kommun"
+	},
+	{
+		"name": "Residents"
+	}
+  ]
+  ```
+- Access contraints: None
+
+#### POST `kiruna_explorer/stakeholders`
+
+adds a new stakeholder to the list of possible stakeholders
+
+- Request Parameters: None
+- Request Body Content:
+  `{"name": "new_stakeholder"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: name of new stakeholder
+- Access contraints: Urban Planner
+- Returns `409` if name already esists:
+- returns `422` if the request body content is not correct
+
+### Doctype APIs
+
+These allow to get a list of every valid doctype and add a new doctype.
+
+#### GET `kiruna_explorer/doctypes`
+
+returns the list of all valid doctypes
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"name": "prescriptive_doc"},
+  {"name": "informative_doc"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/doctypes`
+
+adds a new valid doctype
+
+- Request Parameters: None
+- Request body content:
+  `{"name": "new_doctype"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: name of new doctype
+- Access contraints: Urban Planner
+- Returns `409` if name already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string)
+
+
+### Scale APIs
+
+These allow to get a list of every valid scale value and add a new scale value.
+
+#### GET `kiruna_explorer/scales`
+
+returns the list of all valid scale values 
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"value": "blueprint/effect"},
+  {"value": "text"},
+  {"value": "1:10000"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/scales`
+
+adds a new valid scale
+
+- Request Parameters: None
+- Request body content:
+  `{"value": "1:20000"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: value of new scale 
+- Access contraints: Urban Planner
+- Returns `409` if value already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string and with format 1:positive_integer)
 
 ### Auth APIs
 
@@ -272,3 +410,39 @@ Retrieves information about the currently logged in user.
 - Response Body Content: A **User** object that represents the logged in user
   - Example: `{username: "Gianni Verdi", type: "resident"}`
 - Access Constraints: Can only be called by a logged in User
+
+# Coordinates Format (Point, Polygon, Municipality)
+
+Point Coordinates  
+```json
+{
+  "type": CoordinatesType.POINT,
+  "coords": { 
+    "lat": 59.3293,
+    "lng": 18.0686
+  }
+}
+```
+
+Polygon Coordinates
+```json
+{
+  "type": CoordinatesType.POLYGON, 
+  "coords": {
+      "coordinates": [
+      { "lat": 59.3293, "lng": 18.0686 }
+      { "lat": 60.3293, "lng": 4.0686  }
+      { "lat": 43.3293, "lng": 44.0686 }
+      { "lat": 3.3293,  "lng": 38.0686 }
+    ]
+  }
+}
+```
+
+Municipality Coordinates
+```json
+{
+  "type": CoordinatesType.MUNICIPALITY,
+  // coords is not present (undefined) or is null
+}
+```

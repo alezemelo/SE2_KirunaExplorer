@@ -1,8 +1,10 @@
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-import {Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType} from "./coordinates";
 import { Knex } from "knex";
+
+import {Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType} from "./coordinates";
+import DateType from "./date_types";
 
 enum DocumentType {
     informative_doc = "informative_doc",
@@ -15,37 +17,89 @@ enum DocumentType {
 class Document {
     id: number;
     title: string;
-    type: DocumentType;
+    //type: DocumentType;
+    type: string;
     lastModifiedBy: string;
 
-    issuanceDate?: Dayjs;
+    issuanceDate: string;
     language?: string;
     pages?: number;
 
-    stakeholders?: string;
+    stakeholders?: string[];
     scale?: string;
     description?: string;
     public coordinates: Coordinates; // default to municipality type if no coordinates are provided
     
 
-    constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
-                issuanceDate?: Dayjs, language?: string, pages?: number,                 // Optional fields
-                stakeholders?: string, scale?: string,
+    //constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
+    constructor(id: number, title: string, type: string, lastModifiedBy: string,  // Required fields
+                issuanceDate: string, language?: string, pages?: number,                 // Optional fields
+                stakeholders?: string[], scale?: string,
                 description?: string, coordinates?: Coordinates) {
         this.id = id;
         this.title = title;
         this.type = type;
         this.lastModifiedBy = lastModifiedBy;
 
-        this.issuanceDate = issuanceDate;
         this.language = language;
         this.pages = pages;
         this.stakeholders = stakeholders;
         this.scale = scale;
         this.description = description;
 
-        // default to municipality type if no coordinates are provided
+        // Convert the coordinates to a Coordinates object if it's not already (fromJSON has proper format checking)
+        if (coordinates && !(coordinates instanceof Coordinates)) {coordinates = Coordinates.fromJSON(coordinates);}
+        // Default to municipality type if no coordinates are provided
         this.coordinates = coordinates ? coordinates : new Coordinates(CoordinatesType.MUNICIPALITY, null);
+
+        // Convert the issuance date to a string
+        const date_type = Document.infer_date_type(issuanceDate);
+        this.issuanceDate = Document.date_to_our_date(issuanceDate, date_type);
+    }
+
+    /* 
+    * Convert the issuance date to a string with the correct format based on type
+    */
+    static date_to_our_date(date: string, date_type: DateType | undefined): string {
+        let converted_date: string;
+
+        if (date_type) {
+            switch (date_type) {
+                case DateType.YEAR:
+                    converted_date = dayjs.utc(date).format('YYYY');
+                    break;
+                case DateType.YEARMONTH:
+                    converted_date = dayjs.utc(date).format('YYYY-MM');
+                    break;
+                case DateType.FULL:
+                    converted_date = dayjs.utc(date).format('YYYY-MM-DD');
+                    break;
+                default:
+                    converted_date = dayjs.utc(date).toISOString();
+            }
+        } else {
+            converted_date = dayjs.utc(date).toISOString();
+        }
+
+        return converted_date;
+    }
+
+    /*
+    * Infer the date type based on the format of the date (valid formats: YYYY, YYYY-MM, YYYY-MM-DD)
+    * @param date Date string
+    * @returns DateType
+    * @undefined if the date is invalid
+    */
+    static infer_date_type(date: string): DateType | undefined {
+        if (/^\d{4}$/.test(date)) {
+            return DateType.YEAR;
+        } else if (/^\d{4}-\d{2}$/.test(date)) {
+            return DateType.YEARMONTH;
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            return DateType.FULL;
+        } else {
+           return undefined;
+        }
     }
 
     /*
@@ -81,7 +135,7 @@ class Document {
             json.title,
             json.type,
             json.last_modified_by,
-            json.issuance_date ? dayjs.utc(json.issuance_date) : undefined,
+            this.date_to_our_date(dayjs.utc(json.issuance_date).toISOString(), json.date_type),
             json.language !== null ? json.language : undefined,
             json.pages !== null ? json.pages : undefined,
             json.stakeholders !== null ? json.stakeholders : undefined,
@@ -99,10 +153,15 @@ class Document {
         const my_coordinates_type = my_coordinates.getType();
         let my_coordinates_as_string = my_coordinates.getCoords()?.toGeographyString();
 
+        let date_type = Document.infer_date_type(this.issuanceDate);
+        let iso_date = dayjs.utc(this.issuanceDate).toISOString();
+
+        /* Note that the generic json object to be sent to the database HAS the date_type field, 
+            but the Document object does NOT have the date_type field */
         return {
             id: this.id,
             title: this.title,
-            issuance_date: this.issuanceDate,
+            issuance_date: iso_date,
             language: this.language,
             pages: this.pages,
             stakeholders: this.stakeholders,
@@ -112,21 +171,30 @@ class Document {
             last_modified_by: this.lastModifiedBy,
             
             coordinates_type: my_coordinates_type, // not nullable
-            coordinates: my_coordinates_as_string ? my_coordinates_as_string : null // db accepts strings fromatted as WKT or WKB
+            coordinates: my_coordinates_as_string ? my_coordinates_as_string : null, // db accepts strings fromatted as WKT or WKB
+            date_type: date_type,
         };
     }
 
     /**
      * Use this when you want to send a Document to the db and let the autoincrement handle the primary key/ID.
-     * This should return the Document's JSON without the ID.
+     * Also removes stakeholders field.
+     * This should return the Document's JSON without the ID and stakeholders field.
      * 
-     * Returns an object without the id field
-     * @returns Object without the id field
+     * Returns an object without the id and stakeholders fields
+     * @returns Object without the id and srakeholders fields
     */
-    toObjectWithoutId(): Object {
-        let object_with_id: any = this.toObject();
-        delete object_with_id.id;
-        return object_with_id;
+    toObjectWithoutIdAndStakeholders(): Object {
+        let object_with_id_stakeholders: any = this.toObject();
+        delete object_with_id_stakeholders.id;
+        delete object_with_id_stakeholders.stakeholders;
+        return object_with_id_stakeholders;
+    }
+
+    toObjectWithoutStakeholders(): Object {
+        let object_with_stakeholders: any = this.toObject();
+        delete object_with_stakeholders.stakeholders;
+        return object_with_stakeholders;
     }
 
     copy(): Document {
@@ -141,7 +209,7 @@ class Document {
             this.stakeholders,
             this.scale,
             this.description,
-            this.coordinates
+            this.coordinates,
         );
     }
 

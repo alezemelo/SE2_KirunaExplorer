@@ -35,6 +35,14 @@ const Map: React.FC<MapProps> = (props) => {
   const [mapStyle, setMapStyle] = useState(
     "mapbox://styles/mapbox/satellite-streets-v11"
   );
+  const getRandomColor = () => {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [buttonText, setButtonText] = useState("Switch to Street View");
   const [markers,setMarkers] = useState<mapboxgl.Marker[]>([]);
@@ -45,7 +53,7 @@ const Map: React.FC<MapProps> = (props) => {
     setMapStyle((prevStyle) => {
       const newStyle =
         prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-          ? "mapbox://styles/mapbox/streets-v11"
+          ? "mapbox://styles/mapbox/traffic-night-v2"
           : "mapbox://styles/mapbox/satellite-streets-v11";
 
       setButtonText(
@@ -68,15 +76,16 @@ const Map: React.FC<MapProps> = (props) => {
 
   const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
     console.log("Adding markers to map:", props.documents);
-
+  
     props.documents.forEach((doc) => {
       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
+  
       if (doc.getCoordinates()?.getType() !== "POINT") {
         return; // Skip non-POINT documents
       }
-
+  
       const pointCoords = doc.getCoordinates()?.getLatLng();
-
+  
       if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
         console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
         return;
@@ -86,12 +95,32 @@ const Map: React.FC<MapProps> = (props) => {
       const marker = new mapboxgl.Marker({ color: "red", draggable:true })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
-
-        marker.getElement().dataset.id = doc.id.toString();
-        markers.push(marker);
-
+  
+      // Add a popup with the document's title and details
+      const popup = new mapboxgl.Popup({ offset: 25 }) // Offset for better positioning
+        .setHTML(
+          `<div style="font-size: 14px; color: black;">
+            <strong>${doc.title}</strong><br />
+            ${doc.description ? doc.description : "No description available."}
+          </div>`
+        );
+  
+      // Attach popup and setNewPin to marker click
       marker.getElement()?.addEventListener("click", () => {
-        props.setNewPin(doc.id); // Set the new pin when marker is clicked
+        console.log(`Marker for Document ${doc.id} clicked`);
+        
+        // Show the popup
+        if (pointCoords.lng !== null && pointCoords.lat !== null) {
+          popup.addTo(mapInstance).setLngLat([pointCoords.lng, pointCoords.lat]);
+        }
+  
+        // Call setNewPin to handle additional actions when a marker is clicked
+        props.setNewPin(doc.id);
+      });
+      marker.on('dragend', (e) => {
+        const currentLngLat = e.target.getLngLat();
+        const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat,currentLngLat.lng))
+        handleDrag(doc.id,coordinates)
       });
       marker.on('dragend', (e) => {
         const currentLngLat = e.target.getLngLat();
@@ -107,80 +136,67 @@ const Map: React.FC<MapProps> = (props) => {
   }
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("Adding polygons to map:", props.documents);
-
+    console.log("Adding polygons to map as points:", props.documents);
+  
     props.documents.forEach((doc) => {
       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
       if (doc.getCoordinates()?.getType() !== "POLYGON") {
-        console.error(`Document ${doc.id} does not have POLYGON coordinates.`);
-        return;
+        return; // Skip non-POLYGON documents
       }
-
+  
       const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
-      const polygon = turf.polygon(polygonCoords);
-      const centroid = turf.centerOfMass(polygon);
-      const marker = new mapboxgl.Marker({ color: "red" })
-        .setLngLat([centroid.geometry.coordinates[0], centroid.geometry.coordinates[1]])
-        .addTo(mapInstance);
-        marker.getElement()?.addEventListener("click", () => {
-          props.setNewPin(doc.id);
-        });
-
-      const sourceId = `polygon-${doc.id}`;
-      if (mapInstance.getSource(sourceId)) {
-        (mapInstance.getSource(sourceId) as mapboxgl.GeoJSONSource).setData({
-          type: "Feature",
-          geometry: { type: "Polygon", coordinates: polygonCoords },
-          properties: { title: doc.title },
-        });
+      if (!polygonCoords || polygonCoords.length === 0) {
+        console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
         return;
       }
-
-      console.log("Adding new source and layer for polygon:", sourceId);
-      mapInstance.addSource(sourceId, {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          geometry: { type: "Polygon", coordinates: polygonCoords },
-          properties: { title: doc.title },
-        },
-      });
+  
+      // Calculate the centroid of the polygon
+      const polygonFeature = turf.polygon(polygonCoords);
+      const centroid = turf.centroid(polygonFeature);
+  
+      const centroidCoords = centroid.geometry.coordinates;
+  
+      // Add marker at the centroid
+      const marker = new mapboxgl.Marker({ color: "blue" })
+        .setLngLat(centroidCoords as [number, number])
+        .addTo(mapInstance);
+  
+      // Marker click handler to display the polygon
+      marker.getElement()?.addEventListener("click", () => {
+        console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
+  
+        const sourceId = `polygon-${doc.id}`;
+        if (mapInstance.getSource(sourceId)) {
+          // Remove the polygon if it already exists
+          mapInstance.removeLayer(sourceId);
+          mapInstance.removeSource(sourceId);
+          return;
+        }
+  
+        // Add the polygon layer
+        mapInstance.addSource(sourceId, {
+          type: "geojson",
+          data: polygonFeature,
+        });
+  
         mapInstance.addLayer({
           id: sourceId,
           type: "fill",
           source: sourceId,
           paint: {
-            "fill-color": "#FF0000",
-            "fill-opacity": 0,
+            "fill-color": getRandomColor(), // Highlight the polygon with a distinct color
+            "fill-opacity": 0.5,
           },
         });
-
-
+  
+        // Zoom to the polygon
+        mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
+          padding: 20,
+        });
+      });
     });
   };
-
-  useEffect(()=>{
-    if(!map || !props.pin) return;
-    props.documents.forEach((doc)=>{
-      if (map.getLayer(`polygon-${doc.id}`)) {
-        if(doc.id==props.pin){
-          map.setPaintProperty(`polygon-${doc.id}`, 'fill-opacity', 0.6);
-        }else{
-          map.setPaintProperty(`polygon-${doc.id}`, 'fill-opacity', 0);
-        }
-      }
-      /*console.log(markers)
-      markers.forEach(marker => {
-        const markerId = marker.getElement().dataset.id;
-        if (markerId == props.pin.toString()) {
-            marker.getElement().style.transform = 'scale(1.5)'; 
-        } else {
-            marker.getElement().style.transform = 'scale(1)'; 
-        }
-    });*/
-    })
-  },[props.pin,map])
-
+  
 
   useEffect(() => {
     if (!map) return;
@@ -243,3 +259,4 @@ const Map: React.FC<MapProps> = (props) => {
 };
 
 export default Map;
+

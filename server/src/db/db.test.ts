@@ -1,6 +1,6 @@
 import knexConfig from './knexfile';
 const knex = require('./db').default;
-import { dbEmpty } from './db_common_operations';
+import { dbEmpty, dbPopulateActualData } from './db_common_operations';
 
 beforeAll(async () => {
   await knex.migrate.latest(); // Ensure the latest migrations are applied
@@ -31,6 +31,7 @@ beforeEach(async () => {
 
   // Re-insert the test user after truncation
   await insertTestUser();
+  await dbPopulateActualData();
 });
 
 // Helper functions
@@ -49,7 +50,7 @@ const insertSampleDocument = async (title: string = 'Sample Document') => {
     issuance_date: new Date(),
     language: 'English',
     pages: 10,
-    stakeholders: 'Stakeholder A',
+    //stakeholders: 'Stakeholder A',
     scale: '1:1000',
     description: 'A test document',
     type: 'informative_doc',
