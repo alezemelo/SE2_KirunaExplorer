@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Grid,
@@ -46,6 +46,7 @@ interface DocumentListProps {
   setUpdating: any;
 }
 
+
 const DocumentList: React.FC<DocumentListProps> = (props) => {
   const reset = () => ({
     id: 0,
@@ -61,6 +62,36 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     description: "",
     coordinates: null,
   });
+  const [dateOption, setDateOption] = useState("fullDate"); // Default to fullDate
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
+  const [day, setDay] = useState("");
+
+  const handleDateOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDateOption(e.target.value);
+    setYear("");
+    setMonth("");
+    setDay("");
+  };
+
+  const getIssuanceDate = () => {
+    if (dateOption === "year") return year;
+    if (dateOption === "yearMonth") return `${year}-${month}`;
+    if (dateOption === "fullDate") return `${year}-${month}-${day}`;
+    return "";
+  };
+
+  const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+
+  const handleMapLocationSelected = (lat: number, lng: number) => {
+    setNewDocument((prev) => ({
+      ...prev,
+      coordinates: { coords: { lat, lng } },
+    }));
+    setIsSelectingLocation(false); // Exit location selection mode
+  };
+
+
 
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
@@ -68,13 +99,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [stakeholderOptions, setStakeholderOptions] = useState(ACTUAL_STAKEHOLDERS);
   const [newStakeholder, setNewStakeholder] = useState("");
   const [newDoctype, setNewDoctype] = useState("");
-const [doctypeOptions, setDoctypeOptions] = useState([
-  "informative_doc",
-  "prescriptive_doc",
-  "design_doc",
-  "technical_doc",
-  "material_effect",
-]);
+  const [doctypeOptions, setDoctypeOptions] = useState([
+    "informative_doc",
+    "prescriptive_doc",
+    "design_doc",
+    "technical_doc",
+    "material_effect",
+  ]);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
@@ -82,33 +113,18 @@ const [doctypeOptions, setDoctypeOptions] = useState([
     setNewDocument({ ...newDocument, [name!]: value });
   };
 
-  const handleAddNewStakeholder = async () => {
-    if (!newStakeholder.trim()) {
-      alert("Stakeholder name cannot be empty.");
-      return;
-    }
 
-    try {
-      const response = await API.addStakeholder({ name: newStakeholder.trim() });
-      if (response.status === 201) {
-        setStakeholderOptions((prev) => [...prev, { name: newStakeholder.trim() }]);
-        setNewStakeholder("");
-        alert("Stakeholder added successfully!");
-      } else {
-        alert("Failed to add stakeholder. It may already exist.");
-      }
-    } catch (error) {
-      console.error("Error adding stakeholder:", error);
-      alert("An error occurred while adding the stakeholder.");
-    }
-  };
+
+
+
+
 
   const handleAddNewDoctype = async () => {
     if (!newDoctype.trim()) {
       alert("Doctype name cannot be empty.");
       return;
     }
-  
+
     try {
       const response = await API.addDoctype({ name: newDoctype.trim() });
       if (response.status === 201) {
@@ -123,64 +139,179 @@ const [doctypeOptions, setDoctypeOptions] = useState([
       alert("An error occurred while adding the doctype.");
     }
   };
-  
 
-  const handleAddDocument = async () => {
-    const newErrors: string[] = [];
-
-    // Validations
-    if (!newDocument.title) {
-      newErrors.push("Title is required.");
-    }
-    if (!newDocument.language) {
-      newErrors.push("Language is required.");
-    }
-    if (!newDocument.stakeholders) {
-      newErrors.push("Stakeholder is required.");
-    }
-    if (!newDocument.type) {
-      newErrors.push("Document type is required.");
-    }
-    if (!newDocument.scale) {
-      newErrors.push("Scale is required.");
-    }
-    if (!newDocument.description) {
-      newErrors.push("Description is required.");
-    }
-
-    setErrors(newErrors);
-
-    if (newErrors.length > 0) {
+  const handleAddNewScale = async () => {
+    if (!newScale.trim()) {
+      alert("Scale value cannot be empty.");
       return;
     }
 
     try {
-      const latLng = newDocument.coordinates?.coords;
-      const coordinates = latLng
-        ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
-        : new Coordinates(CoordinatesType.MUNICIPALITY, null);
+      const response = await API.addScale({ value: newScale.trim() });
+      if (response.status === 201) {
+        setScaleOptions((prev) => [...prev, newScale.trim()]);
+        setNewScale("");
+        alert("Scale added successfully!");
+      } else {
+        alert("Failed to add scale. It may already exist.");
+      }
+    } catch (error) {
+      console.error("Error adding scale:", error);
+      alert("An error occurred while adding the scale.");
+    }
+  }
 
+
+  // const handleAddDocument = async () => {
+  //   const newErrors: string[] = [];
+
+  //   if (!newDocument.title) newErrors.push("Title is required.");
+  //   if (!newDocument.language) newErrors.push("Language is required.");
+  //   if (!Array.isArray(newDocument.stakeholders) || newDocument.stakeholders.length === 0) {
+  //     newErrors.push("At least one stakeholder is required.");
+  //   } else {
+  //     // Ensure selected stakeholders exist in the database
+  //     const validStakeholders = stakeholderOptions.map((s) => s.name);
+  //     const invalidStakeholders = newDocument.stakeholders.filter(
+  //       (s: string) => !validStakeholders.includes(s)
+  //     );
+  //     if (invalidStakeholders.length > 0) {
+  //       newErrors.push(`Invalid stakeholders: ${invalidStakeholders.join(", ")}`);
+  //     }
+  //   }
+  //   if (!newDocument.type) newErrors.push("Document type is required.");
+  //   if (!newDocument.scale) newErrors.push("Scale is required.");
+  //   if (!newDocument.description) newErrors.push("Description is required.");
+  //   if (dateOption === "year" && !year) newErrors.push("Year is required.");
+  //   if (dateOption === "yearMonth" && (!year || !month)) newErrors.push("Year and month are required.");
+  //   if (dateOption === "fullDate" && (!year || !month || !day)) {
+  //     newErrors.push("Year, month, and day are required.");
+  //   }
+
+  //   setErrors(newErrors);
+
+  //   if (newErrors.length > 0) return;
+
+  //   try {
+  //     const finalDocument = new Document(
+  //       0,
+  //       newDocument.title,
+  //       newDocument.type as DocumentType,
+  //       props.user?.username || "admin",
+  //       getIssuanceDate(),
+  //       newDocument.language,
+  //       Number(newDocument.pages),
+  //       newDocument.stakeholders, // Ensure stakeholders are valid and exist in the backend
+  //       newDocument.scale,
+  //       newDocument.description,
+  //       newDocument.coordinates
+  //         ? new Coordinates(
+  //             CoordinatesType.POINT,
+  //             new CoordinatesAsPoint(newDocument.coordinates.coords.lat, newDocument.coordinates.coords.lng)
+  //           )
+  //         : new Coordinates(CoordinatesType.MUNICIPALITY, null)
+  //     );
+
+  //     await API.addDocument(finalDocument); // Save the document
+  //     await props.fetchDocuments(); // Refresh the document list
+  //     handleClose(); // Close the dialog
+  //   } catch (error) {
+  //     console.error("Error adding document:", error);
+  //     alert("An error occurred while adding the document.");
+  //   }
+  // };
+
+  const handleAddNewStakeholder = async () => {
+    if (!newStakeholder.trim()) {
+      alert("Stakeholder name cannot be empty.");
+      return;
+    }
+
+    try {
+      // Add stakeholder to the database
+      await API.addStakeholder({ name: newStakeholder.trim() });
+
+      // Refresh stakeholder options from the backend
+      const updatedStakeholders = await API.getAllStakeholders(); // Fetch all stakeholders from the backend
+      setStakeholderOptions(updatedStakeholders);
+
+      // Clear the input field
+      setNewStakeholder("");
+
+      alert("Stakeholder added successfully!");
+    } catch (error: any) {
+      if (error.message.includes("Stakeholder already exists")) {
+        alert("Stakeholder already exists.");
+      } else if (error.message.includes("Invalid stakeholder name")) {
+        alert("Invalid stakeholder name. Please enter a valid name.");
+      } else {
+        alert("An error occurred while adding the stakeholder.");
+      }
+      console.error("Error adding stakeholder:", error);
+    }
+  };
+
+  const handleAddDocument = async () => {
+    const newErrors: string[] = [];
+
+    if (!newDocument.title) newErrors.push("Title is required.");
+    if (!newDocument.language) newErrors.push("Language is required.");
+    if (!Array.isArray(newDocument.stakeholders) || newDocument.stakeholders.length === 0) {
+      newErrors.push("At least one stakeholder is required.");
+    } else {
+      // Validate stakeholders against the backend
+      const validStakeholders = stakeholderOptions.map((s) => s.name);
+      const invalidStakeholders = newDocument.stakeholders.filter(
+        (s: string) => !validStakeholders.includes(s)
+      );
+      if (invalidStakeholders.length > 0) {
+        newErrors.push(`Invalid stakeholders: ${invalidStakeholders.join(", ")}`);
+      }
+    }
+    if (!newDocument.type) newErrors.push("Document type is required.");
+    if (!newDocument.scale) newErrors.push("Scale is required.");
+    if (!newDocument.description) newErrors.push("Description is required.");
+    if (dateOption === "year" && !year) newErrors.push("Year is required.");
+    if (dateOption === "yearMonth" && (!year || !month)) newErrors.push("Year and month are required.");
+    if (dateOption === "fullDate" && (!year || !month || !day)) {
+      newErrors.push("Year, month, and day are required.");
+    }
+
+    setErrors(newErrors);
+
+    if (newErrors.length > 0) return;
+
+    try {
       const finalDocument = new Document(
         0,
         newDocument.title,
         newDocument.type as DocumentType,
         props.user?.username || "admin",
-        newDocument.issuanceDate,
+        getIssuanceDate(),
         newDocument.language,
         Number(newDocument.pages),
-        newDocument.stakeholders,
+        newDocument.stakeholders, // Validated stakeholders
         newDocument.scale,
         newDocument.description,
-        coordinates
+        newDocument.coordinates
+          ? new Coordinates(
+            CoordinatesType.POINT,
+            new CoordinatesAsPoint(newDocument.coordinates.coords.lat, newDocument.coordinates.coords.lng)
+          )
+          : new Coordinates(CoordinatesType.MUNICIPALITY, null)
       );
 
-      await API.addDocument(finalDocument);
-      await props.fetchDocuments();
-      handleClose();
+      await API.addDocument(finalDocument); // Save the document
+      await props.fetchDocuments(); // Refresh the document list
+      handleClose(); // Close the dialog
     } catch (error) {
       console.error("Error adding document:", error);
+      alert("An error occurred while adding the document.");
     }
   };
+
+
+
 
   const handleClose = () => {
     setOpen(false);
@@ -196,6 +327,14 @@ const [doctypeOptions, setDoctypeOptions] = useState([
   const handleSearchLinking = async () => {
     // Logic for searching and linking documents
   };
+
+  const [scaleOptions, setScaleOptions] = useState(["1:100", "1:200", "1:500", "1:1000", "1:2000", "1:5000"]);
+  const [newScale, setNewScale] = useState("");
+
+
+
+
+
 
   return (
     <div className="container">
@@ -260,99 +399,259 @@ const [doctypeOptions, setDoctypeOptions] = useState([
 
           {/* Stakeholders */}
           <FormControl fullWidth margin="dense">
-  <TextField
-    select
-    label="Stakeholders"
-    name="stakeholders"
-    required
-    value={newDocument.stakeholders}
-    onChange={handleChange}
-  >
-    {stakeholderOptions.map((stakeholder) => (
-      <MenuItem key={stakeholder.name} value={stakeholder.name}>
-        {stakeholder.name}
-      </MenuItem>
-    ))}
-  </TextField>
-</FormControl>
+            <TextField
+              select
+              label="Stakeholders"
+              name="stakeholders"
+              required
+              value={newDocument.stakeholders || []} // Ensure it's an array
+              onChange={(e) => {
+                setNewDocument({ ...newDocument, stakeholders: e.target.value });
+              }}
+              SelectProps={{
+                multiple: true, // Enable multiple selection
+              }}
+            >
+              {stakeholderOptions.map((stakeholder) => (
+                <MenuItem key={stakeholder.name} value={stakeholder.name}>
+                  {stakeholder.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </FormControl>
 
-<TextField
-  margin="dense"
-  label="New Stakeholder"
-  placeholder="Enter stakeholder name"
-  fullWidth
-  value={newStakeholder}
-  onChange={(e) => setNewStakeholder(e.target.value)}
-/>
+          <TextField
+            margin="dense"
+            label="New Stakeholder"
+            placeholder="Enter stakeholder name"
+            fullWidth
+            value={newStakeholder}
+            onChange={(e) => setNewStakeholder(e.target.value)}
+          />
 
-<Button
-  variant="contained"
-  color="primary"
-  fullWidth
-  style={{
-    marginTop: "8px",
-    marginBottom: "16px",
-    backgroundColor: "white",
-    border: "1px solid #1976d2",
-    color: "#1976d2",
-    textTransform: "none",
-    fontWeight: "bold",
-  }}
-  onClick={handleAddNewStakeholder}
->
-  Add Stakeholder
-</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            style={{
+              marginTop: "8px",
+              marginBottom: "16px",
+              backgroundColor: "white",
+              border: "1px solid #1976d2",
+              color: "#1976d2",
+              textTransform: "none",
+              fontWeight: "bold",
+            }}
+            onClick={async () => {
+              if (!newStakeholder.trim()) {
+                alert("Stakeholder name cannot be empty.");
+                return;
+              }
+
+              try {
+                // Add the new stakeholder to the backend
+                await API.addStakeholder({ name: newStakeholder.trim() });
+
+                // Fetch the updated stakeholders from the backend
+                const updatedStakeholders = await API.getAllStakeholders();
+                setStakeholderOptions(updatedStakeholders);
+
+                // Clear the input field
+                setNewStakeholder("");
+                alert("Stakeholder added successfully!");
+              } catch (error: any) {
+                if (error.message.includes("Stakeholder already exists")) {
+                  alert("Stakeholder already exists.");
+                } else if (error.message.includes("Invalid stakeholder name")) {
+                  alert("Invalid stakeholder name. Please enter a valid name.");
+                } else {
+                  alert("An error occurred while adding the stakeholder.");
+                }
+                console.error("Error adding stakeholder:", error);
+              }
+            }}
+          >
+            Add Stakeholder
+          </Button>
+
+
 
           {
             /* Document Type */
 
           }
 
-<FormControl fullWidth margin="dense">
-  <TextField
-    select
-    label="Document Type"
-    name="type"
-    required
-    value={newDocument.type}
-    onChange={handleChange}
-  >
-    {doctypeOptions.map((type) => (
-      <MenuItem key={type} value={type}>
-        {type}
-      </MenuItem>
-    ))}
-  </TextField>
+          <FormControl fullWidth margin="dense">
+            <TextField
+              select
+              label="Document Type"
+              name="type"
+              required
+              value={newDocument.type}
+              onChange={handleChange}
+            >
+              {doctypeOptions.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </TextField>
 
-  {/* Input and Button for Adding New Doctype */}
-  <TextField
-    margin="dense"
-    label="New Document Type"
-    placeholder="Enter document type"
-    fullWidth
-    value={newDoctype}
-    onChange={(e) => setNewDoctype(e.target.value)}
-  />
-  <Button
-    variant="outlined"
-    color="primary"
-    onClick={handleAddNewDoctype}
-    style={{ marginTop: "8px" }}
-  >
-    Add Document Type
-  </Button>
-</FormControl>
+            {/* Input and Button for Adding New Doctype */}
+            <TextField
+              margin="dense"
+              label="New Document Type"
+              placeholder="Enter document type"
+              fullWidth
+              value={newDoctype}
+              onChange={(e) => setNewDoctype(e.target.value)}
+            />
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleAddNewDoctype}
+              style={{ marginTop: "8px" }}
+            >
+              Add Document Type
+            </Button>
+          </FormControl>
 
           {/* Other fields */}
-          <TextField
-            margin="dense"
-            label="Scale (required)"
-            name="scale"
-            required
-            fullWidth
-            value={newDocument.scale}
-            onChange={handleChange}
-          />
+          <FormControl fullWidth margin="dense">
+            <TextField
+              select
+              label="Scale (required)"
+              name="scale"
+              required
+              value={newDocument.scale}
+              onChange={handleChange}
+            >
+              {scaleOptions.map((scale) => (
+                <MenuItem key={scale} value={scale}>
+                  {scale}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {/* Input and Button for Adding New Scale */}
+            <TextField
+              margin="dense"
+              label="New Scale"
+              placeholder='Enter scale (e.g., "1:1000" or "Text")'
+              fullWidth
+              value={newScale}
+              onChange={(e) => setNewScale(e.target.value)}
+            />
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleAddNewScale}
+              style={{ marginTop: "8px" }}
+            >
+              Add Scale
+            </Button>
+          </FormControl>
+
+          {/* Issuance Date */}
+          <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
+            Select Date Option:
+          </Typography>
+          <FormControl fullWidth margin="dense">
+            <div>
+              <label>
+                <input
+                  type="radio"
+                  name="dateOption"
+                  value="year"
+                  checked={dateOption === "year"}
+                  onChange={handleDateOptionChange}
+                />
+                Just Year
+              </label>
+              <label style={{ marginLeft: "15px" }}>
+                <input
+                  type="radio"
+                  name="dateOption"
+                  value="yearMonth"
+                  checked={dateOption === "yearMonth"}
+                  onChange={handleDateOptionChange}
+                />
+                Year and Month
+              </label>
+              <label style={{ marginLeft: "15px" }}>
+                <input
+                  type="radio"
+                  name="dateOption"
+                  value="fullDate"
+                  checked={dateOption === "fullDate"}
+                  onChange={handleDateOptionChange}
+                />
+                Full Date
+              </label>
+            </div>
+          </FormControl>
+
+          {dateOption === "year" && (
+            <TextField
+              margin="dense"
+              label="Year"
+              type="number"
+              fullWidth
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+            />
+          )}
+
+          {dateOption === "yearMonth" && (
+            <>
+              <TextField
+                margin="dense"
+                label="Year"
+                type="number"
+                fullWidth
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Month"
+                type="number"
+                fullWidth
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+              />
+            </>
+          )}
+
+          {dateOption === "fullDate" && (
+            <>
+              <TextField
+                margin="dense"
+                label="Year"
+                type="number"
+                fullWidth
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Month"
+                type="number"
+                fullWidth
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Day"
+                type="number"
+                fullWidth
+                value={day}
+                onChange={(e) => setDay(e.target.value)}
+              />
+            </>
+          )}
+
 
           {/* Latitude and Longitude */}
           <TextField
@@ -391,11 +690,14 @@ const [doctypeOptions, setDoctypeOptions] = useState([
             variant="outlined"
             startIcon={<MapIcon />}
             color="primary"
-            onClick={() => console.log("Map selection triggered")}
+            onClick={() => setIsSelectingLocation(true)} // Enable map selection mode
             style={{ marginTop: "16px", marginBottom: "24px", width: "100%" }}
           >
             Choose on Map
           </Button>
+
+
+
 
           {/* Description */}
           <TextField
@@ -424,5 +726,4 @@ const [doctypeOptions, setDoctypeOptions] = useState([
 };
 
 export default DocumentList;
-
 
