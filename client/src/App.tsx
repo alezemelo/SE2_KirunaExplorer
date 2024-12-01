@@ -191,13 +191,13 @@ function App() {
                     //fetchDocuments={fetchDocuments}
                     pin={pin}
                     setNewPin={setNewPin}
-                    //setCoordMap={setCoordMap}
-                    //adding={adding}
+                    setCoordMap={setCoordMap}
+                    adding={adding}
                     //setAdding={setAdding}
                     documents={documents}
                     isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
 
-                    //updating={updating}
+                    updating={updating}
                   />
                 </Grid>
               </Grid>

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
-import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
-import mapboxgl from "mapbox-gl";
+import React, { useState, useEffect, useCallback } from "react";
+import ReactMapGL, { MarkerDragEvent, Source, ViewStateChangeEvent } from "react-map-gl";
+import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";
 import * as turf from '@turf/turf';
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import API from "../../API";
 
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -18,6 +20,9 @@ interface MapProps {
   isDocumentListOpen: boolean; // Add this prop to track sidebar state
   pin: number;
   setNewPin: (id: number) => void;
+  adding: boolean;
+  updating: boolean;
+  setCoordMap: any;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -32,6 +37,8 @@ const Map: React.FC<MapProps> = (props) => {
   );
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [buttonText, setButtonText] = useState("Switch to Street View");
+  const [markers,setMarkers] = useState<mapboxgl.Marker[]>([]);
+  const [geojson, setGeojson] = useState(null);
 
 
   const toggleMapStyle = () => {
@@ -76,15 +83,28 @@ const Map: React.FC<MapProps> = (props) => {
       }
 
       // Add marker with popup
-      const marker = new mapboxgl.Marker({ color: "red" })
+      const marker = new mapboxgl.Marker({ color: "red", draggable:true })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
+
+        marker.getElement().dataset.id = doc.id.toString();
+        markers.push(marker);
 
       marker.getElement()?.addEventListener("click", () => {
         props.setNewPin(doc.id); // Set the new pin when marker is clicked
       });
+      marker.on('dragend', (e) => {
+        const currentLngLat = e.target.getLngLat();
+        const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat,currentLngLat.lng))
+        handleDrag(doc.id,coordinates)
+      });
     });
+    //setMarkers(markers);
   };
+
+  const handleDrag = async (id:number,coordinates:Coordinates) => {
+        await API.updateCoordinates(id,coordinates)
+  }
 
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
     console.log("Adding polygons to map:", props.documents);
@@ -149,6 +169,15 @@ const Map: React.FC<MapProps> = (props) => {
           map.setPaintProperty(`polygon-${doc.id}`, 'fill-opacity', 0);
         }
       }
+      /*console.log(markers)
+      markers.forEach(marker => {
+        const markerId = marker.getElement().dataset.id;
+        if (markerId == props.pin.toString()) {
+            marker.getElement().style.transform = 'scale(1.5)'; 
+        } else {
+            marker.getElement().style.transform = 'scale(1)'; 
+        }
+    });*/
     })
   },[props.pin,map])
 
@@ -177,6 +206,24 @@ const Map: React.FC<MapProps> = (props) => {
     addPolygonsToMap(map);
   }, [map, mapStyle, props.documents]);
 
+  const onMapClick = useCallback((e: MapMouseEvent) => {
+    if (props.adding || props.updating) {
+      const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
+      props.setCoordMap(c);
+    }
+  }, [props.adding, props.updating, props.setCoordMap]);
+
+  /*useEffect(() => {
+    const getMunicipality = async() => {
+      
+    }
+    getMunicipality();
+  },[])*/
+
+/*  useEffect(() => {
+    console.log(geojson)
+  },[geojson])*/
+
   return (
     <div style={{ height: "100vh", width: "100%" }}>
       <ReactMapGL
@@ -184,7 +231,9 @@ const Map: React.FC<MapProps> = (props) => {
         mapStyle={mapStyle}
         onMove={(event: ViewStateChangeEvent) => setViewport(event.viewState)}
         onLoad={(event) => setMap(event.target as mapboxgl.Map)}
+        onClick={(e) => onMapClick(e)}
       >
+      <Source id="kiruna_municipality" type="geojson" data={geojson}></Source>
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
           <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>

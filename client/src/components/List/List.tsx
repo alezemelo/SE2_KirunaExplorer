@@ -108,7 +108,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         language: "English",
         pages: 1,
         description: "",
-        coordinates: null
+        coordinates: new Coordinates(CoordinatesType.MUNICIPALITY,null)
       }
   }
   const [open, setOpen] = useState(false);
@@ -123,8 +123,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
-  const [municipality, setMunicipality] = useState(true);
-  const [coordinates_type, setCoordinatesType] = useState(false);
+  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
   
   
   //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
@@ -434,16 +433,21 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   
 
   const handleCheckboxChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.checked)
-    if(event.target.checked){
-      const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
-      if(t){
-        props.setDocuments(t)
-      }
-      props.setIsMunicipalityChecked(true); 
-    }else{
-      await props.fetchDocuments();
-      props.setIsMunicipalityChecked(false); 
+    if(event.target.name=="municipality_filter"){
+      console.log(event.target.checked)
+      if(event.target.checked){
+        const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
+        if(t){
+          props.setDocuments(t)
+        }
+        props.setIsMunicipalityChecked(true); 
+      }else{
+        await props.fetchDocuments();
+        props.setIsMunicipalityChecked(false); 
+    }
+    }
+    else if(event.target.name=="coordinates_type"){
+      
     }
     
   }
@@ -516,10 +520,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               <MenuItem value="Swedish">Swedish</MenuItem>
             </TextField>
             <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
-            <label><input type="checkbox" checked={municipality} name="type_of_coordinates"/>All municipality</label>
-            <Button color="primary" >Coordinates</Button>
+            <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={()=>setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates"/><Button color="primary" >All municipality</Button></label>
+            <Button color="primary" onClick={()=>setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
             <Button color="primary" >Draw a polygon</Button>
-            {coordinates_type && <><TextField className="white-input" margin="dense" label="Latitude" type="number" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
+            {coordinates_type==CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="number" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Longitude" type="number" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
             <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
@@ -555,6 +559,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         <input 
           type="checkbox" 
           checked={props.isMunicipalityChecked} 
+          name="municipality_filter"
           onChange={handleCheckboxChange} 
         />
         All municipality documents
