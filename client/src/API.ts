@@ -57,6 +57,63 @@ async function logout(): Promise<boolean> {
   }
 }
 
+//FILE
+
+async function uploadFile(documentId: number, fileName: string, file: File): Promise<{ fileId: number }> {
+  try {
+    console.log("Uploading file:", fileName);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`http://localhost:3000/kiruna_explorer/files/upload/${documentId}/${fileName}`, {
+      method: "POST",
+      credentials: "include", // Include session cookies
+      body: formData,
+    });
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        throw new Error("No file uploaded.");
+      }
+      throw new Error(`Failed to upload file. Status: ${response.status}`);
+    }
+
+    return await response.json(); // Assuming the response contains a JSON object with fileId
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error; // Re-throw the error for the caller to handle
+  }
+}
+
+async function getFilesByDocumentId(documentId: number): Promise<{ id: number; name: string }[]> {
+  try {
+    const response = await fetch(`http://localhost:3000/kiruna_explorer/files/${documentId}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // Include session cookies
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to retrieve files: ${response.statusText}`);
+    }
+
+    const files = await response.json();
+
+    // Handle empty array (no files) without throwing an error
+    if (files.length === 0) {
+      console.log(`No files found for document ID: ${documentId}`);
+    }
+
+    console.log("Retrieved files:", files);
+
+    return files;
+  } catch (error) {
+    console.error("Error retrieving files:", error);
+    throw error;
+  }
+}
+
+
 
 
 
@@ -307,7 +364,9 @@ const API = {
   addStakeholder,
   addDoctype,
   addScale,
-  getAllStakeholders
+  getAllStakeholders, 
+  uploadFile,
+  getFilesByDocumentId
 }
 
 export default API 

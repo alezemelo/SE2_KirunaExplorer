@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Box, Typography, Card, CardContent, TextField, IconButton } from "@mui/material";
+import { Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent, DialogActions, List,  ListItem, ListItemText  } from "@mui/material";
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import dayjs from "dayjs";
@@ -28,8 +28,6 @@ interface DocDetailsProps {
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
-  selectedFile: File | null;
-  setSelectedFile: any;
 }
 
 const DocDetails: React.FC<DocDetailsProps> = (props) => {
@@ -41,8 +39,38 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
-  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [files, setFiles] = useState<{ id: number; name: string }[]>([]);  //the ones i fatch 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);//the one i upload
+  const [dialogOpen, setDialogOpen] = useState(false);
 
+  const handleOpenDialog = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click event from propagating to parent
+    setDialogOpen(true);
+  };
+  
+  const handleCloseDialog = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click event from propagating to parent
+    setDialogOpen(false);
+  };
+  const fetchFiles = async () => {
+    try {
+      console.log("fetching files of document number: "+props.document.id);
+      const documentId = props.document.id;
+      const fetchedFiles = await API.getFilesByDocumentId(documentId);
+      console.log("Fetched files response:", fetchedFiles);
+      setFiles(fetchedFiles);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      setFiles([]); // Clear files if an error occurs
+    }
+  };
+  
+  useEffect(() => {
+    if (props.document?.id) {
+      fetchFiles();
+    }
+  }, [props.document]);
+  
 
   const handleToggleExpand = () => setExpand(!expand);
 
@@ -225,46 +253,41 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
 
   //Function to call the api to upload the file
   const handleFileUpload = async () => {
-    // if (!props.selectedFile) return;
-  
-    // const formData = new FormData();
-    // formData.append("file", props.selectedFile);
-  
-    // try {
-    //   const response = await API.uploadFile(props.document.id, formData);
-    //   if (response.status === 200) {
-    //     alert("File uploaded successfully!");
-    //     props.setSelectedFile(null); // Reset file input
-    //     props.fetchDocuments(); // Refresh documents
-    //   } else {
-    //     alert("File upload failed.");
-    //   }
-    // } catch (error) {
-    //   console.error("File upload error:", error);
-    //   alert("An error occurred while uploading the file.");
-    // }
-  };
-
-  useEffect(() => {
-    if (props.selectedFile) {
-      const objectUrl = URL.createObjectURL(props.selectedFile);
-      setFilePreviewUrl(objectUrl);
-
-      // Clean up the object URL when component unmounts or file changes
-      return () => URL.revokeObjectURL(objectUrl);
-    } else {
-      setFilePreviewUrl(null);
+    if (!selectedFile) {
+      alert("No file selected for upload.");
+      return;
     }
-  }, [props.selectedFile]);
+  
+    const fileName = selectedFile.name; // Get the file name
+    console.log("Uploading file:", fileName);
+    console.log("DOC ID:", props.document.id);
+
+    const file = selectedFile; // Get the selected file
+  
+    try {
+      const response = await API.uploadFile(props.document.id, fileName, file);
+      if (response && response.fileId) {
+        alert("File uploaded successfully!");
+        setSelectedFile(null); // Reset the selected file
+      } else {
+        alert("File upload failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("An error occurred while uploading the file.");
+    }
+  };
+  
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      props.setSelectedFile(event.target.files[0]);
+      setSelectedFile(event.target.files[0]);
     }
   };
 
   const handleRemoveFile = () => {
-    props.setSelectedFile(null);
+    setSelectedFile(null);
   };
 
 
@@ -353,6 +376,12 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <strong>Description:</strong> {props.document.description}
           </Typography>:<></>}
 
+          {props.pin==props.document.id ? <Box marginTop={2}>
+              <Typography variant="body2" onClick={handleOpenDialog} style={{ cursor: "pointer", textDecoration: "underline" }}>
+                <strong>Original Files:</strong> {files.length}
+              </Typography>
+            </Box>:<></>}
+
         {/* editDescription ? (
           <>
             <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
@@ -389,7 +418,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             style={{ display: 'none' }}
             id="file-upload"
           />
-         {!props.selectedFile && (
+         {!selectedFile && (
           <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
             <Button 
               variant="contained" 
@@ -403,19 +432,19 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           </label>
         )}
     
-          {props.selectedFile && (
+          {selectedFile && (
             <Box mt={2}>
-              <FilePreview fileName={props.selectedFile.name} onRemove={handleRemoveFile} />
+              <FilePreview fileName={selectedFile.name} onRemove={handleRemoveFile} />
             </Box>
           )}
 
-          {props.selectedFile && (
+          {selectedFile && (
             <Button
               variant="contained"
               color="success"
               startIcon={<FileUploadIcon />}
               onClick={() => handleFileUpload()}
-              disabled={!props.selectedFile}
+              disabled={!selectedFile}
               style={{ marginTop: '10px' }}
             >
               Upload File
@@ -457,6 +486,25 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
           ) : null)*/}
         </Box>
+
+        {/* Dialog for File List */}
+        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+              <DialogTitle>Original Files</DialogTitle>
+              <DialogContent>
+                <List>
+                  {files.map((file) => (
+                    <ListItem key={file.id}>
+                      <ListItemText primary={file.name} />
+                    </ListItem>
+                  ))}
+                </List>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDialog} color="primary">
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
       </CardContent>
     </Card>
   );
