@@ -71,16 +71,16 @@ async function getDocuments() {
 
 async function searchDocumentsByTitle(title: string,municipality_filter?:boolean) {
   try {
-  let url = `http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`;
+    let url = `http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`;
 
     if (municipality_filter) {
       url += `&municipality_filter=${encodeURIComponent(municipality_filter)}`;
     }
       const response = await fetch(url, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // Include session cookies
-    });
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Include session cookies
+      });
 
     if (!response.ok) {
       throw new Error("Error fetching documents by title");
@@ -106,28 +106,30 @@ async function getDocument(id: number) {
 }
 
 async function createLink(doc_id1: number, doc_id2: number, link_type: string) {
-  try {
-    const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        doc_id1: doc_id1,
-        doc_id2: doc_id2,
-        link_type: link_type
-      }),
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Error: " + response.statusText);
-    }
-    const result = await response.json();
-    console.log("res:", result);
-  } catch (error) {
-    console.error("Error:", error);
-  }
+    try {
+        const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            doc_id1: doc_id1,
+            doc_id2: doc_id2,
+            link_type: link_type
+          }),
+          credentials: "include",
+        });
+    
+        if (!response.ok) {
+          throw new Error("Error: " + response.statusText);
+        }
+        const result = await response.json();
+        console.log("res:", result);
+        return result
+      } catch (error) {
+        console.error("Error:", error);
+        throw error;
+      }
 }
 
 // async function addDocument(finalDocument: any){

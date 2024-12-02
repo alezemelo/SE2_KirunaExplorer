@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  MenuItem,
   Alert,
   FormControl,
 } from "@mui/material";
@@ -96,6 +95,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
   const [errors, setErrors] = useState<string[]>([]);
+  const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
+  const [linkErrors, setLinkErrors] = useState<string[]>([]);
+  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
+  
+
+
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setTargetLinkType(value);
   const [stakeholderOptions, setStakeholderOptions] = useState(ACTUAL_STAKEHOLDERS);
   const [newStakeholder, setNewStakeholder] = useState("");
   const [newDoctype, setNewDoctype] = useState("");
@@ -338,9 +348,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   return (
     <div className="container">
-      <Typography variant="h6" sx={{ marginTop: 2 }}>
-        Documents
-      </Typography>
+      <Typography variant="h6" sx={{ marginTop: 2}}>Documents</Typography>
 
       {/* Document List */}
       <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
