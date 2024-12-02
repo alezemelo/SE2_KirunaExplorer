@@ -124,21 +124,7 @@ async function createLink(doc_id1: number, doc_id2: number, link_type: string) {
   }
 }
 
-// async function addDocument(finalDocument: any){
-//     const response = await fetch('http://localhost:3000/kiruna_explorer/documents', {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
-//         body: JSON.stringify(finalDocument),
-//       });
 
-
-//       if (!response.ok) {
-//         throw new Error("Error: " + response.statusText);
-//       }
-//       const result = await response.json();
-//       console.log("res:", result);
-// }
 async function addDocument(finalDocument: any) {
   const response = await fetch("http://localhost:3000/kiruna_explorer/documents", {
     method: "POST",
