@@ -1,5 +1,5 @@
 import { User } from "./type";
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "./models/coordinates";
+import { Coordinates } from "./models/coordinates";
 import { url } from "inspector";
 async function checkAuth(): Promise<User | null> {
   try {

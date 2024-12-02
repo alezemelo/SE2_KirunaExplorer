@@ -10,7 +10,6 @@ import "./App.css";
 import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import "./App.css";
 import { User, Coordinates as CoordinatesLocal } from "./type";
 import { Document } from "./models/document";
 
