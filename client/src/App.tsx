@@ -38,6 +38,8 @@ function App() {
   const [geojson, setGeojson] = useState(null);
 
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
 
 // Handle the location selected from the map
 const handleMapLocationSelected = (lat: number, lng: number) => {
@@ -184,6 +186,8 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                       user={user}
                       isMunicipalityChecked = {isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
+                      selectedFile={selectedFile}
+                      setSelectedFile={setSelectedFile}
                     />
                   </Grid>
                 )}

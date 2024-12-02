@@ -33,6 +33,11 @@ import {
   MenuItem,
   Alert
 } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import MapIcon from "@mui/icons-material/Map";
+import AddIcon from '@mui/icons-material/Add';
+
 import { DocumentType as DocumentLocal, User, Coordinates as CoordinateLocal } from "../../type";
 import DocDetails from "../DocDetails/DocDetails";
 import "./List.css";
@@ -58,6 +63,8 @@ interface DocumentListProps {
   user: User | undefined;
   updating: boolean;
   setUpdating: any;
+  selectedFile: File | null;
+  setSelectedFile: any;
   isMunicipalityChecked: boolean;
   setIsMunicipalityChecked: any;
   geojson: any;
@@ -579,7 +586,35 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     <div className="container">
       <Typography variant="h6" sx={{ marginTop: 2}}>Documents</Typography>
 
-      {/* Dialog for Adding New Document */}
+      {/* Document List */}
+      <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
+        <Grid container spacing={3}>
+          {props.documents.map((document, i) => (
+            <Grid item xs={12} key={i}>
+              <DocDetails
+                document={document}
+                loggedIn={props.loggedIn}
+                user={props.user}
+                fetchDocuments={props.fetchDocuments}
+                pin={props.pin}
+                setNewPin={props.setNewPin}
+                onLink={() => console.log("Link action triggered")} // Replace with actual linking logic
+                handleSearchLinking={handleSearchLinking}
+                updating={props.updating}
+                setUpdating={props.setUpdating}
+                newDocument={newDocument}
+                setNewDocument={setNewDocument}
+                selectedFile={props.selectedFile}
+                setSelectedFile={props.setSelectedFile}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+
+
+      {/* Add Document Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Add a New Document</DialogTitle>
         <DialogContent>
@@ -930,18 +965,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         </DialogActions>
       </Dialog>
 
-      {/* Scrollable document list */}
-      <Box ref={containerRef} className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
-        <Grid container spacing={3}>
-          {props.documents.map((document, i) => (
-            <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
-              <DocDetails  handleSearchLinking={handleSearchLinking} document={document} loggedIn={props.loggedIn} user={props.user} fetchDocuments={props.fetchDocuments} pin={props.pin} setNewPin={props.setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={props.updating} setUpdating={props.setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
-            </Grid>
-          ))
-        }
-        </Grid>
-
-      </Box>
+      
       <div>
       <label>
         <input 
@@ -965,6 +989,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           Add a new document
         </Button>
       )}
+
 
 
       {/* Linking Dialog */}
