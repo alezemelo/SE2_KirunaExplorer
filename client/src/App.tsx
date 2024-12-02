@@ -37,6 +37,14 @@ function App() {
   const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
   const [geojson, setGeojson] = useState(null);
 
+  const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+
+// Handle the location selected from the map
+const handleMapLocationSelected = (lat: number, lng: number) => {
+  setCoordMap({ lat, lng });
+  setIsSelectingLocation(false);
+};
+
   const fetchDocuments = useCallback(async () => {
     try {
       const data: Document[] = await API.getDocuments();
@@ -209,6 +217,8 @@ function App() {
                     //setAdding={setAdding}
                     documents={documents}
                     isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
+                    isSelectingLocation={isSelectingLocation}
+                    onLocationSelected={handleMapLocationSelected}
                     updating={updating}
                   />
                 </Grid>
