@@ -1,15 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */ // Remember to remove this line for future maintenance
 import React, { useEffect, useState } from "react";
-import { Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent, DialogActions, List,  ListItem, ListItemText  } from "@mui/material";
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import dayjs from "dayjs";
-import { DocumentType, User } from "../../type";
-import API from "../../API";
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
-import FilePreview from "./FilePreview";
+import { Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent, 
+  DialogActions, List,  ListItem, ListItemText, IconButton, ListItemIcon  } from "@mui/material";
+
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import DownloadIcon from '@mui/icons-material/Download';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
+
+import dayjs from "dayjs";
+import { User } from "../../type";
+import API from "../../API";
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import FilePreview from "./FilePreview";
 import { Document } from "../../models/document";
 
 
@@ -217,6 +222,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       }
       else{
+        // eslint-disable-next-line no-cond-assign, no-constant-condition
         if (props.document.coordinates.type="POINT"){
           props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
         }
@@ -373,11 +379,21 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <strong>Description:</strong> {props.document.description}
           </Typography>:<></>}
 
-          {props.pin==props.document.id ? <Box marginTop={2}>
-              <Typography variant="body2" onClick={handleOpenDialog} style={{ cursor: "pointer", textDecoration: "underline" }}>
-                <strong>Original Files:</strong> {files.length}
-              </Typography>
-            </Box>:<></>}
+        {/* Files Download */}
+        {props.pin == props.document.id ? (
+          <Box marginTop={2} display="flex" alignItems="center">
+            <Typography variant="body2">
+              <strong>File Attachments:</strong> {props.document.fileIds ? props.document.fileIds.length : 'not available'}
+            </Typography>
+            {props.document.fileIds && props.document.fileIds.length > 0 && (
+              <IconButton onClick={handleOpenDialog} style={{ marginLeft: '8px' }}>
+                <ArrowRightIcon sx={{ fontSize: 16, color: 'white' }} />
+              </IconButton>
+            )}
+          </Box>
+        ) : (
+          <></>
+        )}
 
         {/* editDescription ? (
           <>
@@ -490,9 +506,21 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <DialogContent>
             <List>
               {files.map((file) => (
+                // console.log(`file.id: ${file.name}`),
                 <ListItem key={file.id}>
-                  <ListItemText primary={file.name} />
-                </ListItem>
+                <ListItemIcon>
+                <IconButton onClick={() => API.downloadByFileId(file.id, file.name)}>
+                    <DownloadIcon sx={{ color: 'green' }} />
+                  </IconButton>
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      {file.name}
+                    </Typography>
+                  }
+                />
+              </ListItem>
               ))}
             </List>
           </DialogContent>

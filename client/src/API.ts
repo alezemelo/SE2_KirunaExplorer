@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "./type";
 import { Coordinates } from "./models/coordinates";
-import { url } from "inspector";
 async function checkAuth(): Promise<User | null> {
   try {
     const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
@@ -112,6 +112,33 @@ async function getFilesByDocumentId(documentId: number): Promise<{ id: number; n
     return files;
   } catch (error) {
     console.error("Error retrieving files:", error);
+    throw error;
+  }
+}
+
+async function downloadByFileId(fileId: number, fileName: string): Promise<void> {
+  try {
+    const response = await fetch(`http://localhost:3000/kiruna_explorer/files/download/${fileId}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // Include session cookies
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading file:", error);
     throw error;
   }
 }
@@ -369,7 +396,8 @@ const API = {
   addScale,
   getAllStakeholders, 
   uploadFile,
-  getFilesByDocumentId
+  getFilesByDocumentId,
+  downloadByFileId
 }
 
 export default API 
