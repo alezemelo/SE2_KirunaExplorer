@@ -33,7 +33,7 @@ jobs:
       run: npm install
 
     - name: Run tests and generate coverage
-      run: npm test --coverage
+      run: npm test 
 
     - name: Run SonarCloud analysis
       uses: sonarsource/sonarcloud-github-action@v2
