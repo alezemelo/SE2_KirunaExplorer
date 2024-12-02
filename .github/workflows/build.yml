@@ -1,46 +1,24 @@
-name: Build and Analyze with SonarCloud
-
+name: Build
 on:
   push:
     branches:
-      - main # Trigger analysis for all branches
+      - main
   pull_request:
-    branches:
-      - main  # Trigger analysis for PRs targeting the 'main' branch
-
+    types: [opened, synchronize, reopened]
 jobs:
-  build:
+  sonarcloud:
+    name: SonarQube Cloud
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'  # Adjust to the Node.js version you are using
-
-    - name: Cache npm dependencies
-      uses: actions/cache@v2
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Run tests and generate coverage
-      run: npm test 
-
-    - name: Run SonarCloud analysis
-      uses: sonarsource/sonarcloud-github-action@v2
-      with:
-        organization: alezemelo
-        projectKey: alezemelo
-        token: ${{ secrets.SONAR_TOKEN }}  # Set this secret in your GitHub repository settings
-        extraArgs: |
-          -Dsonar.javascript.lcov.reportPaths=coverage/lcov-report/index.html
-          -Dsonar.coverage.exclusions=**/*.test.ts,**/*.spec.ts  # Exclude test files if necessary
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Install dependencies
+        run: yarn
+      - name: Test and coverage
+        run: yarn jest --coverage
+      - name: SonarQube Cloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
