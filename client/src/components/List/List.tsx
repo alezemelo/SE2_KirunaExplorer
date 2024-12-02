@@ -598,7 +598,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                 fetchDocuments={props.fetchDocuments}
                 pin={props.pin}
                 setNewPin={props.setNewPin}
-                onLink={() => console.log("Link action triggered")} // Replace with actual linking logic
+                onLink={() => openLinkingDialog(document)}
                 handleSearchLinking={handleSearchLinking}
                 updating={props.updating}
                 setUpdating={props.setUpdating}
@@ -1035,7 +1035,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                     key={doc.id}
                     onClick={() => setTargetDocumentId(doc.id)}
                   >
-                    <ListItemText primary={doc.title} />
+                    <ListItemText primary={doc.title} primaryTypographyProps={{ style: { color: targetDocumentId==doc.id?'yellow':'white' } }} />
                   </ListItemButton>
                 ))}
               </List>
