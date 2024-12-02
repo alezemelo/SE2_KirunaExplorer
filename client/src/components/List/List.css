@@ -1,90 +1,98 @@
 /* List.css */
 
 .container {
-  padding-bottom: 20px;
-  padding-right: 20px;
-  padding-left: 20px;
-  background-color: #000; /* Set background color to black */
-  color: white; /* Change text color to white for contrast */
+  padding: 20px; /* Added uniform padding for better spacing */
+  background-color: #0d1117; /* Slightly softer black background */
+  color: #c9d1d9; /* Muted white text for a modern look */
+  font-family: "Roboto", sans-serif; /* Clean font for readability */
 }
 
-.form-control {
-  margin-bottom: 20px;
-  width: 200px;
-}
-
-.select-empty {
-  width: 100%;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.MuiCard-root {
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-  background-color: #333; /* Darken the card background to stand out from the main black background */
-  color: white;
-}
-
-.card-textfield {
-  color: #fff; /* Adjust text color in text fields to white */
-}
-
-.MuiButton-containedPrimary {
-  background-color: #007bff;
-  color: white;
-}
-
-/* Style the scrollable list box with a black background */
 .scrollable-list {
-  background-color: #111; /* Set a slightly different black shade to distinguish the scrollable area */
-  color: white;
-  padding-right: 10px;
-}
-
-
-/* Style the entire dialog to have a black background and white text */
-.custom-dialog .MuiPaper-root {
-  background-color: #000; /* Set dialog background to black */
-  color: white; /* Set text color to white */
-  border: 1px solid white; 
-  border-radius: 8px; /
-}
-
-.custom-dialog .MuiDialogTitle-root {
-  color: white; /* Set title color to white */
-}
-
-.custom-dialog .MuiDialogContent-root {
-  background-color: #000; /* Set content background to black */
-}
-
-.custom-dialog .MuiDialogActions-root {
-  background-color: #000; /* Set actions background to black */
-}
-
-/* Style TextField input fields to have a white background and black text */
-.white-input .MuiInputBase-root {
-  background-color: #fff; /* Set input background to white */
-  color: black; /* Set input text color to black */
-}
-
-.white-input .MuiInputBase-input {
-  color: black; /* Set input text color to black */
+  background-color: #161b22; /* Slightly contrasting background for the scroll area */
+  color: #c9d1d9;
+  border-radius: 10px; /* Rounded corners for a softer look */
+  padding: 15px; /* Added padding for spacing */
+  margin-top: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+  max-height: 580px; /* Limit height for better scroll behavior */
+  overflow-y: auto; /* Enable smooth scrolling */
 }
 
 .document-item {
-  background-color: #222; /* Default background color */
-  color: white;
-  transition: background-color 0.3s ease;
+  background-color: #21262d; /* Dark gray for document items */
+  border-radius: 10px; /* Rounded corners for a modern look */
+  padding: 15px; /* Added padding for spacing */
+  color: #c9d1d9;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease; /* Smooth hover transitions */
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2); /* Slight shadow for depth */
 }
 
 .document-item:hover {
-  background-color: #444; /* Hover background color */
-  color: #ddd; /* Hover text color */
+  background-color: #2d333b; /* Lighter gray for hover effect */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+  transform: scale(1.02); /* Slight zoom effect on hover */
+}
+
+.document-item h6 {
+  font-size: 1rem; /* Adjust title size */
+  margin-bottom: 8px; /* Add spacing between title and description */
+}
+
+.document-item p {
+  font-size: 0.9rem; /* Reduce text size slightly */
+  line-height: 1.4; /* Increase spacing between lines for readability */
+}
+
+.button-container {
+  margin-top: 20px;
+  text-align: center; /* Center align buttons */
+}
+
+.MuiButton-containedPrimary {
+  background-color: #238636; /* Modern green button color */
+  color: white;
+  border-radius: 8px;
+  padding: 8px 20px;
+  text-transform: capitalize; /* Prevent all-uppercase text */
+}
+
+.MuiCard-root {
+  background-color: #1b1f24; /* Dark card background */
+  border-radius: 10px; /* Rounded corners for smooth edges */
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  margin-bottom: 15px; /* Space between cards */
+}
+
+.custom-dialog .MuiPaper-root {
+  background-color: #0d1117; /* Match dialog background with app theme */
+  color: #c9d1d9;
+  border-radius: 12px; /* Softer corners */
+  padding: 20px; /* Add padding for better spacing */
+}
+
+.custom-dialog .MuiDialogTitle-root {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #30363d; /* Subtle divider */
+}
+
+.custom-dialog .MuiDialogActions-root {
+  margin-top: 20px; /* Add space above buttons */
+  justify-content: center; /* Center align dialog buttons */
+}
+
+.inputRoot {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #c9d1d9;
+}
+
+.white-input .MuiInputBase-root {
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  padding: 8px 12px;
 }

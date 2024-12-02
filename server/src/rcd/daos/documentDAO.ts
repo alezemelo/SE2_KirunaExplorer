@@ -7,6 +7,8 @@ import db from '../../db/db';
 import { Document } from '../../models/document';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
 import { groupEntriesById } from './helperDaos';
+import { UniqueConstraintError } from '../../errors/dbErrors';
+import { DocumentNotFoundError, DocumentTypeNotFoundError, ScaleNotFoundError, StakeholdersNotFoundError } from '../../errors/documentErrors';
 
 class DocumentDAO {
     private db: any;
@@ -76,7 +78,10 @@ class DocumentDAO {
                 documents.push(doc)
             }
             */
-            const documents = groupEntriesById(res);
+            // merge fix: 
+            //  - changed from `const documents = groupEntriesById(res);` to incoming from sprint3 `const documents = await groupEntriesById(res, db);`
+            //  - added the code marked with the comment 2) below
+            const documents = await groupEntriesById(res, db);
 
             // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
             // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
@@ -95,7 +100,7 @@ class DocumentDAO {
         }
     }
 
-    public async searchDocuments(query: string): Promise<Document[]> {
+    public async searchDocuments(query: string, municipality_filter?: boolean): Promise<Document[]> {
         try {
             // gets readable format of coordinates directly from db instead of hex
             // if this query does not work, copy the for loop approach used in the method above
@@ -115,13 +120,32 @@ class DocumentDAO {
             //const res = await pgdb.client.query(`SELECT * FROM documents where title ILIKE $1`, [param]);
 
             const res = await db('documents')
-                .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
-                .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
-                .select('documents.*', 'stakeholders.name as stakeholders')
-                .where('documents.title', 'ILIKE', `%${query}%`)
-                .orderBy('documents.id', 'asc');
+    .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
+    .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
+    .select('documents.*', 'stakeholders.name as stakeholders')
+    .where('documents.title', 'ILIKE', `%${query}%`)
+    .modify(function (queryBuilder) {
+        if (municipality_filter) {
+            queryBuilder.andWhere('documents.coordinates_type', '=', 'MUNICIPALITY');
+        }
+    })
+    .orderBy('documents.id', 'asc');
+          
+            // merge fix: 
+            //  - changed from `const documents = groupEntriesById(res);` to incoming from sprint3 `const documents = await groupEntriesById(res, db);`
+            //  - added the code marked with the comment 2) below
+            const documents = groupEntriesById(res, db);
 
-            const documents = groupEntriesById(res);
+            // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
+            // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+            for (const doc of documents) {
+                const fileRes = await db('document_files')
+                    .where({ doc_id: doc.id })
+                    .select('file_id');
+                const file_ids = fileRes.map(row => row.file_id);
+                doc.fileIds = file_ids;
+            }
+
             return documents;
         } catch (error) {
             console.error(error);
@@ -163,6 +187,71 @@ class DocumentDAO {
         }
     }
 
+    /**
+     * Overwrites a document's stakeholders, scale and/or type, depending on the body content.
+     * 
+     * @param id - The ID of the document to update.
+     * @param body.stakeholders - The new stakeholders for the document (list of strings).
+     * @param body.scale - The new scale for the document.
+     * @param body.type - The new type for the document.
+     */
+    public async updateDocument(id: number, body: any): Promise<void> {
+        try {
+            await db.transaction(async (trx) => {
+
+                // checks if doc exists
+                const documentExists = await trx('documents')
+                    .where({ id })
+                    .first();
+
+                if (!documentExists) {
+                    throw new Error(`Document with ID ${id} does not exist.`);
+                }
+
+                if (body.scale) {
+                    await trx('documents')
+                        .where({ id })
+                        .update({ scale: body.scale });
+                }
+                if (body.doctype) {
+                    await trx('documents')
+                        .where({ id })
+                        .update({ type: body.doctype });
+                }
+                if (body.stakeholders) {
+                    const deletedRows = await trx('document_stakeholders')
+                        .where({ doc_id: id })
+                        .delete();
+                    console.log(`Deleted ${deletedRows} rows for document with ID ${id}.`);
+                    if (body.stakeholders.length > 0) {
+                        console.log("adding new stakeholders...")
+                        const stakeholdersRows = body.stakeholders.map((stakeholder: any) => ({
+                        doc_id: id,
+                        stakeholder_id: stakeholder,
+                        }));
+                        console.log(stakeholdersRows)
+                        await trx('document_stakeholders').insert(stakeholdersRows);
+                    }
+                }
+            });
+        } catch (error: any) {
+            console.error(`Failed to update document with ID ${id}:`, error);
+            if (error.message.includes('does not exist')) {
+                // Handle the case where the document does not exist
+                throw new DocumentNotFoundError([body.id]);
+            }
+            if (error.code === '23503' && error.message.includes('documents_type_foreign')) {
+                throw new DocumentTypeNotFoundError();
+            }
+            if (error.code === '23503' && error.message.includes('documents_scale_foreign')) {
+                throw new ScaleNotFoundError();
+            }
+            if (error.code === '23503' && error.message.includes('document_stakeholders_stakeholder_id_foreign')) {
+                throw new StakeholdersNotFoundError();
+            }
+            throw error;
+        }
+    }
 
 
     /**
@@ -220,7 +309,6 @@ class DocumentDAO {
             //console.log(doc);
             const document_to_insert = doc.toObjectWithoutIdAndStakeholders();
 
-            console.log("before transaction")
             const documentId = await db.transaction(async (trx) => {
                 // Insert the document
                 const res = await trx('documents')
@@ -245,7 +333,6 @@ class DocumentDAO {
                 // Return the document ID if all operations succeed
                 return documentId;
             });
-            console.log("after transaction")
             
             return documentId;
 
@@ -258,8 +345,17 @@ class DocumentDAO {
             }
             return res[0].id;
             */
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error adding document to the database:', error);
+            if (error.code === '23505') {
+                throw new UniqueConstraintError();
+            }
+            if (error.code === '23503' && error.message.includes('documents_type_foreign')) {
+                throw new DocumentTypeNotFoundError();
+            }
+            if (error.code === '23503' && error.message.includes('document_stakeholders_stakeholder_id_foreign')) {
+                throw new StakeholdersNotFoundError();
+            }
             if (error instanceof Error && (error as any).code === 'XX000') {
                 throw new Error('Invalid geometry: Ensure coordinates are valid and formatted correctly.');
             } else {

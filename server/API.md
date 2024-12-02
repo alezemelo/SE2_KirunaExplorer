@@ -68,7 +68,7 @@ Creates a new document
    Only urban planner (Urban Developer)
 - Additional Constraints:
   - Title and coordinates are required fields
-  - Returns 400 if inserted stakeholders are unknown
+  - Returns 400 if inserted stakeholders, type or scale are unknown
   - May return errors specified in the head of this file
 
 #### Explanation:
@@ -111,9 +111,33 @@ Adds or updates a description for an existing document, the latter being sent th
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
   - May return errors specified in the head of this file or any other generic error
 
+
+#### PATCH `/kiruna_explorer/documents/:id`
+
+Generic patch api for a document: content of the fields will be overwritten with the sent data.
+Able to overwrite stakeholders, scale, and document type.
+
+- Request Parameters: `id`, an integer number representing the document unique ID
+- Request Body Content:
+  ```json
+  {
+    "stakeholders": ["Stakeholder1", "Stakeholder2"],
+    "type": "new_type",
+    "scale": "1:new_scale"
+  }
+  ```
+- Response Body Content: `None`
+- Access Constraints: `Urban Planner` only
+  - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
+  - May return errors specified in the head of this file or any other generic error
+- Additional constraints:
+  - All fields are optional, if no field is specified, nothing will be changed in the db.
+  - Scale must be in the format 1:integer_positive_number, or "Text" or "blueprint/effect"
+
 #### GET `/kiruna_explorer/documents/search?title=mytitle`
 
 Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
+municipality_filter is an optional parameter to get only the documents related to all municipality. when it is omitted it searchs all documents. if it is present and true, it searchs the documents related to all municipality.
 - Request query: the string to match with the title, it is required.
   - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
 - Response Body Content: list of matching docs
@@ -281,6 +305,79 @@ adds a new stakeholder to the list of possible stakeholders
 - Returns `409` if name already esists:
 - returns `422` if the request body content is not correct
 
+### Doctype APIs
+
+These allow to get a list of every valid doctype and add a new doctype.
+
+#### GET `kiruna_explorer/doctypes`
+
+returns the list of all valid doctypes
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"name": "prescriptive_doc"},
+  {"name": "informative_doc"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/doctypes`
+
+adds a new valid doctype
+
+- Request Parameters: None
+- Request body content:
+  `{"name": "new_doctype"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: name of new doctype
+- Access contraints: Urban Planner
+- Returns `409` if name already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string)
+
+
+### Scale APIs
+
+These allow to get a list of every valid scale value and add a new scale value.
+
+#### GET `kiruna_explorer/scales`
+
+returns the list of all valid scale values 
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Content:
+  - If ok:
+    - Response content:
+```json
+[
+  {"value": "blueprint/effect"},
+  {"value": "text"},
+  {"value": "1:10000"}
+]
+```
+- Access constraints: None
+
+#### POST `kiruna_explorer/scales`
+
+adds a new valid scale
+
+- Request Parameters: None
+- Request body content:
+  `{"value": "1:20000"}`
+- Response Content:
+  - If ok:
+    - Code: `201` - created
+    - Body: value of new scale 
+- Access contraints: Urban Planner
+- Returns `409` if value already esists:
+- returns `422` if the request body content is not correct (must be a non-empty string and with format 1:positive_integer)
 
 ### Auth APIs
 

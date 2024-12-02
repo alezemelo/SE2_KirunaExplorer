@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-
+import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 import {
@@ -28,8 +28,16 @@ import {
   Card,
   CardContent,
   IconButton,
-  createTheme
+  createTheme,
+  Select,
+  MenuItem,
+  Alert
 } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import MapIcon from "@mui/icons-material/Map";
+import AddIcon from '@mui/icons-material/Add';
+
 import { DocumentType as DocumentLocal, User, Coordinates as CoordinateLocal } from "../../type";
 import DocDetails from "../DocDetails/DocDetails";
 import "./List.css";
@@ -55,7 +63,11 @@ interface DocumentListProps {
   user: User | undefined;
   updating: boolean;
   setUpdating: any;
- 
+  selectedFile: File | null;
+  setSelectedFile: any;
+  isMunicipalityChecked: boolean;
+  setIsMunicipalityChecked: any;
+  geojson: any;
 }
 
 /*interface DocumentLocal {
@@ -73,7 +85,12 @@ interface DocumentListProps {
   coordinates: any;
 }*/
 
-
+export const ACTUAL_STAKEHOLDERS = [
+  { name: "White Arkitekter" },
+  { name: "Kiruna kommun" },
+  { name: "Residents" },
+  { name: "LKAB" },
+];
 
 
 
@@ -102,10 +119,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         issuanceDate: "",
         type: "informative_doc",
         connection: [],
-        language: "",
+        language: "English",
         pages: 1,
         description: "",
-        coordinates: null
+        coordinates: new Coordinates(CoordinatesType.MUNICIPALITY,null)
       }
   }
   const [open, setOpen] = useState(false);
@@ -119,11 +136,112 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
-  const [isChecked, setIsChecked] = useState(false);
-  
-  
-  //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
-  //const [docExpand, setDocExpand] = useState(0);
+  const [linkErrors, setLinkErrors] = useState<string[]>([]);
+  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
+  const [dateOption, setDateOption] = useState("fullDate"); // Default to fullDate
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
+  const [day, setDay] = useState("");
+  const [stakeholderOptions, setStakeholderOptions] = useState(ACTUAL_STAKEHOLDERS);
+  const [newStakeholder, setNewStakeholder] = useState("");
+  const [newDoctype, setNewDoctype] = useState("");
+  const [doctypeOptions, setDoctypeOptions] = useState([
+    "informative_doc",
+    "prescriptive_doc",
+    "design_doc",
+    "technical_doc",
+    "material_effect",
+  ]);
+  const [scaleOptions, setScaleOptions] = useState(["1:100", "1:200", "1:500", "1:1000", "1:2000", "1:5000"]);
+  const [newScale, setNewScale] = useState("");
+
+  const handleDateOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDateOption(e.target.value);
+    setYear("");
+    setMonth("");
+    setDay("");
+  };
+
+  const getIssuanceDate = () => {
+    if (dateOption === "year") return year;
+    if (dateOption === "yearMonth") return `${year}-${month}`;
+    if (dateOption === "fullDate") return `${year}-${month}-${day}`;
+    return "";
+  };
+
+  const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+
+  const handleAddNewDoctype = async () => {
+    if (!newDoctype.trim()) {
+      alert("Doctype name cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await API.addDoctype({ name: newDoctype.trim() });
+      if (response.status === 201) {
+        setDoctypeOptions((prev) => [...prev, newDoctype.trim()]);
+        setNewDoctype("");
+        alert("Doctype added successfully!");
+      } else {
+        alert("Failed to add doctype. It may already exist.");
+      }
+    } catch (error) {
+      console.error("Error adding doctype:", error);
+      alert("An error occurred while adding the doctype.");
+    }
+  };
+
+  const handleAddNewScale = async () => {
+    if (!newScale.trim()) {
+      alert("Scale value cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await API.addScale({ value: newScale.trim() });
+      if (response.status === 201) {
+        setScaleOptions((prev) => [...prev, newScale.trim()]);
+        setNewScale("");
+        alert("Scale added successfully!");
+      } else {
+        alert("Failed to add scale. It may already exist.");
+      }
+    } catch (error) {
+      console.error("Error adding scale:", error);
+      alert("An error occurred while adding the scale.");
+    }
+  }
+
+  const handleAddNewStakeholder = async () => {
+    if (!newStakeholder.trim()) {
+      alert("Stakeholder name cannot be empty.");
+      return;
+    }
+
+    try {
+      // Add stakeholder to the database
+      await API.addStakeholder({ name: newStakeholder.trim() });
+
+      // Refresh stakeholder options from the backend
+      const updatedStakeholders = await API.getAllStakeholders(); // Fetch all stakeholders from the backend
+      setStakeholderOptions(updatedStakeholders);
+
+      // Clear the input field
+      setNewStakeholder("");
+
+      alert("Stakeholder added successfully!");
+    } catch (error: any) {
+      if (error.message.includes("Stakeholder already exists")) {
+        alert("Stakeholder already exists.");
+      } else if (error.message.includes("Invalid stakeholder name")) {
+        alert("Invalid stakeholder name. Please enter a valid name.");
+      } else {
+        alert("An error occurred while adding the stakeholder.");
+      }
+      console.error("Error adding stakeholder:", error);
+    }
+  };
 
 
 
@@ -132,11 +250,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetLinkType(value);
   };
 
-/*  useEffect(()=>{
-    const t = documents.find((doc)=>doc.id==pin)
-    if(t){setDocument(t)}
-    //setDocExpand(pin);
-  },[pin])*/
 
   useEffect(()=>{
     if(props.updating){
@@ -144,7 +257,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       setOpen(true);
     }
   },[props.updating])
-
 
 
   useEffect(()=> {
@@ -179,6 +291,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetLinkType("direct");
     setLinkDocuments([]);
     setSearchQuery('');
+    setLinkErrors([])
 
   };
 
@@ -224,6 +337,18 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (!newDocument.title) {
       newErrors.push("Title is required.");
     }
+    if (!newDocument.stakeholders) {
+      newErrors.push("stakeholder is required.");
+    }
+    if (!newDocument.description) {
+      newErrors.push("description is required.");
+    }
+    if (!newDocument.language) {
+      newErrors.push("language is required.");
+    }
+    if (!newDocument.scale) {
+      newErrors.push("scale is required.");
+    }
     if (typeof newDocument.title !== 'string') {
       newErrors.push("Title must be a string.");
     }
@@ -266,15 +391,14 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     ) {
       newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
     }
-    
-    /*
-    if (newDocument.lat !== undefined && typeof newDocument.lat !== 'number') {
+    if (newDocument.coordinates?.coords?.lat && isNaN(Number(newDocument.coordinates?.coords?.lat))) {
       newErrors.push("Latitude must be a number.");
+      console.log(newDocument.coordinates?.coords?.lat)
     }
-    if (newDocument.lng !== undefined && typeof newDocument.lng !== 'number') {
+    if (newDocument.coordinates?.coords?.lng && isNaN(Number(newDocument.coordinates?.coords?.lng))) {
       newErrors.push("Longitude must be a number.");
     }
-    */
+    
   
     setErrors(newErrors);
   
@@ -299,9 +423,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       }
       if(isValidDocumentType(newDocument.type)){
 
-        const latLng = newDocument.coordinates?.coords;
-        const coordinates1 = latLng && latLng.lat !== null && latLng.lng !== null
-          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
+        const latLng1 = newDocument.coordinates?.coords;
+        const coordinates1 = latLng1 && latLng1.lat !== null && latLng1.lng !== null
+          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
           : new Coordinates(CoordinatesType.MUNICIPALITY, null);
 
         
@@ -339,24 +463,36 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               )
             );*/
           }
-          const latLng = newDocument.coordinates.coords;
+          const latLng2 = newDocument.coordinates.coords;
 
           if (
-              latLng?.lat != null && 
-              latLng?.lng != null /*&& 
+              latLng2?.lat != null && 
+              latLng2?.lng != null /*&& 
               (latLng.lat !== oldForm?.coordinates.coords.lat || 
                latLng.lng !== oldForm?.coordinates.coords.lng)*/
           ) {
+            if(booleanPointInPolygon(latLng2,props.geojson)){
               await API.updateCoordinates(
-                  newDocument.id,
-                  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng.lat), Number(latLng.lng)))
-              );
+                newDocument.id,
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng2.lat), Number(latLng2.lng)))
+            );
+            }
+            else{
+              newErrors.push("coordinates out of the municipality area")
+              setErrors(newErrors);
+            }
           }
           props.setUpdating(false);
         }
         else{
-          await API.addDocument(finalDocument);
-          props.setAdding(false)
+          if(coordinates1.getType()==CoordinatesType.POINT && booleanPointInPolygon(latLng1,props.geojson)){
+            await API.addDocument(finalDocument);
+          }
+          else{
+            newErrors.push("coordinates out of the municipality area")
+              setErrors(newErrors);
+            props.setAdding(false)
+          }
         }
         await props.fetchDocuments();
   
@@ -373,35 +509,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const linkDocument = async () => {
    if(currentDocument && targetDocumentId && targetLinkType){
-    /*try {
-      const response = await fetch("http://localhost:3000/kiruna_explorer/linkDocuments/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          doc_id1: currentDocument?.id,
-          doc_id2: targetDocumentId,
-          link_type: targetLinkType
-        }), 
-      });
-  
-      if (!response.ok) {
-        throw new Error("Error: " + response.statusText);
-      }
-      const result = await response.json();
-      console.log("res:", result);
-      await fetchDocuments();
-    } catch (error) {
-      console.error("Error:", error);
-    }*/
+   try{
     await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
     await props.fetchDocuments();
-    closeLinkingDialog()
-
+    closeLinkingDialog();
+   }
+   catch(error){
+    setLinkErrors([...linkErrors, "A link with this type already exists for this document"]);
+    console.log(error)
+   }
+    
    }
     
   };
+
+  useEffect(()=>{
+    console.log(linkErrors)
+  },[linkErrors])
 
   const handleSearchLinking = async () => {
     try {
@@ -429,29 +553,30 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   
 
   const handleCheckboxChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(event.target.checked)
-    if(event.target.checked){
-      const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
-      if(t){
-        props.setDocuments(t)
-      }
-      setIsChecked(true); 
-    }else{
-      await props.fetchDocuments();
-      setIsChecked(false); 
+    if(event.target.name=="municipality_filter"){
+      console.log(event.target.checked)
+      if(event.target.checked){
+        const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
+        if(t){
+          props.setDocuments(t)
+        }
+        props.setIsMunicipalityChecked(true); 
+      }else{
+        await props.fetchDocuments();
+        props.setIsMunicipalityChecked(false); 
+    }
+    }
+    else if(event.target.name=="coordinates_type"){
+      
     }
     
   }
-
-
-
-
-  
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     if ( itemRefs.current[props.pin]) {
+      console.log(props.pin)
         itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }, [props.pin]);
@@ -461,17 +586,315 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     <div className="container">
       <Typography variant="h6" sx={{ marginTop: 2}}>Documents</Typography>
 
-      {/* Dialog for Adding New Document */}
-      <Dialog open={open} onClose={handleClose}  className="custom-dialog">
+      {/* Document List */}
+      <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
+        <Grid container spacing={3}>
+          {props.documents.map((document, i) => (
+            <Grid item xs={12} key={i}>
+              <DocDetails
+                document={document}
+                loggedIn={props.loggedIn}
+                user={props.user}
+                fetchDocuments={props.fetchDocuments}
+                pin={props.pin}
+                setNewPin={props.setNewPin}
+                onLink={() => console.log("Link action triggered")} // Replace with actual linking logic
+                handleSearchLinking={handleSearchLinking}
+                updating={props.updating}
+                setUpdating={props.setUpdating}
+                newDocument={newDocument}
+                setNewDocument={setNewDocument}
+                selectedFile={props.selectedFile}
+                setSelectedFile={props.setSelectedFile}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+
+
+      {/* Add Document Dialog */}
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Add a New Document</DialogTitle>
-          <DialogContent>
-            <TextField className="white-input" autoFocus margin="dense" label="Title" name="title" required fullWidth value={newDocument.title} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Stakeholders" name="stakeholders" fullWidth value={newDocument.stakeholders} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Scale" name="scale" fullWidth value={newDocument.scale} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="ex. 2022-01-01" name="issuanceDate" fullWidth value={newDocument.issuanceDate} disabled={props.updating?true:false} onChange={handleChange} />
+        <DialogContent>
+          {errors.length > 0 && (
+            <Box mt={2}>
+              {errors.map((error, index) => (
+                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
+                  {error}
+                </Alert>
+              ))}
+            </Box>
+          )}
+
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Title (required)"
+            name="title"
+            required
+            fullWidth
+            value={newDocument.title}
+            onChange={handleChange}
+          />
+
+          {/* Stakeholders */}
+          <FormControl fullWidth margin="dense">
+            <TextField
+              select
+              label="Stakeholders"
+              name="stakeholders"
+              required
+              value={newDocument.stakeholders || []} // Ensure it's an array
+              onChange={(e) => {
+                setNewDocument({ ...newDocument, stakeholders: e.target.value });
+              }}
+              SelectProps={{
+                multiple: true, // Enable multiple selection
+              }}
+            >
+              {stakeholderOptions.map((stakeholder) => (
+                <MenuItem key={stakeholder.name} value={stakeholder.name}>
+                  {stakeholder.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </FormControl>
+
+          <TextField
+            margin="dense"
+            label="New Stakeholder"
+            placeholder="Enter stakeholder name"
+            fullWidth
+            value={newStakeholder}
+            onChange={(e) => setNewStakeholder(e.target.value)}
+          />
+
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            style={{
+              marginTop: "8px",
+              marginBottom: "16px",
+              backgroundColor: "white",
+              border: "1px solid #1976d2",
+              color: "#1976d2",
+              textTransform: "none",
+              fontWeight: "bold",
+            }}
+            onClick={async () => {
+              if (!newStakeholder.trim()) {
+                alert("Stakeholder name cannot be empty.");
+                return;
+              }
+
+              try {
+                // Add the new stakeholder to the backend
+                await API.addStakeholder({ name: newStakeholder.trim() });
+
+                // Fetch the updated stakeholders from the backend
+                const updatedStakeholders = await API.getAllStakeholders();
+                setStakeholderOptions(updatedStakeholders);
+
+                // Clear the input field
+                setNewStakeholder("");
+                alert("Stakeholder added successfully!");
+              } catch (error: any) {
+                if (error.message.includes("Stakeholder already exists")) {
+                  alert("Stakeholder already exists.");
+                } else if (error.message.includes("Invalid stakeholder name")) {
+                  alert("Invalid stakeholder name. Please enter a valid name.");
+                } else {
+                  alert("An error occurred while adding the stakeholder.");
+                }
+                console.error("Error adding stakeholder:", error);
+              }
+            }}
+          >
+            Add Stakeholder
+          </Button>
+
+
+
+          {
+            /* Document Type */
+
+          }
+
+          <FormControl fullWidth margin="dense">
+            <TextField
+              select
+              label="Document Type"
+              name="type"
+              required
+              value={newDocument.type}
+              onChange={handleChange}
+            >
+              {doctypeOptions.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {/* Input and Button for Adding New Doctype */}
+            <TextField
+              margin="dense"
+              label="New Document Type"
+              placeholder="Enter document type"
+              fullWidth
+              value={newDoctype}
+              onChange={(e) => setNewDoctype(e.target.value)}
+            />
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleAddNewDoctype}
+              style={{ marginTop: "8px" }}
+            >
+              Add Document Type
+            </Button>
+          </FormControl>
+
+          {/* Other fields */}
+          <FormControl fullWidth margin="dense">
+            <TextField
+              select
+              label="Scale (required)"
+              name="scale"
+              required
+              value={newDocument.scale}
+              onChange={handleChange}
+            >
+              {scaleOptions.map((scale) => (
+                <MenuItem key={scale} value={scale}>
+                  {scale}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {/* Input and Button for Adding New Scale */}
+            <TextField
+              margin="dense"
+              label="New Scale"
+              placeholder='Enter scale (e.g., "1:1000" or "Text")'
+              fullWidth
+              value={newScale}
+              onChange={(e) => setNewScale(e.target.value)}
+            />
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleAddNewScale}
+              style={{ marginTop: "8px" }}
+            >
+              Add Scale
+            </Button>
+          </FormControl>
+
+          {/* Issuance Date */}
+          <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
+            Select Date Option:
+          </Typography>
+          <FormControl fullWidth margin="dense">
+            <div>
+              <label>
+                <input
+                  type="radio"
+                  name="dateOption"
+                  value="year"
+                  checked={dateOption === "year"}
+                  onChange={handleDateOptionChange}
+                />
+                Just Year
+              </label>
+              <label style={{ marginLeft: "15px" }}>
+                <input
+                  type="radio"
+                  name="dateOption"
+                  value="yearMonth"
+                  checked={dateOption === "yearMonth"}
+                  onChange={handleDateOptionChange}
+                />
+                Year and Month
+              </label>
+              <label style={{ marginLeft: "15px" }}>
+                <input
+                  type="radio"
+                  name="dateOption"
+                  value="fullDate"
+                  checked={dateOption === "fullDate"}
+                  onChange={handleDateOptionChange}
+                />
+                Full Date
+              </label>
+            </div>
+          </FormControl>
+
+          {dateOption === "year" && (
+            <TextField
+              margin="dense"
+              label="Year"
+              type="number"
+              fullWidth
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+            />
+          )}
+
+          {dateOption === "yearMonth" && (
+            <>
+              <TextField
+                margin="dense"
+                label="Year"
+                type="number"
+                fullWidth
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Month"
+                type="number"
+                fullWidth
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+              />
+            </>
+          )}
+
+            <>
+              <TextField
+                margin="dense"
+                label="Year"
+                type="number"
+                fullWidth
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Month"
+                type="number"
+                fullWidth
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                label="Day"
+                type="number"
+                fullWidth
+                value={day}
+                onChange={(e) => setDay(e.target.value)}
+              />
+            </>
+          
             <FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
   <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
-  <RadioGroup row name="type" value={newDocument.type} onChange={handleChange}>
+  <RadioGroup row name="type"  value={newDocument.type} onChange={handleChange}>
         <FormControlLabel
           value="informative_doc"
           control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
@@ -499,12 +922,34 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         />
       </RadioGroup>
     </FormControl>
-            <TextField className="white-input" margin="dense" label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />
+            {/*<TextField className="white-input" margin="dense" required label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />*/}
+            <TextField
+              select name="language"
+              label="Select an option"
+              value={newDocument.language}
+              onChange={handleChange}
+              fullWidth style={{backgroundColor: 'white'}}>
+              <MenuItem value="English">English</MenuItem>
+              <MenuItem value="Swedish">Swedish</MenuItem>
+            </TextField>
             <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Latitude" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
-            <Button color="primary" onClick={handleMapCoord}>Choose on map</Button>
-            <TextField className="white-input" margin="dense" label="Description" name="description" fullWidth multiline rows={4} value={newDocument.description} onChange={handleChange} />
+            <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={()=>setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates"/><Button color="primary" >All municipality</Button></label>
+            <Button color="primary" onClick={()=>setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
+            <Button color="primary" >Draw a polygon</Button>
+            {coordinates_type==CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="number" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" type="number" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
+            <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
+            <TextField
+            margin="dense"
+            label="Description"
+            name="description"
+            fullWidth
+            multiline
+            required
+            rows={4}
+            value={newDocument.description}
+            onChange={handleChange}
+          />
           </DialogContent>
           {errors.length > 0 && (
             <div className="error-messages">
@@ -520,23 +965,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         </DialogActions>
       </Dialog>
 
-      {/* Scrollable document list */}
-      <Box ref={containerRef} className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
-        <Grid container spacing={3}>
-          {props.documents.map((document, i) => (
-            <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
-              <DocDetails  handleSearchLinking={handleSearchLinking} document={document} loggedIn={props.loggedIn} user={props.user} fetchDocuments={props.fetchDocuments} pin={props.pin} setNewPin={props.setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={props.updating} setUpdating={props.setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
-            </Grid>
-          ))
-        }
-        </Grid>
-
-      </Box>
+      
       <div>
       <label>
         <input 
           type="checkbox" 
-          checked={isChecked} 
+          checked={props.isMunicipalityChecked} 
+          name="municipality_filter"
           onChange={handleCheckboxChange} 
         />
         All municipality documents
@@ -554,6 +989,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           Add a new document
         </Button>
       )}
+
 
 
       {/* Linking Dialog */}
@@ -612,6 +1048,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                   <option value="projection">projection</option>
                   <option value="update">update</option>
                 </select>
+                {linkErrors.length > 0 && (
+            <div className="error-messages">
+              {linkErrors.map((error, index) => (
+                <p key={index} style={{ color: 'red' }}>{error}</p> 
+              ))}
+            </div>)}
         </DialogContent>
         <DialogActions>
         <Button onClick={linkDocument}  color="primary">Create</Button>

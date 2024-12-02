@@ -80,14 +80,15 @@ class DocumentRoutes {
         this.router.get(
             '/search',
             query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
-            // query('coords_type')
+            query('municipality_filter').optional().isIn(['true', 'false']).withMessage('municipality_filter must be either "true" or "false"'),
             //this.authService.isLoggedIn,
             //this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => {
                 try {
-                    this.controller.searchDocuments(req.query)
-                        .then((documents: any) => res.status(200).json(documents))
+                    (req.query.municipality_filter ? this.controller.searchDocuments(req.query,req.query.municipality_filter) : this.controller.searchDocuments(req.query))
+                        .then((documents: any) => {
+                            res.status(200).json(documents)})
                         .catch((err: any) => {
                             console.log("an error while searching for documents!", err);
                             next(err)
@@ -158,8 +159,10 @@ class DocumentRoutes {
             body('type')
                 .isString()
                 .withMessage('Type must be a string')
-                .isIn(["informative_doc", "prescriptive_doc", "design_doc", "technical_doc", "material_effect"])
-                .withMessage("Type of doc must be either: 'informative_doc',  'prescriptive_doc', 'design_doc', 'technical_doc', 'material_effect"),
+                .notEmpty()
+                .withMessage('Type is required'),
+                //.isIn(["informative_doc", "prescriptive_doc", "design_doc", "technical_doc", "material_effect"])
+                //.withMessage("Type of doc must be either: 'informative_doc',  'prescriptive_doc', 'design_doc', 'technical_doc', 'material_effect"),
             body('lastModifiedBy')
                 .isString()
                 .withMessage('Last modified by must be a string')
@@ -235,17 +238,20 @@ class DocumentRoutes {
                     await this.controller.addDocument(req, res, next);
                 } catch (error) {
                     console.error('Unexpected Error:', error);
-        
                     // Check if it's a database error
                     if ((error as any).code === 'XX000') {
                         res.status(400).json({
                             error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.',
                         });
-                    } else {
+                    }
+                    /*
+                    else {
                         res.status(500).json({
                             error: 'Internal Server Error',
                         });
                     }
+                    */
+                    next(error);
                 }
             }
         );
@@ -336,6 +342,40 @@ class DocumentRoutes {
     );
 
 
+    this.router.patch('/:id',
+        this.authService.isLoggedIn,
+        this.authService.isUserAuthorized(UserType.UrbanPlanner),
+        param('id').isInt().toInt(),
+        body('doctype').optional().isString().withMessage('Doctype must be a string').notEmpty().withMessage('Doctype must not be empty'),
+        body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty')
+            // standardizes
+            .customSanitizer((value) => {
+                const lowerValue = value.toLowerCase();
+                if (lowerValue === 'text') return 'Text';
+                if (lowerValue === 'blueprint/effects') return 'blueprint/effects';
+                return value; // Return unmodified if not matching the cases
+            })
+            .customSanitizer((value) => {
+                return value.replace(/:([\d.]+)/, (_: any, num: any) => `:${num.replace(/\./g, '')}`);
+            })
+        // checks that the format is 1:some_positive_integer
+        .matches(/^(1:\d+|Text|blueprint\/effects)$/).withMessage('Value must follow the format "1:number", where number is a positive integer or be "Text" or "blueprint/effects"'),
+        body('stakeholders').optional().isArray().withMessage('Stakeholders must be an array')
+        .custom((stakeholders) => {
+            if (!stakeholders.every((stakeholder: any) => typeof stakeholder === 'string' && stakeholder.trim() !== '')) {
+                throw new Error('Each stakeholder must be a non-empty string');
+            }
+            return true;
+        }),
+        this.errorHandler.validateRequest,
+        async (req: any, res: any, next: any) => {
+            this.controller.updateDocument(req.params.id, req.body)
+            .then(() => res.status(200).end())
+            .catch((err: any) => {
+                next(err)
+            })
+        }
+    );
     }
     /**
      * Returns the router instance.

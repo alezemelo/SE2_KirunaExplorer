@@ -34,6 +34,18 @@ function App() {
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
+  const [geojson, setGeojson] = useState(null);
+
+  const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+
+// Handle the location selected from the map
+const handleMapLocationSelected = (lat: number, lng: number) => {
+  setCoordMap({ lat, lng });
+  setIsSelectingLocation(false);
+};
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -70,7 +82,7 @@ function App() {
   const handleSearch = async () => {
     try {
       if (searchQuery.trim()) {
-        const matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+        const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery,true) : await API.searchDocumentsByTitle(searchQuery);
         setDocuments(matchingDocs);
       } else {
         fetchDocuments();
@@ -128,6 +140,16 @@ function App() {
     }
   };
 
+  
+  useEffect(()=>{
+    const renderMunicipality = async() => {
+      const res = await fetch('KirunaMunicipality.geojson');
+      const data = await res.json();
+      setGeojson(data);
+    }
+    renderMunicipality();
+  },[])
+
   return (
     <>
       <CssBaseline />
@@ -148,6 +170,7 @@ function App() {
                 {isDocumentListOpen && (
                   <Grid item xs={12} md={4}>
                     <DocumentList
+                      geojson={geojson}
                       updating={updating}
                       setUpdating={setUpdating}
                       documents={documents}
@@ -161,6 +184,10 @@ function App() {
                       setAdding={setAdding}
                       loggedIn={loggedIn}
                       user={user}
+                      isMunicipalityChecked = {isMunicipalityChecked}
+                      setIsMunicipalityChecked={setIsMunicipalityChecked}
+                      selectedFile={selectedFile}
+                      setSelectedFile={setSelectedFile}
                     />
                   </Grid>
                 )}
@@ -186,15 +213,17 @@ function App() {
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
                     //fetchDocuments={fetchDocuments}
+                    geojson={geojson}
                     pin={pin}
                     setNewPin={setNewPin}
-                    //setCoordMap={setCoordMap}
-                    //adding={adding}
+                    setCoordMap={setCoordMap}
+                    adding={adding}
                     //setAdding={setAdding}
                     documents={documents}
                     isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
-
-                    //updating={updating}
+                    isSelectingLocation={isSelectingLocation}
+                    onLocationSelected={handleMapLocationSelected}
+                    updating={updating}
                   />
                 </Grid>
               </Grid>
