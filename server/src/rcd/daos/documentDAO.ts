@@ -34,9 +34,9 @@ class DocumentDAO {
                 const fileRes = await db('document_files')
                     .where({ doc_id: docId })
                     .select('file_id');
-                const fileIds = fileRes.map(row => row.file_id);
+                const file_ids = fileRes.map(row => row.file_id);
 
-                return Document.fromJSON({ ...document, fileIds }, db);
+                return Document.fromJSON({ ...document, file_ids }, db);
             }
         } catch (error) {
             console.error(error);
@@ -84,8 +84,8 @@ class DocumentDAO {
                 const fileRes = await db('document_files')
                     .where({ doc_id: doc.id })
                     .select('file_id');
-                const fileIds = fileRes.map(row => row.file_id);
-                doc.fileIds = fileIds;
+                const file_ids = fileRes.map(row => row.file_id);
+                doc.fileIds = file_ids;
             }
 
             return documents;
