@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.02% </span>
+                <span class="strong">53.62% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>29/69</span>
+                <span class='fraction'>37/69</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.57% </span>
+                <span class="strong">38.09% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/21</span>
+                <span class='fraction'>8/21</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.36% </span>
+                <span class="strong">40.9% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/22</span>
+                <span class='fraction'>9/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.02% </span>
+                <span class="strong">53.62% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>29/69</span>
+                <span class='fraction'>37/69</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -394,10 +394,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -509,11 +509,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -523,22 +523,22 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -786,29 +786,29 @@ class DocumentRoutes {
                         if (
                             !coordinates.coords ||
                             typeof coordinates.coords.lat !== 'number' ||
-<span class="branch-2 cbranch-no" title="branch not covered" >                            typeof coordinates.coords.lng !== 'number'</span>
+                            typeof coordinates.coords.lng !== 'number'
                         ) {
                             throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
                         }
                     } else if (coordinates.type !== 'MUNICIPALITY') {
                         throw new Error('Invalid coordinates type');
                     }
-<span class="cstat-no" title="statement not covered" >                    return true;</span>
+                    return true;
                 }),
             this.authService.isLoggedIn,
             this.authService.isUserAuthorized(UserType.UrbanPlanner),
-<span class="fstat-no" title="function not covered" >            async </span>(req: Request, res: Response, next: NextFunction): Promise&lt;void&gt; =&gt; {
+            async (req: Request, res: Response, next: NextFunction): Promise&lt;void&gt; =&gt; {
                 // Handle validation errors
-                const errors = <span class="cstat-no" title="statement not covered" >validationResult(req);</span>
-<span class="cstat-no" title="statement not covered" >                <span class="missing-if-branch" title="if path not taken" >I</span>if (!errors.isEmpty()) {</span>
-<span class="cstat-no" title="statement not covered" >                    console.log('Validation Errors:', errors.array());</span>
-<span class="cstat-no" title="statement not covered" >                    res.status(400).json({ errors: errors.array() });</span>
-<span class="cstat-no" title="statement not covered" >                    return;</span>
+                const errors = validationResult(req);
+                if (!errors.isEmpty()) {
+                    console.log('Validation Errors:', errors.array());
+                    res.status(400).json({ errors: errors.array() });
+                    return;
                 }
         
                 // Call controller to process the request
-<span class="cstat-no" title="statement not covered" >                try {</span>
-<span class="cstat-no" title="statement not covered" >                    await this.controller.addDocument(req, res, next);</span>
+                try {
+                    await this.controller.addDocument(req, res, next);
                 } catch (error) {
 <span class="cstat-no" title="statement not covered" >                    console.error('Unexpected Error:', error);</span>
         
@@ -880,7 +880,7 @@ export default DocumentRoutes;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-02T15:17:56.988Z
+                at 2024-12-02T15:40:53.691Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
