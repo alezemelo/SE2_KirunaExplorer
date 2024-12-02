@@ -34,6 +34,7 @@ initRoutes(app);
 
 // Start the server
 const server = app.listen(port, () => {
+  console.log(`database env var: ${process.env.DATABASE_HOST_DEV}`);
   console.log(`Server running at http://localhost:${port}`);
 });
 

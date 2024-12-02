@@ -1,7 +1,8 @@
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-import {Coordinates} from "./coordinates";
+import {Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType} from "./coordinates";
+import { Knex } from "knex";
 
 enum DocumentType {
     informative_doc = "informative_doc",
@@ -24,13 +25,13 @@ class Document {
     stakeholders?: string;
     scale?: string;
     description?: string;
-    coordinates?: any;
+    public coordinates: Coordinates; // default to municipality type if no coordinates are provided
     
 
     constructor(id: number, title: string, type: DocumentType, lastModifiedBy: string,  // Required fields
                 issuanceDate?: Dayjs, language?: string, pages?: number,                 // Optional fields
                 stakeholders?: string, scale?: string,
-                description?: string, coordinates?: any) {
+                description?: string, coordinates?: Coordinates) {
         this.id = id;
         this.title = title;
         this.type = type;
@@ -42,10 +43,39 @@ class Document {
         this.stakeholders = stakeholders;
         this.scale = scale;
         this.description = description;
-        this.coordinates = coordinates;
+
+        // default to municipality type if no coordinates are provided
+        this.coordinates = coordinates ? coordinates : new Coordinates(CoordinatesType.MUNICIPALITY, null);
     }
 
-    static fromJSON(json: any): Document {
+    /*
+    * Use this when extracting the document from the database
+    * @param json JSON object from the database
+    * @param db Knex object to use for converting the coordinates (may remain unused if no coordinates or if they're municipality type)
+    * @returns Document object
+    * @throws Error if the JSON object is invalid
+    */
+    static async fromJSON(json: any, db: Knex): Promise<Document> {
+        // Convert coordinates from WKB to Coordinates object
+        if (!json.coordinates_type) {throw new Error("Invalid coordinates_type: is non-nullable but found null-like value");}           
+        switch (json.coordinates_type) {
+            case CoordinatesType.POINT:
+                if (json.coordinates === null) {throw new Error("Can't have null coordinates for POINT");}
+                const point = await CoordinatesAsPoint.fromWKBstring(json.coordinates, db);
+                json.coordinates = new Coordinates(CoordinatesType.POINT, point);
+                break;
+            case CoordinatesType.POLYGON:
+                if (json.coordinates === null) {throw new Error("Can't have null coordinates for POLYGON");}
+                const polygon = await CoordinatesAsPolygon.fromWKBstring(json.coordinates, db);
+                json.coordinates = new Coordinates(CoordinatesType.POLYGON, polygon);
+                break;
+            case CoordinatesType.MUNICIPALITY:
+                json.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY, null);
+                break;
+            default:
+                throw new Error('Invalid coordinates type');
+        }
+        
         return new Document(
             json.id,
             json.title,
@@ -57,11 +87,18 @@ class Document {
             json.stakeholders !== null ? json.stakeholders : undefined,
             json.scale !== null ? json.scale : undefined,
             json.description !== null ? json.description : undefined,
-            json.coordinates !== null ? json.coordinates : undefined
+            json.coordinates
         );
     }
 
+    /*
+    * Use this when you want to send a Document to the db
+    */
     toObject(): Object {
+        const my_coordinates = this.coordinates ? this.coordinates : new Coordinates(CoordinatesType.MUNICIPALITY, null);
+        const my_coordinates_type = my_coordinates.getType();
+        let my_coordinates_as_string = my_coordinates.getCoords()?.toGeographyString();
+
         return {
             id: this.id,
             title: this.title,
@@ -72,8 +109,10 @@ class Document {
             scale: this.scale,
             description: this.description,
             type: this.type,
-            coordinates: this.coordinates,
             last_modified_by: this.lastModifiedBy,
+            
+            coordinates_type: my_coordinates_type, // not nullable
+            coordinates: my_coordinates_as_string ? my_coordinates_as_string : null // db accepts strings fromatted as WKT or WKB
         };
     }
 
@@ -85,49 +124,38 @@ class Document {
      * @returns Object without the id field
     */
     toObjectWithoutId(): Object {
-        return {
-            title: this.title,
-            issuance_date: this.issuanceDate,
-            language: this.language,
-            pages: this.pages,
-            stakeholders: this.stakeholders,
-            scale: this.scale,
-            description: this.description,
-            type: this.type,
-            coordinates: this.coordinates,
-            last_modified_by: this.lastModifiedBy,
-        };
+        let object_with_id: any = this.toObject();
+        delete object_with_id.id;
+        return object_with_id;
     }
 
-    // Setters
-    setIssuanceDate(issuanceDate: Dayjs) {
-        this.issuanceDate = issuanceDate;
+    copy(): Document {
+        return new Document(
+            this.id,
+            this.title,
+            this.type,
+            this.lastModifiedBy,
+            this.issuanceDate,
+            this.language,
+            this.pages,
+            this.stakeholders,
+            this.scale,
+            this.description,
+            this.coordinates
+        );
     }
 
-    setLanguage(language: string) {
-        this.language = language;
-    }
-
-    setPages(pages: number) {
-        this.pages = pages;
-    }
-
-    setStakeholders(stakeholders: string) {
-        this.stakeholders = stakeholders;
-    }
-
-    setScale(scale: string) {
-        this.scale = scale;
-    }
-
-    setDescription(description: string) {
-        this.description = description;
-    }
-
+    // ============== Getters and Setters ==============
+    /* 
+        * should only accept valid strings. To ensure they're valid, provide a Coordinate object and this method will convert it to a string.
+    */
     setCoordinates(coordinates: Coordinates) {
         this.coordinates = coordinates;
     }
 
+    getCoordinates(): Coordinates | undefined {
+        return this.coordinates
+    }
 }
 
 enum LinkType {

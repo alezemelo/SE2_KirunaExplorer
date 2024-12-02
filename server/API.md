@@ -40,8 +40,11 @@ Creates a new document
     "scale": "1:1000",
     "description": "Document Description",
     "coordinates": {
-      "lat": 59.3293,
-      "long": 18.0686
+      "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
+      "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
+        "lat": 59.3293,
+        "long": 18.0686
+      }
     }
   }
 - Response Status code:
@@ -58,7 +61,7 @@ Creates a new document
   - Title and coordinates are required fields
   - May return errors specified in the head of this file
 
-### Explanation:
+#### Explanation:
 1. **Request Body Content**: Specifies the JSON structure expected in the request body when creating a new document.
 2. **Response Status Code**: Lists the possible HTTP status codes returned by the endpoint.
 3. **Response Body Content**: Provides an example of the JSON structure returned in the response body upon successful creation.
@@ -73,10 +76,13 @@ Edits the coordinates of a document
 
 - Request Parameters: `:id`, the doc id
 - Request Body Content:
-```
+```json
 {
-  lat: 100,
-  long: 200
+  "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
+  "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
+    "lat": 59.3293,
+    "long": 18.0686
+  }
 }
 ```
 - Response Status code:
@@ -100,15 +106,15 @@ Adds or updates a description for an existing document, the latter being sent th
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the databse
   - May return errors specified in the head of this file or any other generic error
 
-#### GET `/kiruna_explorer/documents/:id`
+#### GET `/kiruna_explorer/documents/search?title=mytitle`
 
-Fetches a `Document` object.
-
-- **Request Parameters:** `id`, an integer number representing the document unique ID
-- **Request Body Content:** `None`
-- **Response Body Content:** a `Document` object
-  - **Example:**
-    ```
+Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
+- Request query: the string to match with the title, it is required.
+  - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
+- Response Body Content: list of matching docs
+  - Example: 
+  ```
+  [
     {
       'id': 1,
       'title': 'Compilation of responses “So what the people of Kiruna think?” (15)',
@@ -121,6 +127,56 @@ Fetches a `Document` object.
       'type': 'Informative document',
       'coordinates': '',
       'lastModifiedBy': 'user123'
+    },
+    {
+      'id': 2,
+      'title': 'another doc',
+      'issuanceDate': '2007-01-01T00:00:00Z',
+      'language': 'Engglish',
+      'pages': 20,
+      'stakeholders': 'Kiruna commun/Residents',
+      'scale': 'Text',
+      'description': 'desc',
+      'type': 'Informative document',
+      'coordinates': '',
+      'lastModifiedBy': 'user123'
+    },
+  ]
+  ```
+- Response status code:
+  - `200` if successful
+  - `400` if bad format of request
+- Access Constraints: `Urban Planner` only
+
+
+
+#### GET `/kiruna_explorer/documents/:id`
+
+Fetches a `Document` object.
+
+- **Request Parameters:** `id`, an integer number representing the document unique ID
+- **Request Body Content:** `None`
+- **Response Body Content:** a `Document` object
+  - **Example:**
+    ```json
+    {
+      "id": 1,
+      "title": "Compilation of responses “So what the people of Kiruna think?” (15)",
+      "issuanceDate": "2007-01-01T00:00:00Z",
+      "language": "Swedish",
+      "pages": ,
+      "stakeholders": "Kiruna commun/Residents",
+      "scale": "Text",
+      "description": "This document is a compilation of the responses to the survey What is ...",
+      "type": "Informative document",
+      "lastModifiedBy": "user123",
+      "coordinates": {
+        "type": CoordinatesType.POINT, // POINT, POLYGON, OR MUNICIPALITY
+        "coords": CoordinatesAsPoint {  // null if "type" is MUNICIPALITY
+          "lat": 59.3293,
+          "long": 18.0686
+        }
+      }
     }
     ```
 - **Access Constraints:** `None`
@@ -167,6 +223,7 @@ create a link between two documents
 - returns 400 if the id of the docuemnt does not exist.
 - returns 422 if the request body content is not correct
 
+### Auth APIs
 
 #### POST `kiruna_explorer/sessions`
 
@@ -177,8 +234,12 @@ Allows login for a user with the provided credentials.
   - `username`: a string that must not be empty
   - `password`: a string that must not be empty
   - Example: `{username: "MarioRossi", password: "MarioRossi"}`
+- Response Code:
+  - `200` if successfull
+  - `401` if credentials are wrong
+  - `422` if formatting is wrong
 - Response Body Content: A **User** object that represents the logged in user
-  - Example: `{username: "Mario Rossi", type: "urban_planner", salt: "some_salt", hash: "some_hash"}`
+  - Example: `{username: "Mario Rossi", type: "urban_planner"}`
 - Access Constraints: None
 - Additional Constraints:
   - Returns a 401 error if the username does not exist
@@ -191,6 +252,9 @@ Performs logout for the current user
 Performs logout for the currently logged in user.
 
 - Request Parameters: None
+- Response Code:
+  - `200` if successful
+  - `401` if not logged in before attempting logout
 - Request Body Content: None
 - Response Body Content: None
 - Access Constraints: Can only be called by a logged in User
@@ -201,6 +265,9 @@ Retrieves information about the currently logged in user.
 
 - Request Parameters: None
 - Request Body Content: None
+- Response Code:
+  - `200` if successful
+  - `401` if not logged in before attempting call
 - Response Body Content: A **User** object that represents the logged in user
   - Example: `{username: "Gianni Verdi", type: "resident"}`
 - Access Constraints: Can only be called by a logged in User

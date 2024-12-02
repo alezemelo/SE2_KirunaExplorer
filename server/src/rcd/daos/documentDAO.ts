@@ -1,10 +1,11 @@
+
 import {Client} from 'pg';
 import pgdb from '../../db/temp_db';
-import {Document} from '../../models/document';
-import { Coordinates } from '../controllers/documentController';
 import { dbUpdate } from '../../db/db_common_operations';
-
 import db from '../../db/db';
+
+import {Document} from '../../models/document';
+import {Coordinates, CoordinatesAsPoint, CoordinatesType} from '../../models/coordinates';
 
 class DocumentDAO {
     private db: any;
@@ -19,7 +20,7 @@ class DocumentDAO {
             if (!res) {
                 return null;
             } else {
-                return Document.fromJSON(res);
+                return Document.fromJSON(res, db);
             }
         } catch (error) {
             console.error(error);
@@ -29,7 +30,7 @@ class DocumentDAO {
 
     public async getDocuments(): Promise<Document[]> {
         try {
-            const res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
+            /*let res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
             for(let i=0;i<res.rows.length;i++){
                 if(res.rows[i].coordinates){
                     const coordinatesHex = Buffer.from(res.rows[i].coordinates, 'hex');
@@ -37,6 +38,7 @@ class DocumentDAO {
                         'SELECT ST_AsText(ST_GeomFromWKB($1::bytea)) as geom_text',
                         [coordinatesHex]
                       );
+                      console.log(c)
                       const [long, lat] = c.rows[0].geom_text.replace("POINT(", "").replace(")", "").split(" ");
                       res.rows[i].coordinates = {
                         lat: parseFloat(lat),
@@ -44,11 +46,50 @@ class DocumentDAO {
                     };
                 }
             }
-            return res.rows;
+            return res.rows;*/
+            let res = await pgdb.client.query('SELECT * FROM documents ORDER BY id', []);
+            let documents:Document[] = []
+            for(let i=0;i<res.rows.length;i++){
+                let doc = await Document.fromJSON(res.rows[i],db)
+                documents.push(doc)
+            }
+   
+            return documents;
         } catch (error) {
             console.error(error);
             throw error;
         }
+    }
+
+    public async searchDocuments(query: string): Promise<Document[]> {
+        try {
+            // gets readable format of coordinates directly from db instead of hex
+            // if this query does not work, copy the for loop approach used in the method above
+            /*const param = `%${query}%`;
+            const res = await pgdb.client.query(
+                `SELECT
+                id, title, issuance_date, language, pages, stakeholders, scale, description, type,
+                CASE WHEN coordinates IS NOT NULL
+                    THEN
+                        ST_AsText(ST_GeomFromWKB(coordinates))
+                    ELSE NULL
+                END as coordinates,
+                last_modified_by
+                FROM documents where title ILIKE $1`, [param]);
+            return res.rows;*/
+            const param = `%${query}%`;
+            const res = await pgdb.client.query(
+                `SELECT * FROM documents where title ILIKE $1`, [param]);
+                const documents: Document[] = await Promise.all(
+                    res.rows.map(async (doc) => {
+                        return await Document.fromJSON(doc, db);
+                    })
+                );
+            return documents;
+       } catch (error) {
+           console.error(error);
+           throw error;
+       }
     }
 
     public async updateDescription(docId: number, newDescription: string): Promise<number> {
@@ -66,55 +107,80 @@ class DocumentDAO {
 
     public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
         try {
-            const lat = newCoordinates.lat;
-            const long = newCoordinates.lng;
-            // console.log(newCoordinates)
-            const coordInfo = `SRID=4326;POINT(${long} ${lat})`;
-            const updatedRows = await dbUpdate('documents', { id: docId }, { coordinates: coordInfo });
-            //const res = await pgdb.client.query('UPDATE documents SET coordinates = $1 WHERE id = $2', [coordInfo, docId]);
-            return updatedRows;
+            let update_count;
+            if (newCoordinates.getType() === CoordinatesType.MUNICIPALITY){
+                update_count = await dbUpdate('documents', {id: docId}, {coordinates_type: CoordinatesType.MUNICIPALITY, coordinates: null});
+            } else {
+                if (newCoordinates.getType() !== CoordinatesType.POINT && newCoordinates.getType() !== CoordinatesType.POLYGON) {
+                    throw new Error("Invalid coordinates type. Shouldn't be possible");
+                }
+                const newType = newCoordinates.getType();
+                const newWktCoords = newCoordinates.toGeographyString();
+                update_count = await dbUpdate('documents', {id: docId}, {coordinates_type: newType, coordinates: newWktCoords});
+            }
+
+            return update_count;
         } catch (error) {
             console.error(error);
             throw error;
         }
     }
 
-    public async addDocument(doc: any): Promise<void> {
-        // console.log("dao")
-        // console.log(doc)
-
-
+    
+    public async addDocument(doc: any): Promise<number> {
         let coordinates = null;
-
+    
+        if (doc.coordinates?.type === 'POINT') {
+            if (!doc.coordinates.coords?.lat || !doc.coordinates.coords?.lng) {
+                throw new Error('Invalid POINT coordinates: lat and lng are required');
+            }
+            coordinates = new Coordinates(
+                CoordinatesType.POINT,
+                new CoordinatesAsPoint(doc.coordinates.coords.lat, doc.coordinates.coords.lng)
+            );
+        } else if (doc.coordinates?.type === 'MUNICIPALITY') {
+            coordinates = new Coordinates(CoordinatesType.MUNICIPALITY, null);
+        } else {
+            throw new Error('Invalid coordinates type');
+        }
+    
         const query = `
             INSERT INTO documents 
-            ( title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates, last_modified_by) 
-            VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            (title, type, issuance_date, language, pages, stakeholders, scale, description, coordinates_type, coordinates, last_modified_by)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING id;
         `;
         const values = [
             doc.title,
             doc.type,
-            doc.issuanceDate ? doc.issuanceDate : null,
+            doc.issuanceDate || null,
             doc.language,
             doc.pages,
             doc.stakeholders,
             doc.scale,
             doc.description,
-            doc.coordinates ? `SRID=4326;POINT(${doc.coordinates.lat} ${doc.coordinates.lng})`: null,
-            "admin"
+            coordinates.getType(),
+            coordinates.getCoords()?.toGeographyString(),
+            doc.lastModifiedBy,
         ];
-
+    
         try {
             const res = await pgdb.client.query(query, values);
             if (res.rowCount !== 1) {
                 throw new Error('Error adding document to the database');
             }
+            return res.rows[0].id;
         } catch (error) {
             console.error('Error adding document to the database:', error);
-            throw new Error('Database Error: Unable to add document');
+            if (error instanceof Error && (error as any).code === 'XX000') {
+                throw new Error('Invalid geometry: Ensure coordinates are valid and formatted correctly.');
+            } else {
+                throw new Error('Database Error: Unable to add document');
+            }
         }
     }
+    
+    
 }
 
 export default DocumentDAO;

@@ -7,8 +7,13 @@ async function dbInit() {
     await dbPopulateActualData();
 }
 
+async function dbInitMainmodule() {
+    await dbInit();
+    await knex.destroy();
+}
+
 if (require.main === module) {
-    dbInit();
+    dbInitMainmodule();
     console.log('Database emptied and re-populated using knex');
 }
 

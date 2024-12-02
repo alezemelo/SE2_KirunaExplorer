@@ -4,6 +4,29 @@ enum UserType {
     UrbanPlanner = "urban_planner",
 }
 
+class UserNoSensitive {
+    username: string;
+    type: UserType;
+    constructor(username: string, type: UserType) {
+        this.username = username;
+        this.type = type;
+    }
+
+    getUsername() {
+        return this.username
+    }
+    getType() {
+        return this.type
+    }
+
+    setUsername(username: string) {
+        this.username = username
+    }
+    setType(type: UserType) {
+        this.type = type
+    }
+}
+
 class User {
     username: string;
     type: UserType;
@@ -40,4 +63,4 @@ class User {
     }
 }
 
-export {User, UserType}
+export {User, UserNoSensitive, UserType}

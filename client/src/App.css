@@ -1,3 +1,5 @@
+
+
 body, #root {
     background-color: black; /* Set background to black */
     color: white; /* Optional: set text color to white for contrast */
@@ -5,5 +7,11 @@ body, #root {
     padding: 0;
     font-family: Arial, sans-serif; /* Optional: Customize the font */
     height: 100vh; /* Ensure full viewport height */
+  }
+  .container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden; /* Prevent content overflow */
   }
   

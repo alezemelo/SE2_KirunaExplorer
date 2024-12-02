@@ -1,9 +1,9 @@
-import { User } from "../../models/user";
+import { User, UserNoSensitive } from "../../models/user";
 import db from "../../db/db";
 import crypto from 'crypto';
 
 class UserDAO {
-    public async findByCredentials(username: string, password: string): Promise<User | null> {
+    public async findByCredentials(username: string, password: string): Promise<UserNoSensitive | null> {
         try {
             let result = await this.getUserByUsername(username);
             if (result === null) {
@@ -18,7 +18,8 @@ class UserDAO {
             if (!crypto.timingSafeEqual(Buffer.from(result.hash, 'hex'), hashedPassword)) {
                 return null;
             }
-            return result;
+            const userNoSensitive = new UserNoSensitive(result.username, result.type);
+            return userNoSensitive;
         } catch (err) {
             console.error(err);
             throw err;

@@ -1,0 +1,121 @@
+/* Center the login container on the screen */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    background-image: url('/images/aurora.webp'); /* Replace with your image URL */
+    background-size: cover; /* Ensure the background image covers the full screen */
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* Prevent image repetition */
+}
+
+/* White container for the login form */
+.login-container .login-box {
+    padding: 30px;
+    background-color: black; /* Make container background black */
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    width: 100%;
+    max-width: 400px; /* Restrict max width */
+}
+
+/* Typography for the login title */
+.login-container .MuiTypography-h4 {
+    font-family: 'Anton', sans-serif; /* Use Anton font */
+    font-weight: bold;
+    color: white; /* Make title white */
+    text-align: center;
+    margin-bottom: 20px; /* Add spacing below the title */
+}
+
+/* Alert message styles */
+.login-container .MuiAlert-root {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    padding: 10px;
+}
+
+/* Text field styles */
+.login-container .MuiTextField-root {
+    margin-bottom: 20px; /* Add consistent spacing between inputs */
+    background-color: #ffffff; /* White background for inputs */
+    border-radius: 8px;
+}
+
+/* Input field borders */
+.login-container .MuiTextField-root .MuiOutlinedInput-notchedOutline {
+    border-color: #dcdcdc; /* Light grey border */
+}
+
+.login-container .MuiTextField-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: #b0b0b0; /* Slightly darker on hover */
+}
+
+.login-container .MuiTextField-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #007bff; /* Blue border when focused */
+}
+
+/* Button styles */
+.login-container .MuiButton-root {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-transform: none; /* Avoid uppercase text */
+}
+
+/* Back button (red) */
+.login-container .MuiButton-containedError {
+    background-color: #d9534f;
+    color: white;
+}
+
+.login-container .MuiButton-containedError:hover {
+    background-color: #c12e2a;
+}
+
+/* Enter button (green) */
+.login-container .MuiButton-containedSuccess {
+    background-color: #28a745;
+    color: white;
+}
+
+.login-container .MuiButton-containedSuccess:hover {
+    background-color: #218838;
+}
+
+/* Form width */
+.login-container form {
+    width: 100%; /* Full width form */
+}
+
+/* Grid item spacing */
+.login-container .MuiGrid-item {
+    width: 100%; /* Ensure grid items take full width */
+}
+
+/* Consistent grid spacing */
+.login-container .MuiGrid-container {
+    gap: 20px; /* Consistent spacing */
+}
+
+/* Make buttons full width */
+.login-container .MuiButton {
+    width: 100%; /* Full-width buttons */
+}
+
+
+
+
+/* Responsiveness for smaller screens */
+@media screen and (max-width: 768px) {
+    .login-container {
+        padding: 20px; /* Reduce padding on smaller screens */
+    }
+
+    .login-container .MuiTypography-h4 {
+        font-size: 1.5rem; /* Adjust font size */
+    }
+}
+
