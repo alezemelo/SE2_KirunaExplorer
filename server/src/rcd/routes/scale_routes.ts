@@ -62,8 +62,8 @@ class ScaleRoutes {
                 })
                 // checks that the format is 1:some_positive_integer
                 .matches(/^(1:\d+|Text|blueprint\/effects)$/).withMessage('Value must follow the format "1:number", where number is a positive integer or be "Text" or "blueprint/effects"'),
-            this.authService.isLoggedIn,
-            this.authService.isUserAuthorized(UserType.UrbanPlanner), 
+            // this.authService.isLoggedIn,
+            // this.authService.isUserAuthorized(UserType.UrbanPlanner),
             this.errorHandler.validateRequest,
             (req: any, res: any, next: any) => this.controller.createScale(req.body.value)
                 .then((row: any) => res.status(201).json(row).end())
