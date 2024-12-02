@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */ // Remember to remove this line for future maintenance
 import React, { useEffect, useState } from "react";
 import { Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent, 
-  DialogActions, List,  ListItem, ListItemText, IconButton, ListItemIcon  } from "@mui/material";
+  DialogActions, List,  ListItem, ListItemText, IconButton, ListItemIcon, Snackbar,  
+  Alert} from "@mui/material";
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -47,6 +48,12 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [files, setFiles] = useState<{ id: number; name: string }[]>([]);  //the ones i fatch 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);//the one i upload
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
 
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click event from propagating to parent
@@ -257,7 +264,6 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   };*/
 
 
-  //Function to call the api to upload the file
   const handleFileUpload = async () => {
     if (!selectedFile) {
       alert("No file selected for upload.");
@@ -266,12 +272,21 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   
     const fileName = selectedFile.name; // Get the file name
     const file = selectedFile; // Get the selected file
+
+    // Check if a file with the same name already exists
+    const existingFileNames = files.map(file => file.name);
+    if (existingFileNames.includes(fileName)) {
+      setSnackbarMessage('A file with this name already exists.');
+      setSnackbarOpen(true);
+      return;
+    }
   
     try {
       const response = await API.uploadFile(props.document.id, fileName, file);
       if (response && response.fileId) {
         alert("File uploaded successfully!");
         setSelectedFile(null); // Reset the selected file
+        fetchFiles(); // Refresh the file list
       } else {
         alert("File upload failed. Please try again.");
       }
@@ -383,9 +398,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         {props.pin == props.document.id ? (
           <Box marginTop={2} display="flex" alignItems="center">
             <Typography variant="body2">
-              <strong>File Attachments:</strong> {props.document.fileIds ? props.document.fileIds.length : 'not available'}
+              <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
             </Typography>
-            {props.document.fileIds && props.document.fileIds.length > 0 && (
+            {props.document.fileIds && files.length > 0 && (
               <IconButton onClick={handleOpenDialog} style={{ marginLeft: '8px' }}>
                 <ArrowRightIcon sx={{ fontSize: 16, color: 'white' }} />
               </IconButton>
@@ -422,28 +437,29 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           </>
         ) : null*/}
 
+      {/* Upload Files || Files Upload */}
       {props.pin === props.document.id && props.loggedIn && props.user?.type === "urban_planner" && (
         <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
-           <input
+          <input
             type="file"
             accept=".pdf,.txt,.png,.jpg"
             onChange={handleFileChange}
             style={{ display: 'none' }}
             id="file-upload"
           />
-         {!selectedFile && (
-          <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
-            <Button 
-              variant="contained" 
-              component="span" 
-              color="success"
-              startIcon={<FileUploadIcon />}
-              fullWidth
-            >
-              Upload files
-            </Button>
-          </label>
-        )}
+          {!selectedFile && (
+            <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
+              <Button 
+                variant="contained" 
+                component="span" 
+                color="success"
+                startIcon={<FileUploadIcon />}
+                fullWidth
+              >
+                Upload files
+              </Button>
+            </label>
+          )}
     
           {selectedFile && (
             <Box mt={2}>
@@ -456,7 +472,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
               variant="contained"
               color="success"
               startIcon={<FileUploadIcon />}
-              onClick={() => handleFileUpload()}
+              onClick={handleFileUpload}
               disabled={!selectedFile}
               style={{ marginTop: '10px' }}
             >
@@ -464,9 +480,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
           )}
         </Box>
-      )}
-        
-
+      )}      
 
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
@@ -530,6 +544,13 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Snackbar for Error Messages */}
+        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+          <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </CardContent>
     </Card>
   );
