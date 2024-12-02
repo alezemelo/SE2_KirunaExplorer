@@ -323,6 +323,7 @@ const Map: React.FC<MapProps> = (props) => {
   const [confirmChanges, setConfirmChanges] = useState(false); //open the dialog for confirmation
   const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations for the coordinates for updating
   const [selectedMarker, setSelectedMarker] = useState<mapboxgl.Marker | null>(null);
+  const centroidsRef = useRef<(mapboxgl.Marker | null)[]>([]);
 
   const mapRef = useRef<any>(null);
 
@@ -439,6 +440,9 @@ const Map: React.FC<MapProps> = (props) => {
         if (props.pin !== doc.id) {  
           props.setNewPin(doc.id);
         }
+        else if(props.pin!=0){
+          props.setNewPin(0)
+        }
       });
   
       marker.on('dragend', (e) => {
@@ -477,6 +481,9 @@ const Map: React.FC<MapProps> = (props) => {
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
     console.log("Adding polygons to map as points:", props.documents);
 
+    centroidsRef.current.forEach((centroid) => centroid?.remove());
+    centroidsRef.current = [];
+
     props.documents.forEach((doc) => {
       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
       if (doc.getCoordinates()?.getType() !== "POLYGON") {
@@ -495,14 +502,29 @@ const Map: React.FC<MapProps> = (props) => {
 
       const centroidCoords = centroid.geometry.coordinates;
 
+      console.log("add marker")
       // Add marker at the centroid
       const marker = new mapboxgl.Marker({ color: "blue" })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
-      
-      const select = () => {
+
+      centroidsRef.current.push(marker);
+
+
+      if(props.pin == doc.id){
+        // Zoom to the polygon
+        mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
+          padding: 20,
+        });
+      }
+  
+      // Marker click handler to display the polygon
+      marker.getElement()?.addEventListener("click", () => {
         console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
 
+        if(props.pin!=doc.id){
+          props.setNewPin(doc.id)
+        }
         const sourceId = `polygon-${doc.id}`;
         if (mapInstance.getSource(sourceId)) {
           // Remove the polygon if it already exists
@@ -527,22 +549,6 @@ const Map: React.FC<MapProps> = (props) => {
             "fill-opacity": 0.5,
           },
         });
-
-        // Zoom to the polygon
-        mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
-          padding: 20,
-        });
-      }
-
-      if(doc.id == props.pin){
-        select();
-      }
-  
-      // Marker click handler to display the polygon
-      marker.getElement()?.addEventListener("click", () => {
-        if (props.pin !== doc.id) {  
-          props.setNewPin(doc.id);
-        }
       });
     });
   };
@@ -639,7 +645,7 @@ const Map: React.FC<MapProps> = (props) => {
                         type="fill"
                         paint={{
                             "fill-color": "#0080ff",
-                            "fill-opacity": 0.1
+                            "fill-opacity": 0
                         }}
                     />
                     <Layer
