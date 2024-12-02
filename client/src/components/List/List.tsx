@@ -585,7 +585,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
         <Grid container spacing={3}>
           {props.documents.map((document, i) => (
-            <Grid item xs={12} key={i}>
+            <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
               <DocDetails
                 document={document}
                 loggedIn={props.loggedIn}
@@ -973,7 +973,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           variant="contained" 
           color="primary" 
           onClick={handleClickOpen} 
-          style={{ marginTop: "38px" }}
+          style={{ marginTop: "8px" }}
         >
           Add a new document
         </Button>
