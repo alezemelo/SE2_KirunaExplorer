@@ -134,7 +134,7 @@ class DocumentDAO {
             // merge fix: 
             //  - changed from `const documents = groupEntriesById(res);` to incoming from sprint3 `const documents = await groupEntriesById(res, db);`
             //  - added the code marked with the comment 2) below
-            const documents = groupEntriesById(res, db);
+            const documents = await groupEntriesById(res, db);
 
             // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
             // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
