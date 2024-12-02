@@ -277,7 +277,7 @@
 // export default Map;
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
@@ -314,6 +314,14 @@ const Map: React.FC<MapProps> = (props) => {
   const [buttonText, setButtonText] = useState("Switch to Street View");
   const [selectedMarker, setSelectedMarker] = useState<mapboxgl.Marker | null>(null);
 
+  const mapRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (map) {
+      map.resize();
+    }
+  }, [props.isDocumentListOpen]);
+  
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
       const newStyle =
@@ -498,7 +506,7 @@ const Map: React.FC<MapProps> = (props) => {
   }, [map, mapStyle, props.documents]);
 
   return (
-    <div style={{ height: "100vh", width: "100%" }}>
+    <div ref={mapRef} style={{ height: "100vh", width: "100%" }}>
       <ReactMapGL
         {...viewport}
         mapStyle={mapStyle}

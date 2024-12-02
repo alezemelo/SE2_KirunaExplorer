@@ -36,6 +36,8 @@ function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
 
 // Handle the location selected from the map
 const handleMapLocationSelected = (lat: number, lng: number) => {
@@ -169,6 +171,8 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                       setAdding={setAdding}
                       loggedIn={loggedIn}
                       user={user}
+                      selectedFile={selectedFile}
+                      setSelectedFile={setSelectedFile}
                     />
                   </Grid>
                 )}

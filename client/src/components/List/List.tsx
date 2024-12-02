@@ -16,6 +16,7 @@ import {
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import MapIcon from "@mui/icons-material/Map";
+import AddIcon from '@mui/icons-material/Add';
 
 import { DocumentType as DocumentLocal, User, Coordinates as CoordinateLocal } from "../../type";
 import { Document, DocumentType } from "../../models/document";
@@ -44,6 +45,8 @@ interface DocumentListProps {
   user: User | undefined;
   updating: boolean;
   setUpdating: any;
+  selectedFile: File | null;
+  setSelectedFile: any;
 }
 
 
@@ -360,6 +363,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                 setUpdating={props.setUpdating}
                 newDocument={newDocument}
                 setNewDocument={setNewDocument}
+                selectedFile={props.selectedFile}
+                setSelectedFile={props.setSelectedFile}
               />
             </Grid>
           ))}
@@ -367,7 +372,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       </Box>
 
       {props.loggedIn && props.user?.type === "urban_planner" && (
-        <Button fullWidth variant="contained" color="primary" onClick={handleClickOpen} style={{ marginTop: "38px" }}>
+        <Button startIcon={<AddIcon />} fullWidth variant="contained" color="primary" onClick={handleClickOpen} style={{ marginTop: "38px" }}>
           Add a new document
         </Button>
       )}
