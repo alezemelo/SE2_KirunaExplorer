@@ -40,7 +40,7 @@ jobs:
       with:
         organization: alezemelo
         projectKey: alezemelo
-        token: ${{ secrets.SONARCLOUD_TOKEN }}  # Set this secret in your GitHub repository settings
+        token: ${{ secrets.SONAR_TOKEN }}  # Set this secret in your GitHub repository settings
         extraArgs: |
           -Dsonar.javascript.lcov.reportPaths=coverage/lcov-report/index.html
           -Dsonar.coverage.exclusions=**/*.test.ts,**/*.spec.ts  # Exclude test files if necessary
