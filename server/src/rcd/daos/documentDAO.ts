@@ -30,7 +30,15 @@ class DocumentDAO {
             } else {
                 const { stakeholder, ...docProps } = res[0];
                 const document = { ...docProps, stakeholders: res.map(row => row.stakeholder) };
-                return Document.fromJSON(document, db);
+
+                // As soon as I talk to angelo to finalize these two methods (getDocument and getDocuments), I will do everything in a single big join query
+                // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+                const fileRes = await db('document_files')
+                    .where({ doc_id: docId })
+                    .select('file_id');
+                const file_ids = fileRes.map(row => row.file_id);
+
+                return Document.fromJSON({ ...document, file_ids }, db);
             }
         } catch (error) {
             console.error(error);
@@ -70,7 +78,21 @@ class DocumentDAO {
                 documents.push(doc)
             }
             */
+            // merge fix: 
+            //  - changed from `const documents = groupEntriesById(res);` to incoming from sprint3 `const documents = await groupEntriesById(res, db);`
+            //  - added the code marked with the comment 2) below
             const documents = await groupEntriesById(res, db);
+
+            // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
+            // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+            for (const doc of documents) {
+                const fileRes = await db('document_files')
+                    .where({ doc_id: doc.id })
+                    .select('file_id');
+                const file_ids = fileRes.map(row => row.file_id);
+                doc.fileIds = file_ids;
+            }
+
             return documents;
         } catch (error) {
             console.error(error);
@@ -108,9 +130,22 @@ class DocumentDAO {
         }
     })
     .orderBy('documents.id', 'asc');
-
-
+          
+            // merge fix: 
+            //  - changed from `const documents = groupEntriesById(res);` to incoming from sprint3 `const documents = await groupEntriesById(res, db);`
+            //  - added the code marked with the comment 2) below
             const documents = groupEntriesById(res, db);
+
+            // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
+            // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+            for (const doc of documents) {
+                const fileRes = await db('document_files')
+                    .where({ doc_id: doc.id })
+                    .select('file_id');
+                const file_ids = fileRes.map(row => row.file_id);
+                doc.fileIds = file_ids;
+            }
+
             return documents;
         } catch (error) {
             console.error(error);

@@ -7,18 +7,33 @@ Specific error scenarios will have their corresponding error code.
 
 CORS methods to use: GET, DELETE, POST (for adding new things -- NOT idempotent), PUT (for updating things -- idempotent)
 
-### Static API
+### Index
 
-#### GET `/kiruna_explorer/xxx`
+- [Documents API](#documents-api)
+  - [POST `/kiruna_explorer/documents`](#post-kiruna_explorerdocuments) - Create a new document
+  - [PATCH `/kiruna_explorer/documents/:id/coordinates`](#patch-kiruna_explorerdocumentsidcoordinates) - Update coordinates
+  - [POST `/kiruna_explorer/documents/:id/description`](#patch-kiruna_explorerdocumentsiddescription) - Update description
+  - [GET `/kiruna_explorer/documents/search?title=mytitle`](#get-kiruna_explorerdocumentssearchtitlemytitle) - Search documents by title
+  - [GET `/kiruna_explorer/documents/:id`](#get-kiruna_explorerdocumentsid) - Get document by ID
+  - [POST `/kiruna_explorer/documents/:id/stakeholders`](#post-kiruna_explorerdocumentsidstakeholders) - Add stakeholders to a document
+  - [DELETE `/kiruna_explorer/documents/:id/stakeholders`](#delete-kiruna_explorerdocumentsidstakeholders) - Remove stakeholders from a document
+- [Link Documents API](#link-documents-api)
+  - [GET `/kiruna_explorer/linkDocuments/:doc_id`](#get-kiruna_explorerlinkdocumentsdoc_id) - Get links of a document
+  - [POST `/kiruna_explorer/linkDocuments/create`](#post-kiruna_explorerlinkdocumentscreate) - Create a link between documents
+- [Stakeholders API](#stakeholders-api)
+  - [GET `/kiruna_explorer/stakeholders`](#get-kiruna_explorerstakeholders) - Get all stakeholders
+  - [POST `/kiruna_explorer/stakeholders`](#post-kiruna_explorerstakeholders) - Add a new stakeholder
+- [Auth API](#auth-api)
+  - [POST `/kiruna_explorer/sessions`](#post-kiruna_explorersessions) - Login
+  - [DELETE `/kiruna_explorer/sessions/current`](#delete-kiruna_explorersessionscurrent) - Logout
+  - [GET `/kiruna_explorer/sessions/current`](#get-kiruna_explorersessionscurrent) - Get current session
+- [Files API](#files-api)
+  - [POST `/files/upload`](#post-filesupload) - Upload a file
+  - [GET `/files/download/:fileId`](#get-filesdownloadfileid) - Download a file
+  - [GET `/files/:documentId`](#get-filesdocumentid) - Get file IDs and names associated with a document
+  - [GET `/files`](#get-files) - Get all file IDs and names
+- [Coordinates Format](#coordinates-format-point-polygon-municipality)
 
-xxx
-
-- Request Parameters: 
-- Request Body Content: 
-- Response Body Content: 
-- Access Constraints: 
-- Additional Constraints:
-  - 
 
 ### Documents API
 
@@ -82,7 +97,8 @@ Edits the coordinates of a document
 - Additional Constraints:
   - May return errors specified in the head of this file
 
-#### PATCH `/kiruna_explorer/documents/:id/description`
+#### POST `/kiruna_explorer/documents/:id/description`  
+*(of course this should be a PATCH but there was an error so we'll keep it like this for the time being)*
 
 Adds or updates a description for an existing document, the latter being sent through the body of the request.
 
@@ -183,7 +199,8 @@ Fetches a `Document` object.
       "description": "This document is a compilation of the responses to the survey What is ...",
       "type": "Informative document",
       "lastModifiedBy": "user123",
-      "coordinates": { ***valid coordinates JSON. See bottom of the file!*** }
+      "coordinates": { ***valid coordinates JSON. See bottom of the file!*** },
+      "fileIds": [1, 2, 3]
     }
     ```
 - **Access Constraints:** `None`
@@ -410,6 +427,86 @@ Retrieves information about the currently logged in user.
 - Response Body Content: A **User** object that represents the logged in user
   - Example: `{username: "Gianni Verdi", type: "resident"}`
 - Access Constraints: Can only be called by a logged in User
+
+### Files API
+
+#### POST `/files/upload/:documentId/:fileName`
+
+Uploads a file and associates it with a document.
+
+- **Request Parameters**:
+  - `documentId`: the document related to the file that was sent
+  - `fileName`: The file name
+- **Request Body Content**:
+  - Form-data with the following fields:
+    - `file`: The file to be uploaded.
+- **Response Code**:
+  - `201` if the file is uploaded successfully.
+  - `400` if no file is uploaded.
+- **Response Body Content**: the id assigned by the DB to the file, should be autoincremental
+  - Example
+  ```json
+  {
+      "fileId": 5
+  }
+  ```
+- **Access Constraints**: Can only be called by a logged in User
+  
+
+#### GET `/files/download/:fileId`
+
+Downloads a file by its ID.
+
+- **Request Parameters**:
+  - `fileId`: The ID of the file to be downloaded.
+- **Response Code**:
+  - `200` if the file is found and downloaded successfully.
+  - `404` if the file is not found.
+- **Response Body Content**: The file content.
+- **Access Constraints**: None
+- **Additional Constraints**: None
+
+
+#### GET `/files/:documentId`
+
+Retrieves all file IDs associated with a document.
+
+- **Request Parameters**:
+  - `documentId`: The ID of the document to retrieve file IDs for.
+- **Response Status Code**:
+  - `200` if the file IDs are retrieved successfully.
+  - `404` if the document is not found.
+- **Response Body Content**:
+  ```json
+  [
+      {
+          "id": 1,
+          "name": "loremipsum"
+      },
+  ]
+  ```
+
+#### GET `/files`
+
+Retrieves all file IDs and names.
+
+- **Request Parameters**: None
+- **Response Status Code**:
+  - `200` if the file IDs and names are retrieved successfully.
+  - `404` if no files are found.
+- **Response Body Content**:
+  ```json
+  [
+      {
+          "id": 1,
+          "name": "loremipsum"
+      },
+      {
+          "id": 2,
+          "name": "kiruna_map"
+      }
+  ]
+  ```
 
 # Coordinates Format (Point, Polygon, Municipality)
 
