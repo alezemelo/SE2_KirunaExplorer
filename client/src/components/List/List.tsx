@@ -1,4 +1,11 @@
-import React, { useState } from "react";
+// List.tsx
+import React, { useEffect, useState, useRef } from "react";
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import {
   Box,
   Grid,
@@ -9,18 +16,67 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Alert,
+  List,
+  ListItemButton,
+  ListItemText,
   FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  InputBase,
+  Card,
+  CardContent,
+  IconButton,
+  createTheme,
+  Select,
+  MenuItem,
+  Alert
 } from "@mui/material";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Cancel";
-import MapIcon from "@mui/icons-material/Map";
-
 import { DocumentType as DocumentLocal, User, Coordinates as CoordinateLocal } from "../../type";
-import { Document, DocumentType } from "../../models/document";
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 import DocDetails from "../DocDetails/DocDetails";
+import "./List.css";
 import API from "../../API";
+import CloseIcon from '@mui/icons-material/Close';
+import { Document, DocumentType } from "../../models/document";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
+import { title } from "process";
+
+
+
+interface DocumentListProps {
+  documents: Document[];
+  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
+  fetchDocuments:() => Promise<void>;
+  pin: number,
+  setNewPin: any;
+  coordMap?: CoordinateLocal|undefined;
+  setCoordMap: any;
+  adding: boolean; 
+  setAdding:any;
+  loggedIn: boolean;
+  user: User | undefined;
+  updating: boolean;
+  setUpdating: any;
+  isMunicipalityChecked: boolean;
+  setIsMunicipalityChecked: any;
+  geojson: any;
+}
+
+/*interface DocumentLocal {
+  id: number;
+  title: string;
+  stakeholders: string;
+  scale: string;
+  issuanceDate: any;
+  lastModifiedBy: string;
+  type: string;
+  connection: string[];
+  language: string;
+  pages: number;
+  description: string;
+  coordinates: any;
+}*/
 
 export const ACTUAL_STAKEHOLDERS = [
   { name: "White Arkitekter" },
@@ -29,42 +85,68 @@ export const ACTUAL_STAKEHOLDERS = [
   { name: "LKAB" },
 ];
 
-interface DocumentListProps {
-  documents: Document[];
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
-  fetchDocuments: () => Promise<void>;
-  pin: number;
-  setNewPin: any;
-  coordMap?: CoordinateLocal | undefined;
-  setCoordMap: any;
-  adding: boolean;
-  setAdding: any;
-  loggedIn: boolean;
-  user: User | undefined;
-  updating: boolean;
-  setUpdating: any;
-}
+
 
 
 const DocumentList: React.FC<DocumentListProps> = (props) => {
-  const reset = () => ({
-    id: 0,
-    title: "",
-    stakeholders: "",
-    scale: "",
-    lastModifiedBy: "admin",
-    issuanceDate: "",
-    type: "informative_doc",
-    connection: [],
-    language: "English", // Default to English
-    pages: 1,
-    description: "",
-    coordinates: null,
-  });
+  const reset = () => {
+    /*return new Document(
+      0,
+      "",
+      DocumentType.informative_doc,
+      "admin",
+      undefined,
+      "",
+      1,
+      "",
+      "",
+      "",
+      new Coordinates(CoordinatesType.MUNICIPALITY,null)
+    )*/
+      return {
+        id: 0,
+        title: "",
+        stakeholders: "",
+        scale: "",
+        lastModifiedBy: "admin",
+        issuanceDate: "",
+        type: "informative_doc",
+        connection: [],
+        language: "English",
+        pages: 1,
+        description: "",
+        coordinates: new Coordinates(CoordinatesType.MUNICIPALITY,null)
+      }
+  }
+  const [open, setOpen] = useState(false);
+  const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
+
+  const [openLinkDialog, setOpenLinkDialog] = useState(false);
+  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
+  const [targetDocumentId, setTargetDocumentId] = useState(0);
+  const [targetLinkType, setTargetLinkType] = useState("direct");
+  const [errors, setErrors] = useState<string[]>([]);
+  const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
+  const [linkErrors, setLinkErrors] = useState<string[]>([]);
+  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
   const [dateOption, setDateOption] = useState("fullDate"); // Default to fullDate
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
+  const [stakeholderOptions, setStakeholderOptions] = useState(ACTUAL_STAKEHOLDERS);
+  const [newStakeholder, setNewStakeholder] = useState("");
+  const [newDoctype, setNewDoctype] = useState("");
+  const [doctypeOptions, setDoctypeOptions] = useState([
+    "informative_doc",
+    "prescriptive_doc",
+    "design_doc",
+    "technical_doc",
+    "material_effect",
+  ]);
+  const [scaleOptions, setScaleOptions] = useState(["1:100", "1:200", "1:500", "1:1000", "1:2000", "1:5000"]);
+  const [newScale, setNewScale] = useState("");
 
   const handleDateOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDateOption(e.target.value);
@@ -81,53 +163,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   };
 
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
-
-  const handleMapLocationSelected = (lat: number, lng: number) => {
-    setNewDocument((prev) => ({
-      ...prev,
-      coordinates: { coords: { lat, lng } },
-    }));
-    setIsSelectingLocation(false); // Exit location selection mode
-  };
-
-
-
-  const [open, setOpen] = useState(false);
-  const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
-  const [errors, setErrors] = useState<string[]>([]);
-  const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
-  const [linkErrors, setLinkErrors] = useState<string[]>([]);
-  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
-  
-
-
-  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
-    setTargetLinkType(value);
-  const [stakeholderOptions, setStakeholderOptions] = useState(ACTUAL_STAKEHOLDERS);
-  const [newStakeholder, setNewStakeholder] = useState("");
-  const [newDoctype, setNewDoctype] = useState("");
-  const [doctypeOptions, setDoctypeOptions] = useState([
-    "informative_doc",
-    "prescriptive_doc",
-    "design_doc",
-    "technical_doc",
-    "material_effect",
-  ]);
-
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
-    const { name, value } = e.target;
-    setNewDocument({ ...newDocument, [name!]: value });
-  };
-
-
-
-
-
-
 
   const handleAddNewDoctype = async () => {
     if (!newDoctype.trim()) {
@@ -171,66 +206,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   }
 
-
-  // const handleAddDocument = async () => {
-  //   const newErrors: string[] = [];
-
-  //   if (!newDocument.title) newErrors.push("Title is required.");
-  //   if (!newDocument.language) newErrors.push("Language is required.");
-  //   if (!Array.isArray(newDocument.stakeholders) || newDocument.stakeholders.length === 0) {
-  //     newErrors.push("At least one stakeholder is required.");
-  //   } else {
-  //     // Ensure selected stakeholders exist in the database
-  //     const validStakeholders = stakeholderOptions.map((s) => s.name);
-  //     const invalidStakeholders = newDocument.stakeholders.filter(
-  //       (s: string) => !validStakeholders.includes(s)
-  //     );
-  //     if (invalidStakeholders.length > 0) {
-  //       newErrors.push(`Invalid stakeholders: ${invalidStakeholders.join(", ")}`);
-  //     }
-  //   }
-  //   if (!newDocument.type) newErrors.push("Document type is required.");
-  //   if (!newDocument.scale) newErrors.push("Scale is required.");
-  //   if (!newDocument.description) newErrors.push("Description is required.");
-  //   if (dateOption === "year" && !year) newErrors.push("Year is required.");
-  //   if (dateOption === "yearMonth" && (!year || !month)) newErrors.push("Year and month are required.");
-  //   if (dateOption === "fullDate" && (!year || !month || !day)) {
-  //     newErrors.push("Year, month, and day are required.");
-  //   }
-
-  //   setErrors(newErrors);
-
-  //   if (newErrors.length > 0) return;
-
-  //   try {
-  //     const finalDocument = new Document(
-  //       0,
-  //       newDocument.title,
-  //       newDocument.type as DocumentType,
-  //       props.user?.username || "admin",
-  //       getIssuanceDate(),
-  //       newDocument.language,
-  //       Number(newDocument.pages),
-  //       newDocument.stakeholders, // Ensure stakeholders are valid and exist in the backend
-  //       newDocument.scale,
-  //       newDocument.description,
-  //       newDocument.coordinates
-  //         ? new Coordinates(
-  //             CoordinatesType.POINT,
-  //             new CoordinatesAsPoint(newDocument.coordinates.coords.lat, newDocument.coordinates.coords.lng)
-  //           )
-  //         : new Coordinates(CoordinatesType.MUNICIPALITY, null)
-  //     );
-
-  //     await API.addDocument(finalDocument); // Save the document
-  //     await props.fetchDocuments(); // Refresh the document list
-  //     handleClose(); // Close the dialog
-  //   } catch (error) {
-  //     console.error("Error adding document:", error);
-  //     alert("An error occurred while adding the document.");
-  //   }
-  // };
-
   const handleAddNewStakeholder = async () => {
     if (!newStakeholder.trim()) {
       alert("Stakeholder name cannot be empty.");
@@ -261,126 +236,350 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   };
 
-  const handleAddDocument = async () => {
-    const newErrors: string[] = [];
 
-    if (!newDocument.title) newErrors.push("Title is required.");
-    if (!newDocument.language) newErrors.push("Language is required.");
-    if (!Array.isArray(newDocument.stakeholders) || newDocument.stakeholders.length === 0) {
-      newErrors.push("At least one stakeholder is required.");
-    } else {
-      // Validate stakeholders against the backend
-      const validStakeholders = stakeholderOptions.map((s) => s.name);
-      const invalidStakeholders = newDocument.stakeholders.filter(
-        (s: string) => !validStakeholders.includes(s)
-      );
-      if (invalidStakeholders.length > 0) {
-        newErrors.push(`Invalid stakeholders: ${invalidStakeholders.join(", ")}`);
-      }
-    }
-    if (!newDocument.type) newErrors.push("Document type is required.");
-    if (!newDocument.scale) newErrors.push("Scale is required.");
-    if (!newDocument.description) newErrors.push("Description is required.");
-    if (dateOption === "year" && !year) newErrors.push("Year is required.");
-    if (dateOption === "yearMonth" && (!year || !month)) newErrors.push("Year and month are required.");
-    if (dateOption === "fullDate" && (!year || !month || !day)) {
-      newErrors.push("Year, month, and day are required.");
-    }
 
-    setErrors(newErrors);
-
-    if (newErrors.length > 0) return;
-
-    try {
-      const finalDocument = new Document(
-        0,
-        newDocument.title,
-        newDocument.type as DocumentType,
-        props.user?.username || "admin",
-        getIssuanceDate(),
-        newDocument.language,
-        Number(newDocument.pages),
-        newDocument.stakeholders, // Validated stakeholders
-        newDocument.scale,
-        newDocument.description,
-        newDocument.coordinates
-          ? new Coordinates(
-            CoordinatesType.POINT,
-            new CoordinatesAsPoint(newDocument.coordinates.coords.lat, newDocument.coordinates.coords.lng)
-          )
-          : new Coordinates(CoordinatesType.MUNICIPALITY, null)
-      );
-
-      await API.addDocument(finalDocument); // Save the document
-      await props.fetchDocuments(); // Refresh the document list
-      handleClose(); // Close the dialog
-    } catch (error) {
-      console.error("Error adding document:", error);
-      alert("An error occurred while adding the document.");
-    }
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setTargetLinkType(value);
   };
 
 
+  useEffect(()=>{
+    if(props.updating){
+      setOldForm(newDocument);
+      setOpen(true);
+    }
+  },[props.updating])
 
 
-  const handleClose = () => {
-    setOpen(false);
-    setNewDocument(reset());
-    setErrors([]);
-  };
+  useEffect(()=> {
+    console.log(props.adding)
+    console.log(props.updating)
+    if(props.coordMap && (props.adding || props.updating) ){
+      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(props.coordMap.lat,props.coordMap.lng)))
+      setOpen(true);
+    }
+  },[props.coordMap])
+
 
   const handleClickOpen = () => {
     setOpen(true);
     props.setAdding(true);
   };
+  const handleClose = () => {
+    setOpen(false);
+    props.setUpdating(false);
+    props.setAdding(false)
+    setNewDocument(reset());
+    setErrors([]);
+  }
 
-  const handleSearchLinking = async () => {
-    // Logic for searching and linking documents
+  const openLinkingDialog = (document: Document) => {
+    setCurrentDocument(document);
+    setOpenLinkDialog(true);
+    
+  };
+  const closeLinkingDialog = () => {setOpenLinkDialog(false);
+    setTargetDocumentId(0);
+    setTargetLinkType("direct");
+    setLinkDocuments([]);
+    setSearchQuery('');
+    setLinkErrors([])
+
   };
 
-  const [scaleOptions, setScaleOptions] = useState(["1:100", "1:200", "1:500", "1:1000", "1:2000", "1:5000"]);
-  const [newScale, setNewScale] = useState("");
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if(e.target.name=="lat"){
+      setNewDocument({
+        ...newDocument,
+        coordinates: {
+          ...newDocument.coordinates, 
+          coords: {
+            ...newDocument.coordinates?.coords, 
+            lat: e.target.value
+          }
+        }
+      });
+    }
+    else if(e.target.name=="lng"){
+      setNewDocument({
+        ...newDocument,
+        coordinates: {
+          ...newDocument.coordinates, 
+          coords: {
+            ...newDocument.coordinates?.coords, 
+            lng: e.target.value
+          }
+        }
+      });
+  }
+  else {
+    setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
+  }
+}
+
+  const handleMapCoord = () => {
+    setOpen(false);
+    //setAdding(true);
+  }
+
+  const handleAddDocument = async () => {
+    const newErrors = [];
+  
+    // Validazioni
+    if (!newDocument.title) {
+      newErrors.push("Title is required.");
+    }
+    if (!newDocument.stakeholders) {
+      newErrors.push("stakeholder is required.");
+    }
+    if (!newDocument.description) {
+      newErrors.push("description is required.");
+    }
+    if (!newDocument.language) {
+      newErrors.push("language is required.");
+    }
+    if (!newDocument.scale) {
+      newErrors.push("scale is required.");
+    }
+    if (typeof newDocument.title !== 'string') {
+      newErrors.push("Title must be a string.");
+    }
+    if (typeof newDocument.stakeholders !== 'string') {
+      newErrors.push("Stakeholders must be a string.");
+    }
+    if (typeof newDocument.scale !== 'string') {
+      newErrors.push("Scale must be a string.");
+    }
+    /*if (newDocument.issuanceDate && typeof newDocument.issuanceDate !== 'string') {
+      newErrors.push("Issuance Date must be a string.");
+    }*/
+    if (typeof newDocument.type !== 'string') {
+      newErrors.push("Type must be a string.");
+    }
+    if (typeof newDocument.language !== 'string') {
+      newErrors.push("Language must be a string.");
+    }
+    if (newDocument.pages && Number(newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
+      newErrors.push("Pages must be greater than 0");
+    }
+    /*const regexYearMonth = /^\d{4}-(0[1-9]|1[0-2])$/;
+    const regexYearOnly = /^\d{4}$/;
+    if (newDocument.issuanceDate != '' && (!(!dayjs(newDocument.issuanceDate, 'YYYY-MM-DD', true).isValid() || regexYearMonth.test(newDocument.issuanceDate) || regexYearOnly.test(newDocument.issuanceDate)) || dayjs(newDocument.issuanceDate).isAfter(dayjs()))) {
+      newErrors.push("Date is not valid");
+  }*/
+    if (newDocument.description && typeof newDocument.description !== 'string') {
+      newErrors.push("Description must be a string.");
+    }
+    if (
+      (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) || 
+      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng)
+    ) {
+      newErrors.push("Latitude and Longitude must be defined.");
+    }
+    
+    if (
+      (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) || 
+      (Number(newDocument.coordinates?.coords?.lng) < -180 || Number(newDocument.coordinates?.coords?.lng) > 180)
+    ) {
+      newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
+    }
+    if (newDocument.coordinates?.coords?.lat && isNaN(Number(newDocument.coordinates?.coords?.lat))) {
+      newErrors.push("Latitude must be a number.");
+      console.log(newDocument.coordinates?.coords?.lat)
+    }
+    if (newDocument.coordinates?.coords?.lng && isNaN(Number(newDocument.coordinates?.coords?.lng))) {
+      newErrors.push("Longitude must be a number.");
+    }
+    
+  
+    setErrors(newErrors);
+  
+    // Procede solo se non ci sono errori
+    if (newErrors.length === 0) {
+      try {
+        // Conversione della data
+        let date;
+        /*if(newDocument.issuanceDate == ""){
+          date = undefined;
+        }
+        else {
+          date = dayjs(newDocument.issuanceDate).isValid() ? new Date(dayjs(newDocument.issuanceDate).set('hour', 12).tz("Europe/Rome").format("YYYY-MM-DDTHH:mm:ss")) : undefined;
+        }
+        setNewDocument(prevDocument => ({
+          ...prevDocument,
+          issuanceDate: date
+        }));*/
+
+        function isValidDocumentType(type: string): type is DocumentType {
+          return Object.values(DocumentType).includes(type as DocumentType);
+      }
+      if(isValidDocumentType(newDocument.type)){
+
+        const latLng1 = newDocument.coordinates?.coords;
+        const coordinates1 = latLng1 && latLng1.lat !== null && latLng1.lng !== null
+          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
+          : new Coordinates(CoordinatesType.MUNICIPALITY, null);
+
+        
+        const finalDocument:Document = new Document(
+          0,
+          newDocument.title,
+          newDocument.type,
+          props.user?.username?props.user?.username:'',
+          date,
+          newDocument.language,
+          Number(newDocument.pages),
+          newDocument.stakeholders,
+          newDocument.scale,
+          newDocument.description,
+          coordinates1
+        );
+
+        console.log(finalDocument)
+  
+        if(props.updating){
+          if(newDocument.description!=oldForm?.description){
+            console.log("nuovo")
+            console.log(newDocument.description)
+            console.log("vecchio")
+            console.log(oldForm?.description)
+            if(newDocument.description){
+              await API.updateDescription(newDocument.id,newDocument.description);
+              await props.fetchDocuments();
+            }
+            /*setDocuments((prev) => 
+              prev.map((doc) => 
+                doc.id == newDocument.id
+                  ? { ...doc, description: newDocument.description } 
+                  : doc 
+              )
+            );*/
+          }
+          const latLng2 = newDocument.coordinates.coords;
+
+          if (
+              latLng2?.lat != null && 
+              latLng2?.lng != null /*&& 
+              (latLng.lat !== oldForm?.coordinates.coords.lat || 
+               latLng.lng !== oldForm?.coordinates.coords.lng)*/
+          ) {
+            if(booleanPointInPolygon(latLng2,props.geojson)){
+              await API.updateCoordinates(
+                newDocument.id,
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng2.lat), Number(latLng2.lng)))
+            );
+            }
+            else{
+              newErrors.push("coordinates out of the municipality area")
+              setErrors(newErrors);
+            }
+          }
+          props.setUpdating(false);
+        }
+        else{
+          if(coordinates1.getType()==CoordinatesType.POINT && booleanPointInPolygon(latLng1,props.geojson)){
+            await API.addDocument(finalDocument);
+          }
+          else{
+            newErrors.push("coordinates out of the municipality area")
+              setErrors(newErrors);
+            props.setAdding(false)
+          }
+        }
+        await props.fetchDocuments();
+  
+        handleClose();
+        setNewDocument(reset());
+      }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+  };
+  
 
 
+  const linkDocument = async () => {
+   if(currentDocument && targetDocumentId && targetLinkType){
+   try{
+    await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
+    await props.fetchDocuments();
+    closeLinkingDialog();
+   }
+   catch(error){
+    setLinkErrors([...linkErrors, "A link with this type already exists for this document"]);
+    console.log(error)
+   }
+    
+   }
+    
+  };
+
+  useEffect(()=>{
+    console.log(linkErrors)
+  },[linkErrors])
+
+  const handleSearchLinking = async () => {
+    try {
+      let matchingDocs = [];
+      if (searchQuery.trim()) {
+        // Fetch matching documents based on the search query
+        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+      } else {
+        // Default to all documents if no query
+        
+        matchingDocs = props.documents;
+        
+      }
+  
+      // Exclude the current document
+      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin );
+      setLinkDocuments(filteredDocs);
+  
+    } catch (error) {
+      console.error("Error searching documents:", error);
+    }
+  };
 
 
+  
+
+  const handleCheckboxChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if(event.target.name=="municipality_filter"){
+      console.log(event.target.checked)
+      if(event.target.checked){
+        const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
+        if(t){
+          props.setDocuments(t)
+        }
+        props.setIsMunicipalityChecked(true); 
+      }else{
+        await props.fetchDocuments();
+        props.setIsMunicipalityChecked(false); 
+    }
+    }
+    else if(event.target.name=="coordinates_type"){
+      
+    }
+    
+  }
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const itemRefs = useRef<(HTMLElement | null)[]>([]);
+  useEffect(() => {
+    if ( itemRefs.current[props.pin]) {
+      console.log(props.pin)
+        itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}, [props.pin]);
 
 
   return (
     <div className="container">
       <Typography variant="h6" sx={{ marginTop: 2}}>Documents</Typography>
 
-      {/* Document List */}
-      <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
-        <Grid container spacing={3}>
-          {props.documents.map((document, i) => (
-            <Grid item xs={12} key={i}>
-              <DocDetails
-                document={document}
-                loggedIn={props.loggedIn}
-                user={props.user}
-                fetchDocuments={props.fetchDocuments}
-                pin={props.pin}
-                setNewPin={props.setNewPin}
-                onLink={() => console.log("Link action triggered")} // Replace with actual linking logic
-                handleSearchLinking={handleSearchLinking}
-                updating={props.updating}
-                setUpdating={props.setUpdating}
-                newDocument={newDocument}
-                setNewDocument={setNewDocument}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-
-      {props.loggedIn && props.user?.type === "urban_planner" && (
-        <Button fullWidth variant="contained" color="primary" onClick={handleClickOpen} style={{ marginTop: "38px" }}>
-          Add a new document
-        </Button>
-      )}
-
-      {/* Add Document Dialog */}
+      {/* Dialog for Adding New Document */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Add a New Document</DialogTitle>
         <DialogContent>
@@ -631,7 +830,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             </>
           )}
 
-          {dateOption === "fullDate" && (
             <>
               <TextField
                 margin="dense"
@@ -658,57 +856,55 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                 onChange={(e) => setDay(e.target.value)}
               />
             </>
-          )}
-
-
-          {/* Latitude and Longitude */}
-          <TextField
-            margin="dense"
-            label="Latitude"
-            name="lat"
-            fullWidth
-            value={newDocument.coordinates?.coords?.lat || ""}
-            onChange={(e) =>
-              setNewDocument({
-                ...newDocument,
-                coordinates: {
-                  ...newDocument.coordinates,
-                  coords: { ...newDocument.coordinates?.coords, lat: e.target.value },
-                },
-              })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Longitude"
-            name="lng"
-            fullWidth
-            value={newDocument.coordinates?.coords?.lng || ""}
-            onChange={(e) =>
-              setNewDocument({
-                ...newDocument,
-                coordinates: {
-                  ...newDocument.coordinates,
-                  coords: { ...newDocument.coordinates?.coords, lng: e.target.value },
-                },
-              })
-            }
-          />
-          <Button
-            variant="outlined"
-            startIcon={<MapIcon />}
-            color="primary"
-            onClick={() => setIsSelectingLocation(true)} // Enable map selection mode
-            style={{ marginTop: "16px", marginBottom: "24px", width: "100%" }}
-          >
-            Choose on Map
-          </Button>
-
-
-
-
-          {/* Description */}
-          <TextField
+          
+            <FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
+  <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
+  <RadioGroup row name="type"  value={newDocument.type} onChange={handleChange}>
+        <FormControlLabel
+          value="informative_doc"
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>informative_doc</Typography>}
+        />
+        <FormControlLabel
+          value="prescriptive_doc"
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>prescriptive_doc</Typography>}
+        />
+        <FormControlLabel
+          value="design_doc"
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>design_doc</Typography>}
+        />
+        <FormControlLabel
+          value="technical_doc"
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>technical_doc</Typography>}
+        />
+        <FormControlLabel
+          value="material_effect"
+          control={<Radio disabled={props.updating} sx={{ color: "white", '&.Mui-disabled': { color: "gray" }, '&.Mui-checked': { color: "lightblue" } }} />}
+          label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>material_effect</Typography>}
+        />
+      </RadioGroup>
+    </FormControl>
+            {/*<TextField className="white-input" margin="dense" required label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />*/}
+            <TextField
+              select name="language"
+              label="Select an option"
+              value={newDocument.language}
+              onChange={handleChange}
+              fullWidth style={{backgroundColor: 'white'}}>
+              <MenuItem value="English">English</MenuItem>
+              <MenuItem value="Swedish">Swedish</MenuItem>
+            </TextField>
+            <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
+            <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={()=>setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates"/><Button color="primary" >All municipality</Button></label>
+            <Button color="primary" onClick={()=>setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
+            <Button color="primary" >Draw a polygon</Button>
+            {coordinates_type==CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="number" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" type="number" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
+            <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
+            <TextField
             margin="dense"
             label="Description"
             name="description"
@@ -719,19 +915,132 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             value={newDocument.description}
             onChange={handleChange}
           />
+          </DialogContent>
+          {errors.length > 0 && (
+            <div className="error-messages">
+              {errors.map((error, index) => (
+                <p key={index} style={{ color: 'red' }}>{error}</p> 
+              ))}
+            </div>
+          )}
+
+        <DialogActions>
+          <Button onClick={handleClose} color="secondary">Cancel</Button>
+          <Button onClick={handleAddDocument} color="primary">Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Scrollable document list */}
+      <Box ref={containerRef} className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
+        <Grid container spacing={3}>
+          {props.documents.map((document, i) => (
+            <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
+              <DocDetails  handleSearchLinking={handleSearchLinking} document={document} loggedIn={props.loggedIn} user={props.user} fetchDocuments={props.fetchDocuments} pin={props.pin} setNewPin={props.setNewPin} /*docExpand={docExpand} setDocExpand={setDocExpand}*/ updating={props.updating} setUpdating={props.setUpdating} newDocument={newDocument} setNewDocument={setNewDocument} onLink={() => openLinkingDialog(document)} />
+            </Grid>
+          ))
+        }
+        </Grid>
+
+      </Box>
+      <div>
+      <label>
+        <input 
+          type="checkbox" 
+          checked={props.isMunicipalityChecked} 
+          name="municipality_filter"
+          onChange={handleCheckboxChange} 
+        />
+        All municipality documents
+      </label>
+      </div>
+
+      {props.loggedIn && props.user?.type === "urban_planner" && (
+        <Button 
+          fullWidth 
+          variant="contained" 
+          color="primary" 
+          onClick={handleClickOpen} 
+          style={{ marginTop: "38px" }}
+        >
+          Add a new document
+        </Button>
+      )}
+
+
+      {/* Linking Dialog */}
+      <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
+        <DialogTitle>Link Document</DialogTitle>
+        <DialogContent>
+          {/* Search Input */}
+          <div className="search">
+            <InputBase
+              placeholder="Search by title…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{
+                color: 'white',
+                '& ::placeholder': { color: 'white' },
+              }}
+              className="inputRoot"
+            />
+            <Button
+              onClick={handleSearchLinking}
+              color="primary"
+              variant="contained"
+              style={{ marginLeft: '8px' }}
+            >
+              Search
+            </Button>
+            
+          </div>
+
+          
+
+
+          {/* Search Results */}
+          {
+            linkDocuments.length === 0 ? (
+              <Typography variant="body1" color="textSecondary">
+                No matched Document to be linked
+              </Typography>
+            ) : (
+              <List>
+                {linkDocuments.map((doc) => (
+                  <ListItemButton
+                    key={doc.id}
+                    onClick={() => setTargetDocumentId(doc.id)}
+                  >
+                    <ListItemText primary={doc.title} />
+                  </ListItemButton>
+                ))}
+              </List>
+            )
+          }
+
+          <select onChange={handleSelectChange} value={targetLinkType}>
+                  <option value="direct" selected>direct</option>
+                  <option value="collateral">collateral</option>
+                  <option value="projection">projection</option>
+                  <option value="update">update</option>
+                </select>
+                {linkErrors.length > 0 && (
+            <div className="error-messages">
+              {linkErrors.map((error, index) => (
+                <p key={index} style={{ color: 'red' }}>{error}</p> 
+              ))}
+            </div>)}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="secondary" startIcon={<CancelIcon />}>
-            Cancel
-          </Button>
-          <Button onClick={handleAddDocument} color="primary" startIcon={<SaveIcon />}>
-            Save
-          </Button>
+        <Button onClick={linkDocument}  color="primary">Create</Button>
+          <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
         </DialogActions>
       </Dialog>
     </div>
   );
 };
 
+
 export default DocumentList;
+
+
 
