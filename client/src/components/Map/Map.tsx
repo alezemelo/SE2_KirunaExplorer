@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactMapGL, { Layer, MarkerDragEvent, Source, ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
@@ -47,7 +47,7 @@ const Map: React.FC<MapProps> = (props) => {
   }
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [buttonText, setButtonText] = useState("Switch to Street View");
-  const [markers, setMarkers] = useState<{ id: number, marker: mapboxgl.Marker }[]>([]);
+  const markersRef = useRef<{ id: number, marker: mapboxgl.Marker }[]>([]);
   const [confirmChanges, setConfirmChanges] = useState(false); //open the dialog for confirmation
   const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations for the coordinates for updating
 
@@ -77,13 +77,18 @@ const Map: React.FC<MapProps> = (props) => {
 
 
   const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("Adding markers to map:", props.documents);
+    console.log("adding marker to map")
+    markersRef.current.forEach(({ marker }) => {
+      marker.remove();
+    });
+  
+    markersRef.current = [];
   
     props.documents.forEach((doc) => {
       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
   
       if (doc.getCoordinates()?.getType() !== "POINT") {
-        return; // Skip non-POINT documents
+        return;
       }
   
       const pointCoords = doc.getCoordinates()?.getLatLng();
@@ -92,15 +97,28 @@ const Map: React.FC<MapProps> = (props) => {
         console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
         return;
       }
-
-      // Add marker with popup
-      const marker = new mapboxgl.Marker({ color: "red", draggable:true })
+  
+      const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
-      markers.push({ id: doc.id, marker });
+
+      if(doc.id == props.pin){
+        const markerLngLat = marker.getLngLat();
+        mapInstance.fitBounds(
+          [
+            [markerLngLat.lng - 0.0001, markerLngLat.lat - 0.0001],
+            [markerLngLat.lng + 0.0001, markerLngLat.lat + 0.0001],
+          ],
+          {
+            padding: 20,
+            maxZoom: 12,
+          }
+        );
+      }
   
-      // Add a popup with the document's title and details
-      const popup = new mapboxgl.Popup({ offset: 25 }) // Offset for better positioning
+      markersRef.current.push({ id: doc.id, marker });
+  
+      const popup = new mapboxgl.Popup({ offset: 25 })
         .setHTML(
           `<div style="font-size: 14px; color: black;">
             <strong>${doc.title}</strong><br />
@@ -108,36 +126,40 @@ const Map: React.FC<MapProps> = (props) => {
           </div>`
         );
   
-      // Attach popup and setNewPin to marker click
       marker.getElement()?.addEventListener("click", () => {
-        console.log(`Marker for Document ${doc.id} clicked`);
-        
-        // Show the popup
         if (pointCoords.lng !== null && pointCoords.lat !== null) {
           popup.addTo(mapInstance).setLngLat([pointCoords.lng, pointCoords.lat]);
         }
-  
-        // Call setNewPin to handle additional actions when a marker is clicked
-        props.setNewPin(doc.id);
+        if (props.pin !== doc.id) {  
+          props.setNewPin(doc.id);
+        }
       });
-
+  
       marker.on('dragend', (e) => {
         const currentLngLat = e.target.getLngLat();
-        const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat,currentLngLat.lng))
-        //handleDrag(doc.id,coordinates)
+        const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat, currentLngLat.lng));
         setConfirmChanges(true);
-        setCoordinatesInfo({id: doc.id, coordinates: coordinates});
+        setCoordinatesInfo({ id: doc.id, coordinates: coordinates });
       });
     });
-    setMarkers(markers);
   };
 
-  useEffect(()=>{
-    const marker = markers.find((marker)=>marker.id == props.pin);
-    if(marker?.marker.getElement()){
-      marker.marker.getElement().style.transform = 'scale(2)';
-    }
-  },[props.pin, markers])
+  useEffect(() => {
+    /*if (!markersRef.current) return;
+    const selectedMarker = markersRef.current.find((item) => item.id === props.pin);
+    if (selectedMarker?.marker.getElement()) {
+      markersRef.current.forEach((item) => {
+        if (item.marker.getElement()) {
+          item.marker.getElement().style.transform = 'scale(1)';
+        }
+      });
+      selectedMarker.marker.getElement().style.transform = 'scale(2)';
+    }*/
+   if(!map) return;
+    addMarkersToMap(map);
+    addPolygonsToMap(map);
+  }, [props.pin]);
+  
 
   const handleDrag = async (id:number,coordinates:Coordinates) => {
     if(coordinatesInfo){
@@ -171,12 +193,9 @@ const Map: React.FC<MapProps> = (props) => {
       const marker = new mapboxgl.Marker({ color: "blue" })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
-  
-      // Marker click handler to display the polygon
-      marker.getElement()?.addEventListener("click", () => {
+      
+      const select = () => {
         console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
-        
-        props.setNewPin(doc.id);
   
         const sourceId = `polygon-${doc.id}`;
         if (mapInstance.getSource(sourceId)) {
@@ -206,6 +225,17 @@ const Map: React.FC<MapProps> = (props) => {
         mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
           padding: 20,
         });
+      }
+
+      if(doc.id == props.pin){
+        select();
+      }
+  
+      // Marker click handler to display the polygon
+      marker.getElement()?.addEventListener("click", () => {
+        if (props.pin !== doc.id) {  
+          props.setNewPin(doc.id);
+        }
       });
     });
   };
@@ -283,7 +313,11 @@ const Map: React.FC<MapProps> = (props) => {
             if(coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
             handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
             }} >Confirm</button>
-          <button style={buttonStyle} onClick={()=>{setConfirmChanges(false)}}>Cancel</button>
+          <button style={buttonStyle} onClick={()=>{
+            setConfirmChanges(false);
+            if(!map) return;
+            addMarkersToMap(map)
+            }}>Cancel</button>
         </div>
       </div>}
       <ReactMapGL
