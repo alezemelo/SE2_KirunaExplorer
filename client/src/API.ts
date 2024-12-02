@@ -64,8 +64,11 @@ async function uploadFile(documentId: number, fileName: string, file: File): Pro
     console.log("Uploading file:", fileName);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("fileName", fileName); // Ensure fileName is included in the form data
 
-    const response = await fetch(`http://localhost:3000/kiruna_explorer/files/upload/${documentId}/${fileName}`, {
+    const url = `http://localhost:3000/kiruna_explorer/files/upload/${documentId}/${fileName}`;
+    console.log(`uploading at ${url}`);
+    const response = await fetch(url, {
       method: "POST",
       credentials: "include", // Include session cookies
       body: formData,

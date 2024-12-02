@@ -35,6 +35,9 @@ class FileController {
     */
     async mark_as_uploaded(documentId: number, fileName: string): Promise<number> {
         try {
+            if (!fileName) {
+                console.error('Inside mark_as_uploaded: fileName is null-like');
+            }
             const file_url = `http://localhost:3000/static/${fileName}`;
             
             // Update the files table with the file URL and get the assigned ID
