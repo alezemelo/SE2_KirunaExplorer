@@ -440,6 +440,9 @@ const Map: React.FC<MapProps> = (props) => {
         if (props.pin !== doc.id) {  
           props.setNewPin(doc.id);
         }
+        else if(props.pin!=0){
+          props.setNewPin(0)
+        }
       });
   
       marker.on('dragend', (e) => {
@@ -506,10 +509,22 @@ const Map: React.FC<MapProps> = (props) => {
         .addTo(mapInstance);
 
       centroidsRef.current.push(marker);
-      
-      const select = () => {
+
+
+      if(props.pin == doc.id){
+        // Zoom to the polygon
+        mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
+          padding: 20,
+        });
+      }
+  
+      // Marker click handler to display the polygon
+      marker.getElement()?.addEventListener("click", () => {
         console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
 
+        if(props.pin!=doc.id){
+          props.setNewPin(doc.id)
+        }
         const sourceId = `polygon-${doc.id}`;
         if (mapInstance.getSource(sourceId)) {
           // Remove the polygon if it already exists
@@ -534,22 +549,6 @@ const Map: React.FC<MapProps> = (props) => {
             "fill-opacity": 0.5,
           },
         });
-
-        // Zoom to the polygon
-        mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
-          padding: 20,
-        });
-      }
-
-      if(doc.id == props.pin){
-        select();
-      }
-  
-      // Marker click handler to display the polygon
-      marker.getElement()?.addEventListener("click", () => {
-        if (props.pin !== doc.id) {  
-          props.setNewPin(doc.id);
-        }
       });
     });
   };
