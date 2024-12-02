@@ -69,7 +69,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     if (props.document?.id) {
       fetchFiles();
     }
-  }, [props.document]);
+  }, [selectedFile]);
   
 
   const handleToggleExpand = () => setExpand(!expand);
@@ -259,9 +259,6 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     }
   
     const fileName = selectedFile.name; // Get the file name
-    console.log("Uploading file:", fileName);
-    console.log("DOC ID:", props.document.id);
-
     const file = selectedFile; // Get the selected file
   
     try {
@@ -489,22 +486,22 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
 
         {/* Dialog for File List */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-              <DialogTitle>Original Files</DialogTitle>
-              <DialogContent>
-                <List>
-                  {files.map((file) => (
-                    <ListItem key={file.id}>
-                      <ListItemText primary={file.name} />
-                    </ListItem>
-                  ))}
-                </List>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseDialog} color="primary">
-                  Close
-                </Button>
-              </DialogActions>
-            </Dialog>
+          <DialogTitle>Original Files</DialogTitle>
+          <DialogContent>
+            <List>
+              {files.map((file) => (
+                <ListItem key={file.id}>
+                  <ListItemText primary={file.name} />
+                </ListItem>
+              ))}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </CardContent>
     </Card>
   );

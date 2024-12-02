@@ -67,7 +67,7 @@ class FileRoutes {
             this.errorHandler.validateRequest,
             upload.single('file'),
             checkFile,
-            // (req: any, res: any, next: any) => {console.error(`Uploading file for document ${req.params.documentId} with fileName ${req.body.fileName}`); next()}, // debug
+             (req: any, res: any, next: any) => {console.error(`Uploading file for document ${req.params.documentId} with fileName ${req.body.fileName}`); next()}, // debug
             (req: any, res: any, next: any) => this.controller.mark_as_uploaded(req.params.documentId, req.body.fileName)
                 .then((file_id: number) => res.status(200).json({ fileId: file_id }))
                 .catch((err: any) => {next(err)})
