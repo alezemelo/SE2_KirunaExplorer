@@ -254,6 +254,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   useEffect(()=>{
     if(props.updating){
       setOldForm(newDocument);
+      setCoordinatesType(newDocument.coordinates.type);
       setOpen(true);
     }
   },[props.updating])
@@ -347,20 +348,14 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       newErrors.push("language is required.");
     }
     if (!newDocument.scale) {
-      newErrors.push("scale is required.");
+      newErrors.push("scale is requiredddddd.");
     }
     if (typeof newDocument.title !== 'string') {
       newErrors.push("Title must be a string.");
     }
-    if (typeof newDocument.stakeholders !== 'string') {
-      newErrors.push("Stakeholders must be a string.");
-    }
     if (typeof newDocument.scale !== 'string') {
       newErrors.push("Scale must be a string.");
     }
-    /*if (newDocument.issuanceDate && typeof newDocument.issuanceDate !== 'string') {
-      newErrors.push("Issuance Date must be a string.");
-    }*/
     if (typeof newDocument.type !== 'string') {
       newErrors.push("Type must be a string.");
     }
@@ -370,17 +365,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (newDocument.pages && Number(newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
       newErrors.push("Pages must be greater than 0");
     }
-    /*const regexYearMonth = /^\d{4}-(0[1-9]|1[0-2])$/;
-    const regexYearOnly = /^\d{4}$/;
-    if (newDocument.issuanceDate != '' && (!(!dayjs(newDocument.issuanceDate, 'YYYY-MM-DD', true).isValid() || regexYearMonth.test(newDocument.issuanceDate) || regexYearOnly.test(newDocument.issuanceDate)) || dayjs(newDocument.issuanceDate).isAfter(dayjs()))) {
-      newErrors.push("Date is not valid");
-  }*/
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
     if (
       (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) || 
-      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng)
+      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng) 
     ) {
       newErrors.push("Latitude and Longitude must be defined.");
     }
@@ -398,8 +388,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (newDocument.coordinates?.coords?.lng && isNaN(Number(newDocument.coordinates?.coords?.lng))) {
       newErrors.push("Longitude must be a number.");
     }
+    let coordinates1
+    if(coordinates_type == CoordinatesType.MUNICIPALITY){
+      coordinates1 = new Coordinates(CoordinatesType.MUNICIPALITY, null);
+    }
+    if(coordinates_type == CoordinatesType.POINT){
+      const latLng1 = newDocument.coordinates?.coords;
+      if(latLng1 && latLng1.lat !== null && latLng1.lng !== null){
+        if(!booleanPointInPolygon(point([latLng1.lng,latLng1.lat]),props.geojson.features[0])){
+          newErrors.push("coordinates out of the municipality area")
+        } else{
+          coordinates1 = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
+        }
+      }else{
+        newErrors.push("Latitude and Longitude must be defined.");
+      }
+    }
     
-  
     setErrors(newErrors);
   
     // Procede solo se non ci sono errori
@@ -417,17 +422,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           ...prevDocument,
           issuanceDate: date
         }));*/
-
-        function isValidDocumentType(type: string): type is DocumentType {
-          return Object.values(DocumentType).includes(type as DocumentType);
-      }
-      if(isValidDocumentType(newDocument.type)){
-
-        const latLng1 = newDocument.coordinates?.coords;
-        const coordinates1 = latLng1 && latLng1.lat !== null && latLng1.lng !== null
-          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
-          : new Coordinates(CoordinatesType.MUNICIPALITY, null);
-
         
         const finalDocument:Document = new Document(
           0,
@@ -463,15 +457,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               )
             );*/
           }
-          const latLng2 = newDocument.coordinates.coords;
-
+          /*const latLng2 = newDocument.coordinates.coords;
           if (
               latLng2?.lat != null && 
-              latLng2?.lng != null /*&& 
-              (latLng.lat !== oldForm?.coordinates.coords.lat || 
-               latLng.lng !== oldForm?.coordinates.coords.lng)*/
+              latLng2?.lng != null
           ) {
-            if(booleanPointInPolygon(latLng2,props.geojson)){
+            if(booleanPointInPolygon(point([latLng2.lng,latLng2.lat]),props.geojson.features[0])){
               await API.updateCoordinates(
                 newDocument.id,
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng2.lat), Number(latLng2.lng)))
@@ -482,23 +473,27 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               setErrors(newErrors);
             }
           }
+          else if(newDocument.coordinates.type==CoordinatesType.MUNICIPALITY){
+            await API.updateCoordinates(
+              newDocument.id,
+              new Coordinates(CoordinatesType.MUNICIPALITY, null)
+          );
+          }*/
+          await API.updateCoordinates(
+            newDocument.id,
+            finalDocument.coordinates
+        );
           props.setUpdating(false);
         }
-        else{
-          if(coordinates1.getType()==CoordinatesType.POINT && booleanPointInPolygon(latLng1,props.geojson)){
-            await API.addDocument(finalDocument);
-          }
-          else{
-            newErrors.push("coordinates out of the municipality area")
-              setErrors(newErrors);
-            props.setAdding(false)
-          }
+        //if adding:
+        else{ 
+          await API.addDocument(finalDocument)
         }
         await props.fetchDocuments();
   
         handleClose();
         setNewDocument(reset());
-      }
+      
       } catch (error) {
         console.error("Error:", error);
       }
@@ -892,7 +887,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               />
             </>
           
-            <FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
+            {/*<FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
   <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
   <RadioGroup row name="type"  value={newDocument.type} onChange={handleChange}>
         <FormControlLabel
@@ -921,7 +916,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           label={<Typography sx={{ color: props.updating ? "gray" : "white" }}>material_effect</Typography>}
         />
       </RadioGroup>
-    </FormControl>
+    </FormControl>*/}
             {/*<TextField className="white-input" margin="dense" required label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />*/}
             <TextField
               select name="language"
@@ -951,13 +946,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             onChange={handleChange}
           />
           </DialogContent>
-          {errors.length > 0 && (
-            <div className="error-messages">
-              {errors.map((error, index) => (
-                <p key={index} style={{ color: 'red' }}>{error}</p> 
-              ))}
-            </div>
-          )}
+
 
         <DialogActions>
           <Button onClick={handleClose} color="secondary">Cancel</Button>
