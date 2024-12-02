@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
@@ -142,12 +142,22 @@
 <a name='L77'></a><a href='#L77'>77</a>
 <a name='L78'></a><a href='#L78'>78</a>
 <a name='L79'></a><a href='#L79'>79</a>
-<a name='L80'></a><a href='#L80'>80</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -170,7 +180,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,7 +200,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -219,18 +229,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span></td><td class="text"><pre class="prettyprint lang-js">import dayjs from "dayjs";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span></td><td class="text"><pre class="prettyprint lang-js">import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 import { Document, DocumentType } from "../../models/document";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 &nbsp;
 const doc_15 = new Document(
   15, // ID
   "Compilation of responses “So what the people of Kiruna think?” (15)", // Title
   DocumentType.informative_doc, // Type
-  "admin", // Last modified by
+  "user1", // Last modified by
 &nbsp;
   dayjs.utc("2005"), // Issuance date
   "Swedish", // Language
@@ -253,7 +272,7 @@ const doc_18 = new Document(
   18, // 1: ID
   "Detail plan for Bolagsomradet Gruvstad spark (18)", // 2: Title
   DocumentType.prescriptive_doc, // 3: Type
-  "admin", // 4: Last modified by
+  "user1", // 4: Last modified by
 &nbsp;
   dayjs.utc("2014-03-17"), // 5: Issuance date
   "Swedish", // 6: Language
@@ -266,14 +285,14 @@ const doc_18 = new Document(
     `The plan consists, like all detailed plans, of two documents: the area map that regulates it, and a ` +
     `text explaining the reasons that led to the drafting of the plan with these characteristics. The plan ` +
     `gained legal validity in 2012.`, // 10: Description
-  undefined // 11: Coordinates
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.8526128037612, 20.24253383065055)) // 11: Coordinates
 )
 &nbsp;
 const doc_41 = new Document(
   41, // 1: ID
   "Development Plan (41)", // 2: Title
   DocumentType.design_doc, // 3: Type
-  "admin", // 4: Last modified by
+  "user1", // 4: Last modified by
 &nbsp;
   dayjs.utc("2014-03-17"), // 5: Issuance date
   "Swedish", // 6: Language
@@ -295,7 +314,15 @@ const doc_41 = new Document(
     `diagrams, and texts. The document also includes ` +
     `numerous studies aimed at demonstrating the ` +
     `future success of the project`, // 10: Description
-  undefined // 11: Coordinates
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
+    new CoordinatesAsPoint(67.86760158832168, 20.164591698595675),
+    new CoordinatesAsPoint(67.85351844008717, 20.18194183073118),
+    new CoordinatesAsPoint(67.86227111154075, 20.20676586594044),
+    new CoordinatesAsPoint(67.8750204078963, 20.189086203319476),
+    new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
+&nbsp;
+  ])) // 11: Coordinates
 )
 &nbsp;
 const documents = [doc_15, doc_18, doc_41]
@@ -307,7 +334,7 @@ export default documents</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-02T14:37:35.701Z
+                at 2024-12-02T14:58:06.334Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
