@@ -11,6 +11,8 @@ import DoctypeRoutes from "./rcd/routes/doctype_routes"
 import ScaleRoutes from "./rcd/routes/scale_routes"
 import Authenticator from "./authentication/auth"
 import { AuthRoutes } from "./rcd/routes/user_routes"
+import FileRoutes from "./rcd/routes/file_routes"
+import path from "path"
 
 /**
  * Initializes the routes for the application.
@@ -32,13 +34,12 @@ function initRoutes(app: express.Application) {
     const scaleRoutes = new ScaleRoutes(authenticator);
     const doctypeRoutes = new DoctypeRoutes(authenticator);
     const authRoutes = new AuthRoutes(authenticator);
+    const fileRoutes = new FileRoutes(authenticator);
 
 
     /**
      * Add your routers here, like the documents router was added
      */
-    
-
     app.use(`${prefix}/documents`, documentRoutes.getRouter())
     console.log("doc routes initialized!");
     app.use(`${prefix}/linkDocuments`, linkDocumentRouter.getRouter());
@@ -51,6 +52,13 @@ function initRoutes(app: express.Application) {
     console.log("doctypes routes initialized!");
     app.use(`${prefix}/scales`, scaleRoutes.getRouter())
     console.log("scales routes initialized!");
+    app.use(`${prefix}/files`, fileRoutes.getRouter())
+    console.log("file routes initialized!");
+
+    // Static routes
+    const static_files_dir_name = 'staticfiles';
+    app.use('/static', express.static(path.join(__dirname, `${static_files_dir_name}`)));
+    console.log(`static routes initialized at folder ${static_files_dir_name}!`);
 
     ErrorHandler.registerErrorHandler(app)
     console.log("Routes were initialized!");
