@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import ReactMapGL, { MarkerDragEvent, Source, ViewStateChangeEvent } from "react-map-gl";
+import ReactMapGL, { Layer, MarkerDragEvent, Source, ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";
 import * as turf from '@turf/turf';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 import API from "../../API";
+import * as fs from 'fs'
 
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -23,6 +24,7 @@ interface MapProps {
   adding: boolean;
   updating: boolean;
   setCoordMap: any;
+  geojson: any;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -46,10 +48,8 @@ const Map: React.FC<MapProps> = (props) => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [buttonText, setButtonText] = useState("Switch to Street View");
   const [markers, setMarkers] = useState<{ id: number, marker: mapboxgl.Marker }[]>([]);
-  const [geojson, setGeojson] = useState(null);
   const [confirmChanges, setConfirmChanges] = useState(false); //open the dialog for confirmation
-  const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations of the coordinates for updating
-
+  const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations for the coordinates for updating
 
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
@@ -293,7 +293,24 @@ const Map: React.FC<MapProps> = (props) => {
         onLoad={(event) => setMap(event.target as mapboxgl.Map)}
         onClick={(e) => onMapClick(e)}
       >
-      <Source id="kiruna_municipality" type="geojson" data={geojson}></Source>
+             {props.geojson && <Source id="geojson-source" type="geojson" data={props.geojson}>
+                    <Layer
+                        id="geojson-layer"
+                        type="fill"
+                        paint={{
+                            "fill-color": "#0080ff",
+                            "fill-opacity": 0.1
+                        }}
+                    />
+                    <Layer
+                        id="geojson-line"
+                        type="line"
+                        paint={{
+                            "line-color": "#FF0000", 
+                            "line-width": 3         
+                        }}
+                    />
+                </Source>}
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
           <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>
@@ -303,4 +320,3 @@ const Map: React.FC<MapProps> = (props) => {
 };
 
 export default Map;
-

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-
+import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 import {
@@ -59,6 +59,7 @@ interface DocumentListProps {
   setUpdating: any;
   isMunicipalityChecked: boolean;
   setIsMunicipalityChecked: any;
+  geojson: any;
 }
 
 /*interface DocumentLocal {
@@ -125,10 +126,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
   const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
   
-  
-  //const[document, setDocument] = useState<any>(0); //document that as to be shown in the sidebar
-  //const [docExpand, setDocExpand] = useState(0);
-
 
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -136,11 +133,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetLinkType(value);
   };
 
-/*  useEffect(()=>{
-    const t = documents.find((doc)=>doc.id==pin)
-    if(t){setDocument(t)}
-    //setDocExpand(pin);
-  },[pin])*/
 
   useEffect(()=>{
     if(props.updating){
@@ -148,7 +140,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       setOpen(true);
     }
   },[props.updating])
-
 
 
   useEffect(()=> {
@@ -315,9 +306,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       }
       if(isValidDocumentType(newDocument.type)){
 
-        const latLng = newDocument.coordinates?.coords;
-        const coordinates1 = latLng && latLng.lat !== null && latLng.lng !== null
-          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng.lat, latLng.lng))
+        const latLng1 = newDocument.coordinates?.coords;
+        const coordinates1 = latLng1 && latLng1.lat !== null && latLng1.lng !== null
+          ? new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
           : new Coordinates(CoordinatesType.MUNICIPALITY, null);
 
         
@@ -355,24 +346,36 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               )
             );*/
           }
-          const latLng = newDocument.coordinates.coords;
+          const latLng2 = newDocument.coordinates.coords;
 
           if (
-              latLng?.lat != null && 
-              latLng?.lng != null /*&& 
+              latLng2?.lat != null && 
+              latLng2?.lng != null /*&& 
               (latLng.lat !== oldForm?.coordinates.coords.lat || 
                latLng.lng !== oldForm?.coordinates.coords.lng)*/
           ) {
+            if(booleanPointInPolygon(latLng2,props.geojson)){
               await API.updateCoordinates(
-                  newDocument.id,
-                  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng.lat), Number(latLng.lng)))
-              );
+                newDocument.id,
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng2.lat), Number(latLng2.lng)))
+            );
+            }
+            else{
+              newErrors.push("coordinates out of the municipality area")
+              setErrors(newErrors);
+            }
           }
           props.setUpdating(false);
         }
         else{
-          await API.addDocument(finalDocument);
-          props.setAdding(false)
+          if(coordinates1.getType()==CoordinatesType.POINT && booleanPointInPolygon(latLng1,props.geojson)){
+            await API.addDocument(finalDocument);
+          }
+          else{
+            newErrors.push("coordinates out of the municipality area")
+              setErrors(newErrors);
+            props.setAdding(false)
+          }
         }
         await props.fetchDocuments();
   

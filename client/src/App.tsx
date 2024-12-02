@@ -35,6 +35,7 @@ function App() {
   const [updating, setUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
+  const [geojson, setGeojson] = useState(null);
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -129,6 +130,16 @@ function App() {
     }
   };
 
+  
+  useEffect(()=>{
+    const renderMunicipality = async() => {
+      const res = await fetch('KirunaMunicipality.geojson');
+      const data = await res.json();
+      setGeojson(data);
+    }
+    renderMunicipality();
+  },[])
+
   return (
     <>
       <CssBaseline />
@@ -149,6 +160,7 @@ function App() {
                 {isDocumentListOpen && (
                   <Grid item xs={12} md={4}>
                     <DocumentList
+                      geojson={geojson}
                       updating={updating}
                       setUpdating={setUpdating}
                       documents={documents}
@@ -189,6 +201,7 @@ function App() {
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
                     //fetchDocuments={fetchDocuments}
+                    geojson={geojson}
                     pin={pin}
                     setNewPin={setNewPin}
                     setCoordMap={setCoordMap}
@@ -196,7 +209,6 @@ function App() {
                     //setAdding={setAdding}
                     documents={documents}
                     isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
-
                     updating={updating}
                   />
                 </Grid>
