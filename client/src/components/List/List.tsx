@@ -973,7 +973,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           variant="contained" 
           color="primary" 
           onClick={handleClickOpen} 
-          style={{ marginTop: "38px" }}
+          style={{ marginTop: "8px" }}
         >
           Add a new document
         </Button>

@@ -646,7 +646,7 @@ const Map: React.FC<MapProps> = (props) => {
                         type="fill"
                         paint={{
                             "fill-color": "#0080ff",
-                            "fill-opacity": 0.1
+                            "fill-opacity": 0
                         }}
                     />
                     <Layer
