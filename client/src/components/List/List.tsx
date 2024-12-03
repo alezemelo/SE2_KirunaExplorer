@@ -52,13 +52,13 @@ import { title } from "process";
 interface DocumentListProps {
   documents: Document[];
   setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
-  fetchDocuments:() => Promise<void>;
+  fetchDocuments: () => Promise<void>;
   pin: number,
   setNewPin: any;
-  coordMap?: CoordinateLocal|undefined;
+  coordMap?: CoordinateLocal | undefined;
   setCoordMap: any;
-  adding: boolean; 
-  setAdding:any;
+  adding: boolean;
+  setAdding: any;
   loggedIn: boolean;
   user: User | undefined;
   updating: boolean;
@@ -108,20 +108,20 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       "",
       new Coordinates(CoordinatesType.MUNICIPALITY,null)
     )*/
-      return {
-        id: 0,
-        title: "",
-        stakeholders: "",
-        scale: "",
-        lastModifiedBy: "admin",
-        issuanceDate: "",
-        type: "informative_doc",
-        connection: [],
-        language: "English",
-        pages: 1,
-        description: "",
-        coordinates: new Coordinates(CoordinatesType.MUNICIPALITY,null)
-      }
+    return {
+      id: 0,
+      title: "",
+      stakeholders: "",
+      scale: "",
+      lastModifiedBy: "admin",
+      issuanceDate: "",
+      type: "informative_doc",
+      connection: [],
+      language: "English",
+      pages: 1,
+      description: "",
+      coordinates: new Coordinates(CoordinatesType.MUNICIPALITY, null)
+    }
   }
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
@@ -163,9 +163,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   };
 
   const getIssuanceDate = () => {
-    if (dateOption === "year") return year;
-    if (dateOption === "yearMonth") return `${year}-${month}`;
-    if (dateOption === "fullDate") return `${year}-${month}-${day}`;
+    if (dateOption === "year") {
+      return year ? `${year}` : "";
+    }
+    if (dateOption === "yearMonth") {
+      return year && month ? `${year}-${month.padStart(2, "0")}` : "";
+    }
+    if (dateOption === "fullDate") {
+      return year && month && day
+        ? `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        : "";
+    }
     return "";
   };
 
@@ -250,7 +258,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetLinkType(value);
   };
 
-  
+
 
   useEffect(() => {
     const fetchDropdownItems = async () => {
@@ -258,7 +266,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         const [currentScales, currentDoctypes, currentStakeholders] = await Promise.all([
           API.getAllScales(),
           API.getAllDoctypes(),
-          API.getAllStakeholders(), 
+          API.getAllStakeholders(),
         ])
         setScaleOptions(currentScales.map((scale) => scale.value));;
         setDoctypeOptions(currentDoctypes.map((doctype) => doctype.name));
@@ -276,23 +284,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   }, [open]);
 
 
-  useEffect(()=>{
-    if(props.updating){
+  useEffect(() => {
+    if (props.updating) {
       setOldForm(newDocument);
       setCoordinatesType(newDocument.coordinates.type);
       setOpen(true);
     }
-  },[props.updating])
+  }, [props.updating])
 
 
-  useEffect(()=> {
+  useEffect(() => {
     console.log(props.adding)
     console.log(props.updating)
-    if(props.coordMap && (props.adding || props.updating) ){
-      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(props.coordMap.lat,props.coordMap.lng)))
+    if (props.coordMap && (props.adding || props.updating)) {
+      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(props.coordMap.lat, props.coordMap.lng)))
       setOpen(true);
     }
-  },[props.coordMap])
+  }, [props.coordMap])
 
 
   const handleClickOpen = () => {
@@ -310,9 +318,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const openLinkingDialog = (document: Document) => {
     setCurrentDocument(document);
     setOpenLinkDialog(true);
-    
+
   };
-  const closeLinkingDialog = () => {setOpenLinkDialog(false);
+  const closeLinkingDialog = () => {
+    setOpenLinkDialog(false);
     setTargetDocumentId(0);
     setTargetLinkType("direct");
     setLinkDocuments([]);
@@ -322,34 +331,34 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if(e.target.name=="lat"){
+    if (e.target.name == "lat") {
       setNewDocument({
         ...newDocument,
         coordinates: {
-          ...newDocument.coordinates, 
+          ...newDocument.coordinates,
           coords: {
-            ...newDocument.coordinates?.coords, 
+            ...newDocument.coordinates?.coords,
             lat: e.target.value
           }
         }
       });
     }
-    else if(e.target.name=="lng"){
+    else if (e.target.name == "lng") {
       setNewDocument({
         ...newDocument,
         coordinates: {
-          ...newDocument.coordinates, 
+          ...newDocument.coordinates,
           coords: {
-            ...newDocument.coordinates?.coords, 
+            ...newDocument.coordinates?.coords,
             lng: e.target.value
           }
         }
       });
+    }
+    else {
+      setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
+    }
   }
-  else {
-    setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
-  }
-}
 
   const handleMapCoord = () => {
     setOpen(false);
@@ -358,7 +367,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const handleAddDocument = async () => {
     const newErrors = [];
-  
+
     // Validazioni
     if (!newDocument.title) {
       newErrors.push("Title is required.");
@@ -395,8 +404,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
     let skipCoordsCheck = false;
     if (
-      (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) || 
-      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng) 
+      (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) ||
+      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng)
     ) {
       newErrors.push("Latitude and Longitude must be defined.");
       skipCoordsCheck = true;
@@ -416,28 +425,33 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     let coordinates1
     if (!skipCoordsCheck) {
       if (
-        (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) || 
+        (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) ||
         (Number(newDocument.coordinates?.coords?.lng) < -180 || Number(newDocument.coordinates?.coords?.lng) > 180)
       ) {
         newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
       }
-      
-      if(coordinates_type == CoordinatesType.MUNICIPALITY){
+
+      if (coordinates_type == CoordinatesType.MUNICIPALITY) {
         coordinates1 = new Coordinates(CoordinatesType.MUNICIPALITY, null);
       }
-      if(coordinates_type == CoordinatesType.POINT){
+      if (coordinates_type == CoordinatesType.POINT) {
         const latLng1 = newDocument.coordinates?.coords;
-        if(latLng1 && latLng1.lat !== null && latLng1.lng !== null){
-          if(!booleanPointInPolygon(point([latLng1.lng,latLng1.lat]),props.geojson.features[0])){
+        if (latLng1 && latLng1.lat !== null && latLng1.lng !== null) {
+          if (!booleanPointInPolygon(point([latLng1.lng, latLng1.lat]), props.geojson.features[0])) {
             newErrors.push("coordinates out of the municipality area")
-          } else{
-            coordinates1 =new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
+          } else {
+            coordinates1 = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
           }
-        }else{
+        } else {
           newErrors.push("Latitude and Longitude must be defined.");
         }
       }
     } else {
+    }
+
+    const issueDate = getIssuanceDate();
+    if (!issueDate) {
+      newErrors.push("Issuance date is required.");
     }
     setErrors(newErrors);
 
@@ -445,7 +459,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (newErrors.length === 0) {
       try {
         // Conversione della data
-        let date;
+        // let date;
         /*if(newDocument.issuanceDate == ""){
           date = undefined;
         }
@@ -456,13 +470,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           ...prevDocument,
           issuanceDate: date
         }));*/
-        
-        const finalDocument:Document = new Document(
+
+        const finalDocument: Document = new Document(
           0,
           newDocument.title,
           newDocument.type,
-          props.user?.username?props.user?.username:'',
-          date,
+          props.user?.username ? props.user?.username : '',
+          issueDate,
           newDocument.language,
           Number(newDocument.pages),
           newDocument.stakeholders,
@@ -472,16 +486,16 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         );
 
         console.log(finalDocument)
-  
-        if(props.updating){
 
-          if(newDocument.description!=oldForm?.description){
+        if (props.updating) {
+
+          if (newDocument.description != oldForm?.description) {
             console.log("nuovo")
             console.log(newDocument.description)
             console.log("vecchio")
             console.log(oldForm?.description)
-            if(newDocument.description){
-              await API.updateDescription(newDocument.id,newDocument.description);
+            if (newDocument.description) {
+              await API.updateDescription(newDocument.id, newDocument.description);
               await props.fetchDocuments();
             }
             /*setDocuments((prev) => 
@@ -522,41 +536,41 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           props.setUpdating(false);
         }
         //if adding:
-        else{ 
+        else {
           await API.addDocument(finalDocument)
         }
         await props.fetchDocuments();
-  
+
         handleClose();
         setNewDocument(reset());
-      
+
       } catch (error) {
         console.error("Error:", error);
       }
     }
   };
-  
+
 
 
   const linkDocument = async () => {
-   if(currentDocument && targetDocumentId && targetLinkType){
-   try{
-    await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
-    await props.fetchDocuments();
-    closeLinkingDialog();
-   }
-   catch(error){
-    setLinkErrors([...linkErrors, "A link with this type already exists for this document"]);
-    console.log(error)
-   }
-    
-   }
-    
+    if (currentDocument && targetDocumentId && targetLinkType) {
+      try {
+        await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
+        await props.fetchDocuments();
+        closeLinkingDialog();
+      }
+      catch (error) {
+        setLinkErrors([...linkErrors, "A link with this type already exists for this document"]);
+        console.log(error)
+      }
+
+    }
+
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(linkErrors)
-  },[linkErrors])
+  }, [linkErrors])
 
   const handleSearchLinking = async () => {
     try {
@@ -566,56 +580,56 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         matchingDocs = await API.searchDocumentsByTitle(searchQuery);
       } else {
         // Default to all documents if no query
-        
+
         matchingDocs = props.documents;
-        
+
       }
-  
+
       // Exclude the current document
-      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin );
+      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin);
       setLinkDocuments(filteredDocs);
-  
+
     } catch (error) {
       console.error("Error searching documents:", error);
     }
   };
 
 
-  
+
 
   const handleCheckboxChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if(event.target.name=="municipality_filter"){
+    if (event.target.name == "municipality_filter") {
       console.log(event.target.checked)
-      if(event.target.checked){
-        const t = props.documents.filter((doc:any)=>(doc.coordinates.type=='MUNICIPALITY'))
-        if(t){
+      if (event.target.checked) {
+        const t = props.documents.filter((doc: any) => (doc.coordinates.type == 'MUNICIPALITY'))
+        if (t) {
           props.setDocuments(t)
         }
-        props.setIsMunicipalityChecked(true); 
-      }else{
+        props.setIsMunicipalityChecked(true);
+      } else {
         await props.fetchDocuments();
-        props.setIsMunicipalityChecked(false); 
+        props.setIsMunicipalityChecked(false);
+      }
     }
+    else if (event.target.name == "coordinates_type") {
+
     }
-    else if(event.target.name=="coordinates_type"){
-      
-    }
-    
+
   }
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
-    if ( itemRefs.current[props.pin]) {
+    if (itemRefs.current[props.pin]) {
       console.log(props.pin)
-        itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      itemRefs.current[props.pin]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-}, [props.pin]);
+  }, [props.pin]);
 
 
   return (
     <div className="container">
-      <Typography variant="h6" sx={{ marginTop: 2}}>Documents</Typography>
+      <Typography variant="h6" sx={{ marginTop: 2 }}>Documents</Typography>
 
       {/* Document List */}
       <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
@@ -645,7 +659,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
       {/* Add Document Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{props.updating? "Update a" : "Add a New"} Document</DialogTitle>
+        <DialogTitle>{props.updating ? "Update a" : "Add a New"} Document</DialogTitle>
         <DialogContent>
           {errors.length > 0 && (
             <Box mt={2}>
@@ -893,7 +907,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               />
             </>
           )}
-
+          {dateOption === "fullDate" && (
             <>
               <TextField
                 margin="dense"
@@ -920,8 +934,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                 onChange={(e) => setDay(e.target.value)}
               />
             </>
-          
-            {/*<FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
+          )}
+
+          {/*<FormControl component="fieldset" margin="dense" fullWidth disabled={props.updating}>
   <Typography variant="body1" sx={{ color: 'white', display: 'inline', marginLeft: 0 }}>Type: </Typography>
   <RadioGroup row name="type"  value={newDocument.type} onChange={handleChange}>
         <FormControlLabel
@@ -951,24 +966,24 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         />
       </RadioGroup>
     </FormControl>*/}
-            {/*<TextField className="white-input" margin="dense" required label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />*/}
-            <TextField
-              select name="language"
-              label="Select an option"
-              value={newDocument.language}
-              onChange={handleChange}
-              fullWidth style={{backgroundColor: 'white'}}>
-              <MenuItem value="English">English</MenuItem>
-              <MenuItem value="Swedish">Swedish</MenuItem>
-            </TextField>
-            <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating?true:false} onChange={handleChange} />
-            <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={()=>setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates"/><Button color="primary" >All municipality</Button></label>
-            <Button color="primary" onClick={()=>setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
-            <Button color="primary" >Draw a polygon</Button>
-            {coordinates_type==CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={newDocument.coordinates?.coords?.lat/* || ""*/}   onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={newDocument.coordinates?.coords?.lng /*|| ""*/}   onChange={handleChange} />
+          {/*<TextField className="white-input" margin="dense" required label="Language" name="language" fullWidth value={newDocument.language} disabled={props.updating?true:false} onChange={handleChange} />*/}
+          <TextField
+            select name="language"
+            label="Select an option"
+            value={newDocument.language}
+            onChange={handleChange}
+            fullWidth style={{ backgroundColor: 'white' }}>
+            <MenuItem value="English">English</MenuItem>
+            <MenuItem value="Swedish">Swedish</MenuItem>
+          </TextField>
+          <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating ? true : false} onChange={handleChange} />
+          <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={() => setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates" /><Button color="primary" >All municipality</Button></label>
+          <Button color="primary" onClick={() => setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
+          <Button color="primary" >Draw a polygon</Button>
+          {coordinates_type == CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={newDocument.coordinates?.coords?.lat/* || ""*/} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={newDocument.coordinates?.coords?.lng /*|| ""*/} onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
-            <TextField
+          <TextField
             margin="dense"
             label="Description"
             name="description"
@@ -979,7 +994,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             value={newDocument.description}
             onChange={handleChange}
           />
-          </DialogContent>
+        </DialogContent>
 
 
         <DialogActions>
@@ -988,25 +1003,25 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         </DialogActions>
       </Dialog>
 
-      
+
       <div>
-      <label>
-        <input 
-          type="checkbox" 
-          checked={props.isMunicipalityChecked} 
-          name="municipality_filter"
-          onChange={handleCheckboxChange} 
-        />
-        All municipality documents
-      </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={props.isMunicipalityChecked}
+            name="municipality_filter"
+            onChange={handleCheckboxChange}
+          />
+          All municipality documents
+        </label>
       </div>
 
       {props.loggedIn && props.user?.type === "urban_planner" && (
-        <Button 
-          fullWidth 
-          variant="contained" 
-          color="primary" 
-          onClick={handleClickOpen} 
+        <Button
+          fullWidth
+          variant="contained"
+          color="primary"
+          onClick={handleClickOpen}
           style={{ marginTop: "8px" }}
         >
           Add a new document
@@ -1039,10 +1054,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             >
               Search
             </Button>
-            
+
           </div>
 
-          
+
 
 
           {/* Search Results */}
@@ -1058,7 +1073,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                     key={doc.id}
                     onClick={() => setTargetDocumentId(doc.id)}
                   >
-                    <ListItemText primary={doc.title} primaryTypographyProps={{ style: { color: targetDocumentId==doc.id?'yellow':'white' } }} />
+                    <ListItemText primary={doc.title} primaryTypographyProps={{ style: { color: targetDocumentId == doc.id ? 'yellow' : 'white' } }} />
                   </ListItemButton>
                 ))}
               </List>
@@ -1066,20 +1081,20 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           }
 
           <select onChange={handleSelectChange} value={targetLinkType}>
-                  <option value="direct" selected>direct</option>
-                  <option value="collateral">collateral</option>
-                  <option value="projection">projection</option>
-                  <option value="update">update</option>
-                </select>
-                {linkErrors.length > 0 && (
+            <option value="direct" selected>direct</option>
+            <option value="collateral">collateral</option>
+            <option value="projection">projection</option>
+            <option value="update">update</option>
+          </select>
+          {linkErrors.length > 0 && (
             <div className="error-messages">
               {linkErrors.map((error, index) => (
-                <p key={index} style={{ color: 'red' }}>{error}</p> 
+                <p key={index} style={{ color: 'red' }}>{error}</p>
               ))}
             </div>)}
         </DialogContent>
         <DialogActions>
-        <Button onClick={linkDocument}  color="primary">Create</Button>
+          <Button onClick={linkDocument} color="primary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
         </DialogActions>
       </Dialog>
