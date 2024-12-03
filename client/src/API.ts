@@ -376,6 +376,46 @@ async function getAllStakeholders(): Promise<{ name: string }[]> {
   }
 }
 
+  async function getAllScales(): Promise<{ value: string }[]> {
+  try {
+    const response = await fetch("http://localhost:3000/kiruna_explorer/scales", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch scales. Status: ${response.status}`);
+    }
+
+    return await response.json(); // Parse and return the list of scales as a JSON array
+  } catch (error) {
+    console.error("Error fetching scales:", error);
+    throw error; // Re-throw the error for the caller to handle
+  }
+}
+
+async function getAllDoctypes(): Promise<{ name: string }[]> {
+  try {
+    const response = await fetch("http://localhost:3000/kiruna_explorer/doctypes", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch doctypes. Status: ${response.status}`);
+    }
+
+    return await response.json(); // Parse and return the list of doctypes as a JSON array
+  } catch (error) {
+    console.error("Error fetching doctypes:", error);
+    throw error; // Re-throw the error for the caller to handle
+  }
+}
+
 
 
 
@@ -395,6 +435,8 @@ const API = {
   addDoctype,
   addScale,
   getAllStakeholders, 
+  getAllScales,
+  getAllDoctypes,
   uploadFile,
   getFilesByDocumentId,
   downloadByFileId

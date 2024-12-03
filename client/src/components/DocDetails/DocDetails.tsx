@@ -317,7 +317,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         </Typography>
 
         {props.pin==props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
-          <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders}</Typography>
+          <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders.join(", ")}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
           <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
@@ -325,7 +325,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           {renderConnections()}
 
           <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
-          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages?props.document.pages:'not avaiable'}</Typography>
+          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages?props.document.pages:'not available'}</Typography>
 
           {/* Editable Latitude */}
           <Box display="flex" alignItems="center" gap={2} marginTop={2}>
