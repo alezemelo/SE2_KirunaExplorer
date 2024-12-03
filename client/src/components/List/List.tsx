@@ -153,6 +153,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [scaleOptions, setScaleOptions] = useState(["1:100", "1:200", "1:500", "1:1000", "1:2000", "1:5000"]);
   const [newScale, setNewScale] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const handleDateOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDateOption(e.target.value);
     setYear("");
@@ -248,6 +250,31 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetLinkType(value);
   };
 
+  
+
+  useEffect(() => {
+    const fetchDropdownItems = async () => {
+      try {
+        const [currentScales, currentDoctypes, currentStakeholders] = await Promise.all([
+          API.getAllScales(),
+          API.getAllDoctypes(),
+          API.getAllStakeholders(), 
+        ])
+        setScaleOptions(currentScales.map((scale) => scale.value));;
+        setDoctypeOptions(currentDoctypes.map((doctype) => doctype.name));
+        setStakeholderOptions(currentStakeholders);
+      } catch (error) {
+        alert("Error fetching scales, stakeholders and doctypes:");
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (open) {
+      setLoading(true); // Start loading animation
+      fetchDropdownItems().catch(console.error);
+    }
+  }, [open]);
+
 
   useEffect(()=>{
     if(props.updating){
@@ -337,16 +364,16 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       newErrors.push("Title is required.");
     }
     if (!newDocument.stakeholders) {
-      newErrors.push("stakeholder is required.");
+      newErrors.push("Stakeholders are required.");
     }
     if (!newDocument.description) {
-      newErrors.push("description is required.");
+      newErrors.push("Description is required.");
     }
     if (!newDocument.language) {
-      newErrors.push("language is required.");
+      newErrors.push("Language is required.");
     }
     if (!newDocument.scale) {
-      newErrors.push("scale is requiredddddd.");
+      newErrors.push("Scale is required.");
     }
     if (typeof newDocument.title !== 'string') {
       newErrors.push("Title must be a string.");
@@ -631,7 +658,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           />
 
           {/* Stakeholders */}
-          <FormControl fullWidth margin="dense">
+          <FormControl fullWidth margin="dense" disabled={loading}>
             <TextField
               select
               label="Stakeholders"
@@ -714,7 +741,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
           }
 
-          <FormControl fullWidth margin="dense">
+          <FormControl fullWidth margin="dense" disabled={loading}>
             <TextField
               select
               label="Document Type"
@@ -750,7 +777,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           </FormControl>
 
           {/* Other fields */}
-          <FormControl fullWidth margin="dense">
+          <FormControl fullWidth margin="dense" disabled={loading}>
             <TextField
               select
               label="Scale (required)"
