@@ -286,6 +286,7 @@ import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/c
 import API from "../../API";
 import * as fs from 'fs'
 import { lightBlue } from "@mui/material/colors";
+import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -324,6 +325,7 @@ const Map: React.FC<MapProps> = (props) => {
   const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations for the coordinates for updating
   const [selectedMarker, setSelectedMarker] = useState<mapboxgl.Marker | null>(null);
   const centroidsRef = useRef<(mapboxgl.Marker | null)[]>([]);
+  const [error,setError] = useState('')
 
   const mapRef = useRef<any>(null);
 
@@ -448,8 +450,12 @@ const Map: React.FC<MapProps> = (props) => {
       marker.on('dragend', (e) => {
         const currentLngLat = e.target.getLngLat();
         const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat, currentLngLat.lng));
+        if(booleanPointInPolygon(point([currentLngLat.lng,currentLngLat.lat]),props.geojson.features[0])){
+          setCoordinatesInfo({ id: doc.id, coordinates: coordinates });
+        }else{
+          setError('Marker out of Kiruna municipality')
+        }
         setConfirmChanges(true);
-        setCoordinatesInfo({ id: doc.id, coordinates: coordinates });
       });
     });
   };
@@ -472,7 +478,7 @@ const Map: React.FC<MapProps> = (props) => {
   
 
   const handleDrag = async (id:number,coordinates:Coordinates) => {
-    if(coordinatesInfo){
+    if(coordinatesInfo && error==''){
       await API.updateCoordinates(id,coordinates)
     }
     setConfirmChanges(false)
@@ -620,7 +626,7 @@ const Map: React.FC<MapProps> = (props) => {
     <div ref={mapRef} style={{ height: "100vh", width: "100%" }}>
       {confirmChanges && <div style={overlayStyle} >
       <div style={modalStyle}>
-        <h3>Do you want to change the coordinates of this document</h3>
+        {error == '' ? <><h3>Do you want to change the coordinates of this document</h3>
           <button style={buttonStyle} onClick={() => {
             if(coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
             handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
@@ -629,7 +635,12 @@ const Map: React.FC<MapProps> = (props) => {
             setConfirmChanges(false);
             if(!map) return;
             addMarkersToMap(map)
-            }}>Cancel</button>
+            }}>Cancel</button></> : <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
+              setConfirmChanges(false);
+              setError('')
+              if(!map) return;
+            addMarkersToMap(map)
+              }}>Confirm</button></>}
         </div>
       </div>}
       <ReactMapGL
