@@ -192,7 +192,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const toggleDescription = (e: React.MouseEvent) => {
     //setShowDescription(!showDescription);
     e.stopPropagation();
-    if (props.document && props.document.coordinates.type!="POLYGON") {
+    //if (props.document && props.document.coordinates.type!="POLYGON") {
+    if (props.document) {
       /*props.setUpdating(true);
       console.log(props.updating)
       const convertedDocument = {
@@ -210,8 +211,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         lng: props.document.coordinates?.lng,
       };
       props.setNewDocument(convertedDocument);*/
+      props.setNewDocument(props.document);
       props.setUpdating(true);
-      console.log(props.updating)
+      //console.log(props.updating)
       /*const convertedDocument = new Document(
         document.id,
         document.title,
@@ -225,16 +227,16 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         document.description,
         document.coordinates
       );*/
-      if(!props.document.coordinates.coords){
-        props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
-      }
-      else{
+      //if(!props.document.coordinates.coords){
+        //props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
+      //}
+      //else{
         // eslint-disable-next-line no-cond-assign, no-constant-condition
-        if (props.document.coordinates.type="POINT"){
-          props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
-        }
-      }
-      props.setNewDocument(props.document);
+        //if (props.document.coordinates.type="POINT"){
+          //props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
+        //}
+      //}
+      //props.setNewDocument(props.document);
     }
   }
   const toggleEditDescription = () => setEditDescription(true);

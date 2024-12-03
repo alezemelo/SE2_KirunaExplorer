@@ -92,7 +92,7 @@ export class Coordinates {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static fromJSON(json: any): Coordinates {
-        console.error("The given json to Coordinates.fromJSON is: ", json)
+        //console.error("The given json to Coordinates.fromJSON is: ", json)
 
         // Check that the json is correctly formatted: type
         if (!json.type || (json.type !== CoordinatesType.MUNICIPALITY && !json.coords) || (json.type === CoordinatesType.MUNICIPALITY && json.coords)) {
@@ -139,6 +139,15 @@ export class CoordinatesAsPoint {
     private lng: number;
 
     constructor(lat: number, lng: number) {
+        if (typeof lat === "string") {
+            lat = parseFloat(lat);
+        }
+        if (typeof lng === "string") {
+            lng = parseFloat(lng);
+        }
+        if (isNaN(lat) || isNaN(lng)) {
+            throw new Error("Invalid latitude or longitude");
+        }
         this.lat = lat;
         this.lng = lng;
     }

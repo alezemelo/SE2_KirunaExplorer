@@ -393,45 +393,54 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     if (newDocument.description && typeof newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
+    let skipCoordsCheck = false;
     if (
       (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) || 
       (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng) 
     ) {
       newErrors.push("Latitude and Longitude must be defined.");
-    }
-    
-    if (
-      (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) || 
-      (Number(newDocument.coordinates?.coords?.lng) < -180 || Number(newDocument.coordinates?.coords?.lng) > 180)
-    ) {
-      newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
+      skipCoordsCheck = true;
     }
     if (newDocument.coordinates?.coords?.lat && isNaN(Number(newDocument.coordinates?.coords?.lat))) {
       newErrors.push("Latitude must be a number.");
-      console.log(newDocument.coordinates?.coords?.lat)
+      console.error("lat was not a number")
+      skipCoordsCheck = true;
     }
     if (newDocument.coordinates?.coords?.lng && isNaN(Number(newDocument.coordinates?.coords?.lng))) {
       newErrors.push("Longitude must be a number.");
+      console.error("lng was not a number")
+      skipCoordsCheck = true;
     }
+
+
     let coordinates1
-    if(coordinates_type == CoordinatesType.MUNICIPALITY){
-      coordinates1 = new Coordinates(CoordinatesType.MUNICIPALITY, null);
-    }
-    if(coordinates_type == CoordinatesType.POINT){
-      const latLng1 = newDocument.coordinates?.coords;
-      if(latLng1 && latLng1.lat !== null && latLng1.lng !== null){
-        if(!booleanPointInPolygon(point([latLng1.lng,latLng1.lat]),props.geojson.features[0])){
-          newErrors.push("coordinates out of the municipality area")
-        } else{
-          coordinates1 = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
-        }
-      }else{
-        newErrors.push("Latitude and Longitude must be defined.");
+    if (!skipCoordsCheck) {
+      if (
+        (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) || 
+        (Number(newDocument.coordinates?.coords?.lng) < -180 || Number(newDocument.coordinates?.coords?.lng) > 180)
+      ) {
+        newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
       }
+      
+      if(coordinates_type == CoordinatesType.MUNICIPALITY){
+        coordinates1 = new Coordinates(CoordinatesType.MUNICIPALITY, null);
+      }
+      if(coordinates_type == CoordinatesType.POINT){
+        const latLng1 = newDocument.coordinates?.coords;
+        if(latLng1 && latLng1.lat !== null && latLng1.lng !== null){
+          if(!booleanPointInPolygon(point([latLng1.lng,latLng1.lat]),props.geojson.features[0])){
+            newErrors.push("coordinates out of the municipality area")
+          } else{
+            coordinates1 =new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(latLng1.lat, latLng1.lng))
+          }
+        }else{
+          newErrors.push("Latitude and Longitude must be defined.");
+        }
+      }
+    } else {
     }
-    
     setErrors(newErrors);
-  
+
     // Procede solo se non ci sono errori
     if (newErrors.length === 0) {
       try {
@@ -465,6 +474,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         console.log(finalDocument)
   
         if(props.updating){
+
           if(newDocument.description!=oldForm?.description){
             console.log("nuovo")
             console.log(newDocument.description)
@@ -482,6 +492,11 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               )
             );*/
           }
+          await API.updateCoordinates(
+            newDocument.id,
+            finalDocument.coordinates
+          );
+
           /*const latLng2 = newDocument.coordinates.coords;
           if (
               latLng2?.lat != null && 
@@ -504,10 +519,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               new Coordinates(CoordinatesType.MUNICIPALITY, null)
           );
           }*/
-          await API.updateCoordinates(
-            newDocument.id,
-            finalDocument.coordinates
-        );
           props.setUpdating(false);
         }
         //if adding:
@@ -634,7 +645,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
       {/* Add Document Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Add a New Document</DialogTitle>
+        <DialogTitle>{props.updating? "Update a" : "Add a New"} Document</DialogTitle>
         <DialogContent>
           {errors.length > 0 && (
             <Box mt={2}>
@@ -954,8 +965,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={()=>setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates"/><Button color="primary" >All municipality</Button></label>
             <Button color="primary" onClick={()=>setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
             <Button color="primary" >Draw a polygon</Button>
-            {coordinates_type==CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="number" name="lat" fullWidth value={newDocument.coordinates?.coords?.lat || ""}   onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" type="number" name="lng" fullWidth value={newDocument.coordinates?.coords?.lng || ""}   onChange={handleChange} />
+            {coordinates_type==CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={newDocument.coordinates?.coords?.lat/* || ""*/}   onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={newDocument.coordinates?.coords?.lng /*|| ""*/}   onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
             <TextField
             margin="dense"
