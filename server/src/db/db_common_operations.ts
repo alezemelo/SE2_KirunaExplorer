@@ -1,7 +1,9 @@
-import { Knex } from "knex";
+import fs from 'fs';
+import dayjs from "dayjs";
+
 import knex from "./db"; // Assuming you have a knex instance exported from db.ts
 import { Document, DocumentLink, LinkType } from "../models/document";
-import dayjs from "dayjs";
+import { files_dir_name } from "../rcd/routes/file_routes";
 
 // Data (actual and sample)
 import { ACTUAL_DOCTYPES } from "./actual_data/actual_doctypes";
@@ -12,6 +14,7 @@ import { SAMPLE_FILES } from "./sample_data/sample_files";
 import { SAMPLE_USERS } from "./sample_data/sample_users";
 import db from "./db";
 import ACTUAL_SCALES from "./actual_data/actual_scales";
+import path from 'path';
 
 // Database Populate function
 export async function dbPopulate() {
@@ -188,6 +191,39 @@ export async function dbPopulateActualData() {
         console.error("Error populating database with (only some for now) actual data:", error);
         // dbEmpty();
     }
+}
+
+/* 
+    * Remove unwanted files from the static directory.
+    * This function reads the list of files in the static directory and deletes the ones that are not in SAMPLE_FILES.
+    * TODO use actualfiles when they're available
+    */
+export async function removeUnwantedFilesFromStaticDirectory() {
+    // Get the list of file names from SAMPLE_FILES
+    const sampleFileNames = SAMPLE_FILES.map(file => file.file_name);
+
+    // Read the list of files in the static directory
+    fs.readdir(files_dir_name, (err, files) => {
+        if (err) {
+            console.error('Error reading static directory:', err);
+            return;
+        }
+
+        // Filter out the files that are not in SAMPLE_FILES
+        const unwantedFiles = files.filter(file => !sampleFileNames.includes(file));
+
+        // Remove the unwanted files
+        unwantedFiles.forEach(file => {
+            const filePath = path.join(files_dir_name, file);
+            fs.unlink(filePath, err => {
+                if (err) {
+                    console.error('Error deleting file:', path.relative(process.cwd(), filePath), err);
+                } else {
+                    console.log('Deleted file:', path.relative(process.cwd(), filePath));
+                }
+            });
+        });
+    });
 }
     
 

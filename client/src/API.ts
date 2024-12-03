@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "./type";
 import { Coordinates } from "./models/coordinates";
-import { url } from "inspector";
 async function checkAuth(): Promise<User | null> {
   try {
     const response = await fetch("http://localhost:3000/kiruna_explorer/sessions/current", {
@@ -56,6 +56,93 @@ async function logout(): Promise<boolean> {
     return false;
   }
 }
+
+//FILE
+
+async function uploadFile(documentId: number, fileName: string, file: File): Promise<{ fileId: number }> {
+  try {
+    console.log("Uploading file:", fileName);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fileName", fileName); // Ensure fileName is included in the form data
+
+    const url = `http://localhost:3000/kiruna_explorer/files/upload/${documentId}/${fileName}`;
+    console.log(`uploading at ${url}`);
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include", // Include session cookies
+      body: formData,
+    });
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        throw new Error("No file uploaded.");
+      }
+      throw new Error(`Failed to upload file. Status: ${response.status}`);
+    }
+
+    return await response.json(); // Assuming the response contains a JSON object with fileId
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error; // Re-throw the error for the caller to handle
+  }
+}
+
+async function getFilesByDocumentId(documentId: number): Promise<{ id: number; name: string }[]> {
+  try {
+    const response = await fetch(`http://localhost:3000/kiruna_explorer/files/${documentId}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // Include session cookies
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to retrieve files: ${response.statusText}`);
+    }
+
+    const files = await response.json();
+
+    // Handle empty array (no files) without throwing an error
+    if (files.length === 0) {
+      console.log(`No files found for document ID: ${documentId}`);
+    }
+
+    console.log("Retrieved files:", files);
+
+    return files;
+  } catch (error) {
+    console.error("Error retrieving files:", error);
+    throw error;
+  }
+}
+
+async function downloadByFileId(fileId: number, fileName: string): Promise<void> {
+  try {
+    const response = await fetch(`http://localhost:3000/kiruna_explorer/files/download/${fileId}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // Include session cookies
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    throw error;
+  }
+}
+
 
 
 
@@ -307,7 +394,10 @@ const API = {
   addStakeholder,
   addDoctype,
   addScale,
-  getAllStakeholders
+  getAllStakeholders, 
+  uploadFile,
+  getFilesByDocumentId,
+  downloadByFileId
 }
 
 export default API 

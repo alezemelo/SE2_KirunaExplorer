@@ -63,8 +63,6 @@ interface DocumentListProps {
   user: User | undefined;
   updating: boolean;
   setUpdating: any;
-  selectedFile: File | null;
-  setSelectedFile: any;
   isMunicipalityChecked: boolean;
   setIsMunicipalityChecked: any;
   geojson: any;
@@ -599,8 +597,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                 setUpdating={props.setUpdating}
                 newDocument={newDocument}
                 setNewDocument={setNewDocument}
-                selectedFile={props.selectedFile}
-                setSelectedFile={props.setSelectedFile}
               />
             </Grid>
           ))}

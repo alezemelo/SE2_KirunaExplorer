@@ -185,8 +185,7 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                       user={user}
                       isMunicipalityChecked = {isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
-                      selectedFile={selectedFile}
-                      setSelectedFile={setSelectedFile}
+                      
                     />
                   </Grid>
                 )}

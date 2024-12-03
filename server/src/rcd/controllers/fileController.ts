@@ -35,6 +35,9 @@ class FileController {
     */
     async mark_as_uploaded(documentId: number, fileName: string): Promise<number> {
         try {
+            if (!fileName) {
+                console.error('Inside mark_as_uploaded: fileName is null-like');
+            }
             const file_url = `http://localhost:3000/static/${fileName}`;
             
             // Update the files table with the file URL and get the assigned ID
@@ -84,9 +87,9 @@ class FileController {
 
             const files = await this.dao.get_files(documentId);
 
-            if (!files || files.length === 0) {
-                throw new NoFilesFoundError('No files are associated with the document found');
-            }
+            // if (!files || files.length === 0) {
+            //     throw new NoFilesFoundError('No files are associated with the document found');
+            // }
 
             const file_ids_and_names = files.map((file: any) => {
                 console.log(`fileid = ${file.id}, filename = ${file.file_name}`);

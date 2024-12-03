@@ -1,15 +1,21 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */ // Remember to remove this line for future maintenance
 import React, { useEffect, useState } from "react";
-import { Button, Box, Typography, Card, CardContent, TextField, IconButton } from "@mui/material";
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import dayjs from "dayjs";
-import { DocumentType, User } from "../../type";
-import API from "../../API";
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
-import FilePreview from "./FilePreview";
+import { Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent, 
+  DialogActions, List,  ListItem, ListItemText, IconButton, ListItemIcon, Snackbar,  
+  Alert} from "@mui/material";
+
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import DownloadIcon from '@mui/icons-material/Download';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
+
+import dayjs from "dayjs";
+import { User } from "../../type";
+import API from "../../API";
+import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import FilePreview from "./FilePreview";
 import { Document } from "../../models/document";
 
 
@@ -28,8 +34,6 @@ interface DocDetailsProps {
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
-  selectedFile: File | null;
-  setSelectedFile: any;
 }
 
 const DocDetails: React.FC<DocDetailsProps> = (props) => {
@@ -41,8 +45,44 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
-  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
+  const [files, setFiles] = useState<{ id: number; name: string }[]>([]);  //the ones i fatch 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);//the one i upload
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleOpenDialog = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click event from propagating to parent
+    setDialogOpen(true);
+  };
+  
+  const handleCloseDialog = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent click event from propagating to parent
+    setDialogOpen(false);
+  };
+  const fetchFiles = async () => {
+    try {
+      console.log("fetching files of document number: "+props.document.id);
+      const documentId = props.document.id;
+      const fetchedFiles = await API.getFilesByDocumentId(documentId);
+      console.log("Fetched files response:", fetchedFiles);
+      setFiles(fetchedFiles);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      setFiles([]); // Clear files if an error occurs
+    }
+  };
+  
+  useEffect(() => {
+    if (props.document?.id) {
+      fetchFiles();
+    }
+  }, [selectedFile]);
+  
 
   const handleToggleExpand = () => setExpand(!expand);
 
@@ -189,6 +229,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       }
       else{
+        // eslint-disable-next-line no-cond-assign, no-constant-condition
         if (props.document.coordinates.type="POINT"){
           props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
         }
@@ -223,48 +264,48 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   };*/
 
 
-  //Function to call the api to upload the file
   const handleFileUpload = async () => {
-    // if (!props.selectedFile) return;
-  
-    // const formData = new FormData();
-    // formData.append("file", props.selectedFile);
-  
-    // try {
-    //   const response = await API.uploadFile(props.document.id, formData);
-    //   if (response.status === 200) {
-    //     alert("File uploaded successfully!");
-    //     props.setSelectedFile(null); // Reset file input
-    //     props.fetchDocuments(); // Refresh documents
-    //   } else {
-    //     alert("File upload failed.");
-    //   }
-    // } catch (error) {
-    //   console.error("File upload error:", error);
-    //   alert("An error occurred while uploading the file.");
-    // }
-  };
-
-  useEffect(() => {
-    if (props.selectedFile) {
-      const objectUrl = URL.createObjectURL(props.selectedFile);
-      setFilePreviewUrl(objectUrl);
-
-      // Clean up the object URL when component unmounts or file changes
-      return () => URL.revokeObjectURL(objectUrl);
-    } else {
-      setFilePreviewUrl(null);
+    if (!selectedFile) {
+      alert("No file selected for upload.");
+      return;
     }
-  }, [props.selectedFile]);
+  
+    const fileName = selectedFile.name; // Get the file name
+    const file = selectedFile; // Get the selected file
+
+    // Check if a file with the same name already exists
+    const existingFileNames = files.map(file => file.name);
+    if (existingFileNames.includes(fileName)) {
+      setSnackbarMessage('A file with this name already exists.');
+      setSnackbarOpen(true);
+      return;
+    }
+  
+    try {
+      const response = await API.uploadFile(props.document.id, fileName, file);
+      if (response && response.fileId) {
+        alert("File uploaded successfully!");
+        setSelectedFile(null); // Reset the selected file
+        fetchFiles(); // Refresh the file list
+      } else {
+        alert("File upload failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("An error occurred while uploading the file.");
+    }
+  };
+  
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      props.setSelectedFile(event.target.files[0]);
+      setSelectedFile(event.target.files[0]);
     }
   };
 
   const handleRemoveFile = () => {
-    props.setSelectedFile(null);
+    setSelectedFile(null);
   };
 
 
@@ -353,6 +394,22 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <strong>Description:</strong> {props.document.description}
           </Typography>:<></>}
 
+        {/* Files Download */}
+        {props.pin == props.document.id ? (
+          <Box marginTop={2} display="flex" alignItems="center">
+            <Typography variant="body2">
+              <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
+            </Typography>
+            {props.document.fileIds && files.length > 0 && (
+              <IconButton onClick={handleOpenDialog} style={{ marginLeft: '8px' }}>
+                <ArrowRightIcon sx={{ fontSize: 16, color: 'white' }} />
+              </IconButton>
+            )}
+          </Box>
+        ) : (
+          <></>
+        )}
+
         {/* editDescription ? (
           <>
             <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
@@ -380,51 +437,50 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           </>
         ) : null*/}
 
+      {/* Upload Files || Files Upload */}
       {props.pin === props.document.id && props.loggedIn && props.user?.type === "urban_planner" && (
         <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
-           <input
+          <input
             type="file"
             accept=".pdf,.txt,.png,.jpg"
             onChange={handleFileChange}
             style={{ display: 'none' }}
             id="file-upload"
           />
-         {!props.selectedFile && (
-          <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
-            <Button 
-              variant="contained" 
-              component="span" 
-              color="success"
-              startIcon={<FileUploadIcon />}
-              fullWidth
-            >
-              Upload files
-            </Button>
-          </label>
-        )}
+          {!selectedFile && (
+            <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
+              <Button 
+                variant="contained" 
+                component="span" 
+                color="success"
+                startIcon={<FileUploadIcon />}
+                fullWidth
+              >
+                Upload files
+              </Button>
+            </label>
+          )}
     
-          {props.selectedFile && (
+          {selectedFile && (
             <Box mt={2}>
-              <FilePreview fileName={props.selectedFile.name} onRemove={handleRemoveFile} />
+              <FilePreview fileName={selectedFile.name} onRemove={handleRemoveFile} />
             </Box>
           )}
 
-          {props.selectedFile && (
+          {selectedFile && (
             <Button
               variant="contained"
               color="success"
               startIcon={<FileUploadIcon />}
-              onClick={() => handleFileUpload()}
-              disabled={!props.selectedFile}
+              onClick={handleFileUpload}
+              disabled={!selectedFile}
               style={{ marginTop: '10px' }}
             >
               Upload File
             </Button>
           )}
         </Box>
-      )}
-        
-
+      )}      
 
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
@@ -457,6 +513,44 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
           ) : null)*/}
         </Box>
+
+        {/* Dialog for File List */}
+        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+          <DialogTitle>Original Files</DialogTitle>
+          <DialogContent>
+            <List>
+              {files.map((file) => (
+                // console.log(`file.id: ${file.name}`),
+                <ListItem key={file.id}>
+                <ListItemIcon>
+                <IconButton onClick={() => API.downloadByFileId(file.id, file.name)}>
+                    <DownloadIcon sx={{ color: 'green' }} />
+                  </IconButton>
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      {file.name}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+              ))}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar for Error Messages */}
+        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+          <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </CardContent>
     </Card>
   );
