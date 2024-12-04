@@ -334,6 +334,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     props.setAdding(false)
     setNewDocument(reset());
     setErrors([]);
+    setYear("");
+    setMonth("");
+    setDay("");
+    setDateOption("fullDate");
   }
 
   const openLinkingDialog = (document: Document) => {
@@ -606,7 +610,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         }
         //if adding:
         else {
-          await API.addDocument(finalDocument)
+          await API.addDocument(finalDocument);
         }
         await props.fetchDocuments();
 
