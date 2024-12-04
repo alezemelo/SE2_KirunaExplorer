@@ -1,10 +1,12 @@
-import { DocumentNotFoundError } from "../../errors/documentErrors";
+import { DocumentAlreadyExistsError, DocumentNotFoundError, StakeholdersNotFoundError } from "../../errors/documentErrors";
 import DocumentDAO from "../daos/documentDAO";
 import { Document } from "../../models/document";
 import { Coordinates, CoordinatesAsPoint } from "../../models/coordinates";
 
 import { NextFunction, Request, Response } from "express";
 import dayjs, { Dayjs } from "dayjs";
+import StakeholdersDAO from "../daos/stakeholdersDAO";
+import { UniqueConstraintError } from "../../errors/dbErrors";
 
 
 /**
@@ -12,12 +14,13 @@ import dayjs, { Dayjs } from "dayjs";
  */
 class DocumentController {
     private dao: DocumentDAO;
-
+    private stakeholdersDao: StakeholdersDAO;
     /**
      * Constructs a new instance of the DocumentController class.
      */
     constructor() {
         this.dao = new DocumentDAO();
+        this.stakeholdersDao = new StakeholdersDAO();
     }
 
 
@@ -47,7 +50,7 @@ class DocumentController {
             description,
             coordinates,
         } = req.body;
-    
+
         const documentData = new Document(
             id,
             title,
@@ -59,23 +62,47 @@ class DocumentController {
             stakeholders,
             scale,
             description,
-            coordinates
+            Coordinates.fromJSON(coordinates) // (Dragos 2024/11/21) I need this to have the correct Coordinates methods
         );
     
         try {
+            // if stakeholders were inserted check if they exist
+            /*
+            if (documentData.stakeholders && documentData.stakeholders.length > 0) {
+                const stakeholdersExist = await this.stakeholdersDao.stakeholdersExists(documentData.stakeholders);
+                if (!stakeholdersExist) {
+                    throw new StakeholdersNotFoundError();
+                }
+            }
+            */
+
             const documentId = await this.dao.addDocument(documentData);
+            /*
+            if (documentData.stakeholders && documentData.stakeholders.length > 0) {
+                await this.stakeholdersDao.addStakeholdersToDocument(documentData.stakeholders, documentId);
+                console.log("stakeholders added to doc")
+            }
+            */
+            // inserts the new document
             res.status(201).json({ message: 'Document added successfully', documentId });
-        } catch (error) {
+            
+        } catch (error: any) {
             console.error('Failed to add document:', error);
-            if (error instanceof Error && error.message.includes('Invalid geometry')) {
+            if (error instanceof Error && error.message.includes('documents_type_check')) {
+                res.status(400).json({ error: 'Invalid document type' });
+            //} else if (error instanceof Error && error.message.includes('foreign key constraint')) {
+            //    res.status(400).json({ error: 'One or more stakeholders do not exist in the system.' });
+            } else if (error instanceof Error && error.message.includes('Invalid geometry')) {
                 res.status(400).json({ error: 'Invalid geometry: Ensure coordinates are valid and formatted correctly.' });
             } else if (error instanceof Error && error.message.includes('Invalid coordinates type')) {
                 res.status(400).json({ error: 'Unsupported or invalid coordinates type' });
             } else {
+                console.log("propagating to next...")
                 next(error);
             }
         }
     }
+    
     
 
 
@@ -102,8 +129,6 @@ class DocumentController {
 
     async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
         try {
-            // console.log("id: ", id);
-            // console.log("coordinates: ", coordinates);
             console.log(coordinates)
             const amount_updated = await this.dao.updateCoordinates(id, coordinates);
             if (amount_updated === 0) {
@@ -116,7 +141,15 @@ class DocumentController {
         }
     }
 
-
+    /**
+     * Calls Dao to update a document 
+     * 
+     * @param id - The ID of the document to update.
+     * @param body - Contains fields to update
+     */
+    async updateDocument(id: number, body: any): Promise<void> {
+        await this.dao.updateDocument(id, body);
+    }
 
     /**
     * Retrieves a document by its ID.
@@ -147,7 +180,7 @@ class DocumentController {
         }
     }
 
-    async searchDocuments(query: { title: string }): Promise<Document[]> {
+    async searchDocuments(query: { title: string },municipality_filter?: boolean): Promise<Document[]> {
         try {
             /*const docs = await this.dao.searchDocuments(query.title);
             docs.map(doc => {
@@ -157,9 +190,29 @@ class DocumentController {
                 }
             })
             return docs;*/
-            const docs = await this.dao.searchDocuments(query.title);
+            const docs = municipality_filter ? await this.dao.searchDocuments(query.title,municipality_filter) : await this.dao.searchDocuments(query.title);
             return docs;
         } catch (error) {
+            throw error;
+        }
+    }
+
+    async addStakeholders(id: number, stakeholders: string[]): Promise<void> {
+        try {
+            const insertedRows = await this.stakeholdersDao.addStakeholdersToDocument(stakeholders, id);
+            return;
+        } catch (error) {
+            console.error("Error in DocumentController - addStakeholders: ", error);
+            throw error;
+        }
+    }
+
+    async removeStakeholders(id: number, stakeholders: string[]): Promise<number> {
+        try {
+            const removedRows = await this.stakeholdersDao.removeStakeholdersFromDocument(stakeholders, id);
+            return removedRows;
+        } catch (error) {
+            console.error("Error in DocumentController - removeStakeholders: ", error);
             throw error;
         }
     }

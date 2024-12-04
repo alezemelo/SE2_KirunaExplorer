@@ -10,16 +10,16 @@ describe('Document', () => {
     });
 
     describe('Document constructor', () => {
-        it('should correctly create a Document instance using Point Coordinates', () => {
+        it('should correctly create a Document with year-only issuance date', () => {
             const document = new Document(
                 1,
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -29,10 +29,123 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(document.issuanceDate).toBe('2023');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+            expect(document.getCoordinates()).not.toBeUndefined();
+            expect(document.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+        it('should correctly create a Document with year-month-only issuance date', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-01');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+            expect(document.getCoordinates()).not.toBeUndefined();
+            expect(document.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+        it('should correctly create a Document with full date issuance date', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-01-01');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+            expect(document.getCoordinates()).not.toBeUndefined();
+            expect(document.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+        it('should correctly create a Document with ISOstring', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                dayjs('2023-01-01').toISOString(),
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe(dayjs('2023-01-01').toISOString());
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+            expect(document.getCoordinates()).not.toBeUndefined();
+            expect(document.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+
+        it('should correctly create a Document instance using Point Coordinates', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-01-01');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -53,10 +166,10 @@ describe('Document', () => {
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POLYGON, polygon)
@@ -66,10 +179,10 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -83,10 +196,10 @@ describe('Document', () => {
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.MUNICIPALITY, null)
@@ -96,10 +209,10 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
             expect(document.getCoordinates()).not.toBeUndefined();
@@ -108,16 +221,16 @@ describe('Document', () => {
     });
 
     describe('Document toObject and toObjectWithoutId methods', () => {
-        it('should correctly convert a Document instance to an object with POINT coordinates', () => {
+        it('should correctly convert a Document instance to an object even with year-only issuance date', () => {
             const document = new Document(
                 1,
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -126,16 +239,149 @@ describe('Document', () => {
             const expectedObject = {
                 id: 1,
                 title: 'Test Title',
-                issuance_date: dayjs('2023-01-01'),
+                issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
                 coordinates_type: CoordinatesType.POINT,
                 coordinates: "SRID=4326;POINT(40.7128 -74.006)",
                 last_modified_by: 'test_user',
+                date_type: 'YEAR',
+            };
+
+            expect(document.toObject()).toEqual(expectedObject);
+        });
+        it('should correctly convert a Document instance to an object even with year-month-only issuance date', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            const expectedObject = {
+                id: 1,
+                title: 'Test Title',
+                issuance_date: '2023-01-01T00:00:00.000Z',
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                type: DocumentType.informative_doc,
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "SRID=4326;POINT(40.7128 -74.006)",
+                last_modified_by: 'test_user',
+                date_type: 'YEARMONTH',
+            };
+
+            expect(document.toObject()).toEqual(expectedObject);
+        });
+        it('should correctly convert a Document instance to an object even with full date issuance date', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            const expectedObject = {
+                id: 1,
+                title: 'Test Title',
+                issuance_date: '2023-01-01T00:00:00.000Z',
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                type: DocumentType.informative_doc,
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "SRID=4326;POINT(40.7128 -74.006)",
+                last_modified_by: 'test_user',
+                date_type: 'FULL',
+            };
+
+            expect(document.toObject()).toEqual(expectedObject);
+        });
+        it('should correctly convert a Document instance to an object even with ISOstring', () => {
+            const document = new Document(
+                1,
+                'Test Title sss',
+                DocumentType.informative_doc,
+                'test_user',
+                dayjs.utc('2023-01-01').toISOString(),
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            const expectedObject = {
+                id: 1,
+                title: 'Test Title sss',
+                issuance_date: '2023-01-01T00:00:00.000Z',
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                type: DocumentType.informative_doc,
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "SRID=4326;POINT(40.7128 -74.006)",
+                last_modified_by: 'test_user',
+            };
+
+            expect(document.toObject()).toEqual(expectedObject);
+        });
+
+        it('should correctly convert a Document instance to an object with POINT coordinates', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+            );
+
+            const expectedObject = {
+                id: 1,
+                title: 'Test Title',
+                issuance_date: '2023-01-01T00:00:00.000Z',
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                type: DocumentType.informative_doc,
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "SRID=4326;POINT(40.7128 -74.006)",
+                last_modified_by: 'test_user',
+                date_type: 'FULL',
             };
 
             expect(document.toObject()).toEqual(expectedObject);
@@ -154,10 +400,10 @@ describe('Document', () => {
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(coordinates))
@@ -166,16 +412,17 @@ describe('Document', () => {
             const expectedObject = {
                 id: 1,
                 title: 'Test Title',
-                issuance_date: dayjs('2023-01-01'),
+                issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
                 coordinates_type: CoordinatesType.POLYGON,
                 coordinates: "SRID=4326;POLYGON((20.123 30.456,40.789 50.012,60.345 70.678,20.123 30.456))",
                 last_modified_by: 'test_user',
+                date_type: 'FULL',
             };
 
             expect(document.toObject()).toEqual(expectedObject);
@@ -187,10 +434,10 @@ describe('Document', () => {
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023-01-01',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.MUNICIPALITY, null)
@@ -199,31 +446,32 @@ describe('Document', () => {
             const expectedObject = {
                 id: 1,
                 title: 'Test Title',
-                issuance_date: dayjs('2023-01-01'),
+                issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
                 coordinates_type: CoordinatesType.MUNICIPALITY,
                 coordinates: null,
                 last_modified_by: 'test_user',
+                date_type: 'FULL',
             };
 
             expect(document.toObject()).toEqual(expectedObject);
         });
 
-        it('should correctly convert a Document instance to an object without the id', () => {
+        it('should correctly convert a Document instance to an object without the id and stakeholders', () => {
             const document = new Document(
                 1,
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                dayjs('2023-01-01').format('YYYY-MM-DD'),
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
                 new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
@@ -231,37 +479,38 @@ describe('Document', () => {
 
             const expectedObject = {
                 title: 'Test Title',
-                issuance_date: dayjs('2023-01-01'),
+                issuance_date: '2023-01-01T00:00:00.000Z',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
                 scale: '1:1000',
                 description: 'A test document',
                 type: DocumentType.informative_doc,
                 coordinates_type: CoordinatesType.POINT,
                 coordinates: "SRID=4326;POINT(40.7128 -74.006)",
                 last_modified_by: 'test_user',
+                date_type: 'FULL',
             };
 
-            expect(document.toObjectWithoutId()).toEqual(expectedObject);
+            expect(document.toObjectWithoutIdAndStakeholders()).toEqual(expectedObject);
         });
     });
 
     describe('Document fromJSON method', () => {
-        it('should correctly create a Document instance from JSON with POINT coordinates', async () => {
+        it('should correctly create a Document instance from JSON with year-only issuance date', async () => {
             const json = {
                 id: 1,
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: '2023',
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
-                coordinates: "0101000020E610000000000000000034400000000000003440"
+                coordinates: "0101000020E610000000000000000034400000000000003440",
+                date_type: 'YEAR',
             };
 
             const document = await Document.fromJSON(json, db);
@@ -270,10 +519,175 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(document.issuanceDate).toBe('2023');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+
+            const coordinates = document.getCoordinates();
+            expect(coordinates).not.toBeUndefined();
+            expect(coordinates).not.toBeNull();
+            expect(coordinates?.getType()).toEqual(CoordinatesType.POINT);
+
+            const point_coordinates = coordinates?.getCoords() as CoordinatesAsPoint;
+            expect(point_coordinates.getLat()).toEqual(20);
+            expect(point_coordinates.getLng()).toEqual(20);
+            expect(coordinates?.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+            expect(point_coordinates.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+        });
+        it('should correctly create a Document instance from JSON with year-month-only issuance date', async () => {
+            const json = {
+                id: 1,
+                title: 'Test Title',
+                type: DocumentType.informative_doc,
+                last_modified_by: 'test_user',
+                issuance_date: '2023-10',
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "0101000020E610000000000000000034400000000000003440",
+                date_type: 'YEARMONTH',
+            };
+
+            const document = await Document.fromJSON(json, db);
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-10');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+
+            const coordinates = document.getCoordinates();
+            expect(coordinates).not.toBeUndefined();
+            expect(coordinates).not.toBeNull();
+            expect(coordinates?.getType()).toEqual(CoordinatesType.POINT);
+
+            const point_coordinates = coordinates?.getCoords() as CoordinatesAsPoint;
+            expect(point_coordinates.getLat()).toEqual(20);
+            expect(point_coordinates.getLng()).toEqual(20);
+            expect(coordinates?.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+            expect(point_coordinates.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+        });
+        it('should correctly create a Document instance from JSON with full date issuance date', async () => {
+            const json = {
+                id: 1,
+                title: 'Test Title',
+                type: DocumentType.informative_doc,
+                last_modified_by: 'test_user',
+                issuance_date: '2023-10-12',
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "0101000020E610000000000000000034400000000000003440",
+                date_type: 'FULL',
+            };
+
+            const document = await Document.fromJSON(json, db);
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-10-12');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+
+            const coordinates = document.getCoordinates();
+            expect(coordinates).not.toBeUndefined();
+            expect(coordinates).not.toBeNull();
+            expect(coordinates?.getType()).toEqual(CoordinatesType.POINT);
+
+            const point_coordinates = coordinates?.getCoords() as CoordinatesAsPoint;
+            expect(point_coordinates.getLat()).toEqual(20);
+            expect(point_coordinates.getLng()).toEqual(20);
+            expect(coordinates?.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+            expect(point_coordinates.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+        });
+        it('should correctly create a Document instance from JSON with ISOstring', async () => {
+            const json = {
+                id: 1,
+                title: 'Test Title',
+                type: DocumentType.informative_doc,
+                last_modified_by: 'test_user',
+                issuance_date: dayjs.utc('2023-10-10').toISOString(),
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "0101000020E610000000000000000034400000000000003440",
+                date_type: null,
+            };
+
+            const document = await Document.fromJSON(json, db);
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-10-10T00:00:00.000Z');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
+            expect(document.scale).toBe('1:1000');
+            expect(document.description).toBe('A test document');
+
+            const coordinates = document.getCoordinates();
+            expect(coordinates).not.toBeUndefined();
+            expect(coordinates).not.toBeNull();
+            expect(coordinates?.getType()).toEqual(CoordinatesType.POINT);
+
+            const point_coordinates = coordinates?.getCoords() as CoordinatesAsPoint;
+            expect(point_coordinates.getLat()).toEqual(20);
+            expect(point_coordinates.getLng()).toEqual(20);
+            expect(coordinates?.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+            expect(point_coordinates.toGeographyString()).toEqual("SRID=4326;POINT(20 20)");
+        });
+
+        it('should correctly create a Document instance from JSON with POINT coordinates', async () => {
+            const json = {
+                id: 1,
+                title: 'Test Title',
+                type: DocumentType.informative_doc,
+                last_modified_by: 'test_user',
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
+                language: 'English',
+                pages: 10,
+                stakeholders: ['Stakeholder A'],
+                scale: '1:1000',
+                description: 'A test document',
+                coordinates_type: CoordinatesType.POINT,
+                coordinates: "0101000020E610000000000000000034400000000000003440",
+                date_type: 'FULL',
+            };
+
+            const document = await Document.fromJSON(json, db);
+
+            expect(document.id).toBe(1);
+            expect(document.title).toBe('Test Title');
+            expect(document.type).toBe(DocumentType.informative_doc);
+            expect(document.lastModifiedBy).toBe('test_user');
+            expect(document.issuanceDate).toBe('2023-01-01');
+            expect(document.language).toBe('English');
+            expect(document.pages).toBe(10);
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -295,14 +709,15 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: null,
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: null,
                 pages: null,
                 stakeholders: null,
                 scale: null,
                 description: null,
                 coordinates_type: CoordinatesType.MUNICIPALITY,
-                coordinates: null
+                coordinates: null,
+                date_type: 'FULL',
             };
 
             const document = await Document.fromJSON(json, db);
@@ -311,7 +726,7 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate).toBeUndefined();
+            expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBeUndefined();
             expect(document.pages).toBeUndefined();
             expect(document.stakeholders).toBeUndefined();
@@ -333,14 +748,15 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POLYGON,
-                coordinates: "0103000020E61000000100000004000000736891ED7C1F3440DBF97E6ABC743E40A245B6F3FD644440A8C64B37890149405C8FC2F5282C4E4008AC1C5A64AB5140736891ED7C1F3440DBF97E6ABC743E40"
+                coordinates: "0103000020E61000000100000004000000736891ED7C1F3440DBF97E6ABC743E40A245B6F3FD644440A8C64B37890149405C8FC2F5282C4E4008AC1C5A64AB5140736891ED7C1F3440DBF97E6ABC743E40",
+                date_type: 'FULL',
             };
 
             const document = await Document.fromJSON(json, db);
@@ -349,10 +765,10 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -380,14 +796,15 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.MUNICIPALITY,
-                coordinates: null
+                coordinates: null,
+                date_type: 'FULL',
             };
 
             const document = await Document.fromJSON(json, db);
@@ -396,10 +813,10 @@ describe('Document', () => {
             expect(document.title).toBe('Test Title');
             expect(document.type).toBe(DocumentType.informative_doc);
             expect(document.lastModifiedBy).toBe('test_user');
-            expect(document.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(document.issuanceDate).toBe('2023-01-01');
             expect(document.language).toBe('English');
             expect(document.pages).toBe(10);
-            expect(document.stakeholders).toBe('Stakeholder A');
+            expect(document.stakeholders).toEqual(['Stakeholder A']);
             expect(document.scale).toBe('1:1000');
             expect(document.description).toBe('A test document');
 
@@ -417,10 +834,10 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: null,
@@ -436,10 +853,10 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POINT,
@@ -455,10 +872,10 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: CoordinatesType.POLYGON,
@@ -474,10 +891,10 @@ describe('Document', () => {
                 title: 'Test Title',
                 type: DocumentType.informative_doc,
                 last_modified_by: 'test_user',
-                issuance_date: dayjs.utc('2023-01-01'),
+                issuance_date: dayjs.utc('2023-01-01').toISOString(),
                 language: 'English',
                 pages: 10,
-                stakeholders: 'Stakeholder A',
+                stakeholders: ['Stakeholder A'],
                 scale: '1:1000',
                 description: 'A test document',
                 coordinates_type: "invalid",
@@ -489,19 +906,19 @@ describe('Document', () => {
     });
 
     describe('Document copy method', () => {
-        it('should correctly copy a Document instance', () => {
+        it('should correctly copy a Document instance having year-only issuanceDate', () => {
             const document = new Document(
                 1,
                 'Test Title',
                 DocumentType.informative_doc,
                 'test_user',
-                dayjs('2023-01-01'),
+                '2023',
                 'English',
                 10,
-                'Stakeholder A',
+                ['Stakeholder A'],
                 '1:1000',
                 'A test document',
-                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060))
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
             );
 
             const documentCopy = document.copy();
@@ -510,10 +927,100 @@ describe('Document', () => {
             expect(documentCopy.title).toBe('Test Title');
             expect(documentCopy.type).toBe(DocumentType.informative_doc);
             expect(documentCopy.lastModifiedBy).toBe('test_user');
-            expect(documentCopy.issuanceDate?.format('YYYY-MM-DD')).toBe('2023-01-01');
+            expect(documentCopy.issuanceDate).toBe('2023');
             expect(documentCopy.language).toBe('English');
             expect(documentCopy.pages).toBe(10);
-            expect(documentCopy.stakeholders).toBe('Stakeholder A');
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
+            expect(documentCopy.scale).toBe('1:1000');
+            expect(documentCopy.description).toBe('A test document');
+            expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+
+        it('should correctly copy a Document instance having year-month-only issuanceDate', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
+            );
+
+            const documentCopy = document.copy();
+
+            expect(documentCopy.id).toBe(1);
+            expect(documentCopy.title).toBe('Test Title');
+            expect(documentCopy.type).toBe(DocumentType.informative_doc);
+            expect(documentCopy.lastModifiedBy).toBe('test_user');
+            expect(documentCopy.issuanceDate).toBe('2023-01');
+            expect(documentCopy.language).toBe('English');
+            expect(documentCopy.pages).toBe(10);
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
+            expect(documentCopy.scale).toBe('1:1000');
+            expect(documentCopy.description).toBe('A test document');
+            expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+
+        it('should correctly copy a Document instance having full date issuanceDate', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                '2023-01-01',
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
+            );
+
+            const documentCopy = document.copy();
+
+            expect(documentCopy.id).toBe(1);
+            expect(documentCopy.title).toBe('Test Title');
+            expect(documentCopy.type).toBe(DocumentType.informative_doc);
+            expect(documentCopy.lastModifiedBy).toBe('test_user');
+            expect(documentCopy.issuanceDate).toBe('2023-01-01');
+            expect(documentCopy.language).toBe('English');
+            expect(documentCopy.pages).toBe(10);
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
+            expect(documentCopy.scale).toBe('1:1000');
+            expect(documentCopy.description).toBe('A test document');
+            expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");
+        });
+
+        it('should correctly copy a Document instance having ISOstring issuanceDate', () => {
+            const document = new Document(
+                1,
+                'Test Title',
+                DocumentType.informative_doc,
+                'test_user',
+                dayjs('2023-01-01').toISOString(),
+                'English',
+                10,
+                ['Stakeholder A'],
+                '1:1000',
+                'A test document',
+                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(40.7128, -74.0060)),
+            );
+
+            const documentCopy = document.copy();
+
+            expect(documentCopy.id).toBe(1);
+            expect(documentCopy.title).toBe('Test Title');
+            expect(documentCopy.type).toBe(DocumentType.informative_doc);
+            expect(documentCopy.lastModifiedBy).toBe('test_user');
+            expect(documentCopy.issuanceDate).toBe(dayjs('2023-01-01').toISOString());
+            expect(documentCopy.language).toBe('English');
+            expect(documentCopy.pages).toBe(10);
+            expect(documentCopy.stakeholders).toEqual(['Stakeholder A']);
             expect(documentCopy.scale).toBe('1:1000');
             expect(documentCopy.description).toBe('A test document');
             expect(documentCopy.getCoordinates()?.toGeographyString()).toEqual("SRID=4326;POINT(40.7128 -74.006)");

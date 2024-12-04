@@ -55,3 +55,59 @@ If you feel like it's needed create an Error Object (for db errors like Foreign 
 When inserting on a table that uses autoincrement you should not provide the primary key if not necessary. In case you absolutely need to provide it, run this `await db.raw("SELECT setval(pg_get_serial_sequence('documents', 'id'), (SELECT MAX(id) FROM documents) + 1)");` after, in order to update the autincrement's status.  
 (Dragos)
 Foreign keys may get disabled for some reason. To check you can run test_integration/db_constraints.test.ts. To fix you can just run temp_db_init() or any other file that contains some activation of foreign keys.  
+
+
+# End2End Testing
+
+
+# Using Cypress for End-to-End Testing
+
+This guide explains how to set up and run Cypress for end-to-end testing in your project.
+
+---
+
+## Prerequisites
+1. Install Cypress using npm:
+   ```bash
+   npm install cypress --save-dev
+   ```
+2. Ensure your application server is running (`npm start` or equivalent).
+
+---
+
+## Setup
+1. **Cypress Directory**: Test files are located in the `cypress/E2E_test/tests` directory.
+2. **Configuration**: Cypress configuration file (`cypress.config.ts`) is set up to match your project structure.
+
+---
+## Running Tests
+1. Open Cypress Test Runner:
+   ```bash
+   npx cypress open
+   ```
+2. Select the browser and run the desired test file from the Cypress GUI.
+
+Alternatively, run all tests in headless mode:
+   ```bash
+   npx cypress run
+   ```
+
+---
+
+## Writing Tests
+1. Create a new test file in `cypress/E2E_test/tests` (e.g., `NewTest.cy.ts`).
+2. Example Test:
+   ```typescript
+   describe('Example Test', () => {
+     it('should visit the home page', () => {
+       cy.visit('/');
+       cy.contains('Welcome').should('be.visible');
+     });
+   });
+   ```
+
+---
+
+
+*** Currently the functionality of adding a doc , editing a doc ,login and logout has been tested ***
+

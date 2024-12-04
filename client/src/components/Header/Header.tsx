@@ -32,7 +32,7 @@ const Header: React.FC<Header> = (props) => {
             <MenuIcon /> {/* Button to open/close document list */}
           </IconButton>
           <Typography variant="h5" className="title" style={{ marginLeft: 8 }}>
-            Kiruna
+            Kiruna Explorer
           </Typography>
         </Box>
         <Box display="flex" alignItems="center">

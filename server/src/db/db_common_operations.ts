@@ -1,18 +1,44 @@
-import { Knex } from "knex";
-import knex from "./db"; // Assuming you have a knex instance exported from db.ts
-import { Document, DocumentLink, LinkType } from "../models/document";
+import fs from 'fs';
 import dayjs from "dayjs";
 
+import knex from "./db"; // Assuming you have a knex instance exported from db.ts
+import { Document, DocumentLink, LinkType } from "../models/document";
+import { files_dir_name } from "../rcd/routes/file_routes";
+
 // Data (actual and sample)
-import actualDocuments from "./actual_data/documents";
+import { ACTUAL_DOCTYPES } from "./actual_data/actual_doctypes";
+import { actualDocuments, docs_stakeholders } from "./actual_data/documents";
+import { ACTUAL_STAKEHOLDERS } from "./actual_data/actual_stakeholders";
 import { SAMPLE_DOC_FILES } from "./sample_data/sample_doc_files";
 import { SAMPLE_FILES } from "./sample_data/sample_files";
 import { SAMPLE_USERS } from "./sample_data/sample_users";
 import db from "./db";
+import ACTUAL_SCALES from "./actual_data/actual_scales";
+import path from 'path';
 
 // Database Populate function
 export async function dbPopulate() {
     try {
+
+
+        // inserts sample stakeholder and sample doctypes
+        await knex('stakeholders').insert([
+            { name: 'Stakeholder A' },
+        ]);
+        await knex('doctypes').insert([
+            {name: 'informative_doc'},
+            {name: 'technical_doc'},
+        ]);
+        await knex('scales').insert([
+            {value: 'text'},
+            {value: '1:8000'},
+            {value: '1:7500'},
+            {value: '1:12000'},
+            {value: '1:1000'},
+            {value: 'blueprints/effects'}
+        ]);
+
+
         // Insert users
         await knex('users').insert([
             { username: 'user1', hash: 'hash1', salt: 'salt1', type: 'resident' },
@@ -27,7 +53,7 @@ export async function dbPopulate() {
                 issuance_date: new Date(),
                 language: 'English',
                 pages: 5,
-                stakeholders: 'Stakeholder A',
+                //stakeholders: 'Stakeholder A',
                 scale: '1:1000',
                 description: 'Test Document 1',
                 type: 'informative_doc',
@@ -38,8 +64,8 @@ export async function dbPopulate() {
                 issuance_date: new Date(),
                 language: 'Spanish',
                 pages: 3,
-                stakeholders: 'Stakeholder B',
-                scale: '1:2000',
+                //stakeholders: 'Stakeholder B',
+                scale: '1:8000',
                 description: 'Test Document 2',
                 type: 'technical_doc',
                 last_modified_by: 'user2'
@@ -52,7 +78,8 @@ export async function dbPopulate() {
         await knex('document_links').insert([
             { doc_id1: doc1[0].id, doc_id2: doc2[0].id, link_type: 'direct', created_at: new Date() }
         ]);
-        // console.log("Sample document links inserted.");
+        
+        
         
     } catch (error) {
         console.error("Error populating database:", error);
@@ -62,7 +89,7 @@ export async function dbPopulate() {
 
 export async function dbEmpty() {
     try {
-        await knex.raw('TRUNCATE TABLE document_files, document_links, files, documents, users RESTART IDENTITY CASCADE');
+        await knex.raw('TRUNCATE TABLE document_files, document_stakeholders, stakeholders, document_links, files, documents, doctypes, scales, users RESTART IDENTITY CASCADE');
         // console.log("Database emptied successfully.");
     } catch (error) {
         console.error("Error emptying database:", error);
@@ -80,7 +107,11 @@ export async function dbRead() {
     const documentLinks = await knex("document_links").select("*");
     const files = await knex("files").select("*");
     const documentFiles = await knex("document_files").select("*");
-    return { users, documents, documentLinks, files, documentFiles };
+    const stakeholders = await knex("stakeholders").select("*");
+    const doctypes= await knex("doctypes").select("*");
+    const scales = await knex("scales").select("*");
+    const documentStakeholders = await knex("document_stakeholders").select("*");
+    return { users, documents, stakeholders, doctypes, scales, documentStakeholders, documentLinks, files, documentFiles };
   } catch (error) {
     console.error("Error reading database:", error);
     return null;
@@ -105,41 +136,94 @@ export async function dbUpdate(table: string, conditions: Record<string, any>, u
 
 export async function dbPopulateActualData() {
     try {
-        // Insert __SAMPLE__ users
+        // Insert SAMPLE users
         for (let user of SAMPLE_USERS) {
             await knex('users').insert(user);
         }
         // console.log("Sample users inserted.");
 
-        // Insert __ACTUAL__ documents
+        // insert ACTUAL stakeholders
+        for (const stakeholder of ACTUAL_STAKEHOLDERS) {
+            await knex('stakeholders').insert(stakeholder);
+        }
+
+        for (const doctype of ACTUAL_DOCTYPES) {
+            await knex('doctypes').insert(doctype);
+        }
+
+        for (const scale of ACTUAL_SCALES) {
+            await knex('scales').insert(scale);
+        }
+
+        // Insert ACTUAL documents
         for (let document of actualDocuments) {
-            await knex('documents').insert(document.toObject());
+            await knex('documents').insert(document.toObjectWithoutStakeholders());
+            //await knex('documents').insert(document.toObject());
         }
         // console.log("Actual documents inserted.");
 
-        // Insert __SAMPLE__ document links
+        // insert ACTUAL docs_stakeholders
+        for (const doc_stakeholder of docs_stakeholders) {
+            await knex('document_stakeholders').insert(doc_stakeholder);
+        }
+
+        // Insert SAMPLE document links
         const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
         const doclink2 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
         await knex('document_links').insert(doclink1);
         await knex('document_links').insert(doclink2);
         // console.log("Sample document links inserted.");
 
-        // Insert __SAMPLE__ files
+        // Insert SAMPLE files
         for (let file of SAMPLE_FILES) {
             await knex('files').insert(file);
         }
         // console.log("Sample files inserted.");
 
-        // Insert __SAMPLE__ document files
+        // Insert SAMPLE document files
         for (let docFile of SAMPLE_DOC_FILES) {
             await knex('document_files').insert(docFile);
         }
         // console.log("Sample document files inserted.");
 
+        console.log("Database populated with actual data.");
     } catch (error) {
         console.error("Error populating database with (only some for now) actual data:", error);
         // dbEmpty();
     }
+}
+
+/* 
+    * Remove unwanted files from the static directory.
+    * This function reads the list of files in the static directory and deletes the ones that are not in SAMPLE_FILES.
+    * TODO use actualfiles when they're available
+    */
+export async function removeUnwantedFilesFromStaticDirectory() {
+    // Get the list of file names from SAMPLE_FILES
+    const sampleFileNames = SAMPLE_FILES.map(file => file.file_name);
+
+    // Read the list of files in the static directory
+    fs.readdir(files_dir_name, (err, files) => {
+        if (err) {
+            console.error('Error reading static directory:', err);
+            return;
+        }
+
+        // Filter out the files that are not in SAMPLE_FILES
+        const unwantedFiles = files.filter(file => !sampleFileNames.includes(file));
+
+        // Remove the unwanted files
+        unwantedFiles.forEach(file => {
+            const filePath = path.join(files_dir_name, file);
+            fs.unlink(filePath, err => {
+                if (err) {
+                    console.error('Error deleting file:', path.relative(process.cwd(), filePath), err);
+                } else {
+                    console.log('Deleted file:', path.relative(process.cwd(), filePath));
+                }
+            });
+        });
+    });
 }
     
 
