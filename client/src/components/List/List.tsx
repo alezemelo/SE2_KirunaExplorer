@@ -135,7 +135,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
-  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
+  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>(CoordinatesType.MUNICIPALITY);
   const [dateOption, setDateOption] = useState("fullDate"); // Default to fullDate
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
