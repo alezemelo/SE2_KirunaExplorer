@@ -282,6 +282,23 @@ async function updateDescription(id: number, description: string) {
     console.error("Error:", error);
   }
 }
+
+async function updateDocument(id: number, data: Object) {
+  try {
+    const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Error: " + response.statusText);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+}
+
+
 async function addStakeholder(stakeholder: { name: string }): Promise<{ name: string }> {
   try {
     const response = await fetch("http://localhost:3000/kiruna_explorer/stakeholders", {
@@ -428,6 +445,7 @@ const API = {
   addDocument,
   updateCoordinates,
   updateDescription,
+  updateDocument,
   login,
   logout,
   checkAuth,

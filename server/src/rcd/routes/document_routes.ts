@@ -367,6 +367,7 @@ class DocumentRoutes {
             }
             return true;
         }),
+        body('issuanceDate').optional().isISO8601().withMessage('Issuance date must be a valid ISO8601 date'),
         this.errorHandler.validateRequest,
         async (req: any, res: any, next: any) => {
             this.controller.updateDocument(req.params.id, req.body)

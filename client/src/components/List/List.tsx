@@ -521,10 +521,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
           if (newDocument.description != oldForm?.description) {
-            console.log("nuovo")
-            console.log(newDocument.description)
-            console.log("vecchio")
-            console.log(oldForm?.description)
+            //console.log("nuovo")
+            //console.log(newDocument.description)
+            //console.log("vecchio")
+            //console.log(oldForm?.description)
             if (newDocument.description) {
               await API.updateDescription(newDocument.id, newDocument.description);
               await props.fetchDocuments();
@@ -542,6 +542,16 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             newDocument.id,
             finalDocument.coordinates
           );
+
+          await API.updateDocument(
+            newDocument.id,
+            {
+              doctype: finalDocument.type,
+              scale: finalDocument.scale,
+              stakeholders: finalDocument.stakeholders,
+              issuanceDate: finalDocument.issuanceDate
+            }
+          )
 
           /*const latLng2 = newDocument.coordinates.coords;
           if (

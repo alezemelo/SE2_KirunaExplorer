@@ -3,12 +3,13 @@ import { Client } from 'pg';
 import pgdb from '../../db/temp_db';
 import { dbUpdate } from '../../db/db_common_operations';
 import db from '../../db/db';
+import dayjs from 'dayjs';
 
 import { Document } from '../../models/document';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
 import { groupEntriesById } from './helperDaos';
 import { UniqueConstraintError } from '../../errors/dbErrors';
-import { DocumentNotFoundError, DocumentTypeNotFoundError, ScaleNotFoundError, StakeholdersNotFoundError } from '../../errors/documentErrors';
+import { DocumentNotFoundError, DocumentTypeNotFoundError, ScaleNotFoundError, StakeholdersNotFoundError, InvalidDateError} from '../../errors/documentErrors';
 
 class DocumentDAO {
     private db: any;
@@ -197,6 +198,9 @@ class DocumentDAO {
      */
     public async updateDocument(id: number, body: any): Promise<void> {
         try {
+            let date_type = Document.infer_date_type(body.issuanceDate);
+            let iso_date = dayjs.utc(body.issuanceDate).toISOString();
+
             await db.transaction(async (trx) => {
 
                 // checks if doc exists
@@ -218,6 +222,15 @@ class DocumentDAO {
                         .where({ id })
                         .update({ type: body.doctype });
                 }
+                if (body.issuanceDate) {
+                    await trx('documents')
+                        .where({ id })
+                        .update({ issuance_date: iso_date });
+                    await trx('documents')
+                        .where({ id })
+                        .update({ date_type: date_type });
+                }
+                
                 if (body.stakeholders) {
                     const deletedRows = await trx('document_stakeholders')
                         .where({ doc_id: id })
@@ -248,6 +261,9 @@ class DocumentDAO {
             }
             if (error.code === '23503' && error.message.includes('document_stakeholders_stakeholder_id_foreign')) {
                 throw new StakeholdersNotFoundError();
+            }
+            if (error.code === '22007') {
+                throw new InvalidDateError();
             }
             throw error;
         }

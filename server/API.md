@@ -123,7 +123,8 @@ Able to overwrite stakeholders, scale, and document type.
   {
     "stakeholders": ["Stakeholder1", "Stakeholder2"],
     "type": "new_type",
-    "scale": "1:new_scale"
+    "scale": "1:new_scale",
+    "issuanceDate": "2002-02"
   }
   ```
 - Response Body Content: `None`
