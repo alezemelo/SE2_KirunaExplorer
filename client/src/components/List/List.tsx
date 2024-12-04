@@ -667,15 +667,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{props.updating ? "Update a" : "Add a New"} Document</DialogTitle>
         <DialogContent>
-          {errors.length > 0 && (
-            <Box mt={2}>
-              {errors.map((error, index) => (
-                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
-                  {error}
-                </Alert>
-              ))}
-            </Box>
-          )}
 
           <TextField
             autoFocus
@@ -1001,7 +992,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             onChange={handleChange}
           />
         </DialogContent>
-
+        {errors.length > 0 && (
+            <Box mt={2}>
+              {errors.map((error, index) => (
+                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
+                  {error}
+                </Alert>
+              ))}
+            </Box>
+          )}
 
         <DialogActions>
           <Button onClick={handleClose} color="secondary">Cancel</Button>
