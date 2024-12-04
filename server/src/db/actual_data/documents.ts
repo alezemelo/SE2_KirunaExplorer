@@ -4,6 +4,31 @@ dayjs.extend(utc);
 import { Document, DocumentType } from "../../models/document";
 import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 
+// // Enable this when you want to test with documents also before number 15`
+// // Remember that you also need to add it to the exported vector at the bottom of this file
+// const doc_11 = new Document(
+//   11, // ID
+//   "Documetn 11 for testing", // Title
+//   DocumentType.informative_doc, // Type
+//   "user1", // Last modified by
+
+//   "2005", // Issuance date
+//   "Swedish", // Language
+//   undefined, // Pages
+//   //"Kiruna kommun/Residents", // Stakeholders
+//   ["Kiruna kommun","Residents"], // Stakeholders
+//   "Text", // Scale
+//   `This document is a compilation of the responses to ` +
+//     `the survey 'What is your impression of Kiruna?' ` +
+//     `From the citizens' responses to this last part of the ` +
+//     `survey, it is evident that certain buildings, such as ` +
+//     `the Kiruna Church, the Hjalmar Lundbohmsgården, ` +
+//     `and the Town Hall, are considered of significant ` +
+//     `value to the population. The municipality views the ` +
+//     `experience of this survey positively, to the extent ` +
+//     `that over the years it will propose various consultation opportunities`, // Description
+//     undefined // Coordinates
+// );
 
 
 const doc_15 = new Document(
@@ -393,7 +418,7 @@ const ds13 = {
 
 
 const actualDocuments = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
-//const actualDocuments = [doc_15, doc_18, doc_41]
+//const actualDocuments = [doc11, doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
 const docs_stakeholders = [ds1,ds2,ds3,ds4,ds5,ds6,ds7,ds8,ds9,ds10,ds11,ds12,ds13]
 
 export { actualDocuments, docs_stakeholders }

@@ -83,10 +83,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     if (props.document?.id) {
       fetchFiles();
     }
-  }, [selectedFile]);
-
-
-  const handleToggleExpand = () => setExpand(!expand);
+  }, [props.document.id, selectedFile]);
 
   useEffect(() => {
     if (props.document.coordinates.type == CoordinatesType.POINT) {
@@ -292,7 +289,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     // Check if a file with the same name already exists
     const existingFileNames = files.map(file => file.name);
     if (existingFileNames.includes(fileName)) {
-      setSnackbarMessage('A file with this name already exists.');
+      setSnackbarMessage('A file with this name already exists for the current document.');
       setSnackbarOpen(true);
       return;
     }
