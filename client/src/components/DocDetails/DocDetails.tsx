@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */ // Remember to remove this line for future maintenance
 import React, { useEffect, useState } from "react";
-import { Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent, 
-  DialogActions, List,  ListItem, ListItemText, IconButton, ListItemIcon, Snackbar,  
-  Alert} from "@mui/material";
+import {
+  Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent,
+  DialogActions, List, ListItem, ListItemText, IconButton, ListItemIcon, Snackbar,
+  Alert
+} from "@mui/material";
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -59,14 +61,14 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     e.stopPropagation(); // Prevent click event from propagating to parent
     setDialogOpen(true);
   };
-  
+
   const handleCloseDialog = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click event from propagating to parent
     setDialogOpen(false);
   };
   const fetchFiles = async () => {
     try {
-      console.log("fetching files of document number: "+props.document.id);
+      console.log("fetching files of document number: " + props.document.id);
       const documentId = props.document.id;
       const fetchedFiles = await API.getFilesByDocumentId(documentId);
       console.log("Fetched files response:", fetchedFiles);
@@ -76,38 +78,50 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       setFiles([]); // Clear files if an error occurs
     }
   };
-  
+
   useEffect(() => {
     if (props.document?.id) {
       fetchFiles();
     }
   }, [selectedFile]);
-  
+
 
   const handleToggleExpand = () => setExpand(!expand);
 
-  useEffect(()=>{
-    if(props.document.coordinates.type==CoordinatesType.POINT){
+  useEffect(() => {
+    if (props.document.coordinates.type == CoordinatesType.POINT) {
       const s = props.document.coordinates.coords;
-      if(s){
+      if (s) {
         setLat(s.lat);
         setLng(s.lng);
       }
     }
   });
 
-  const getLinks = async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>,i:number,doc: Document) => {
+  const formatIssuanceDate = (date: string) => {
+    if (!date) return "N/A";
+
+    const parts = date.split("-");
+    if (parts.length === 1) {
+      return parts[0]; // Year only
+    } else if (parts.length === 2) {
+      return `${parts[0]}-${parts[1]}`; // Year and Month
+    }
+    return date; // Full date
+  };
+
+  const getLinks = async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>, i: number, doc: Document) => {
     e.stopPropagation();
     console.log("link navigation");
     const links = await API.getLinks(props.document.id);
     const l = links[i]
-    if(l){
-      if(l.docId1!=doc.id) {props.setNewPin(l.docId1)}
-      else if(l.docId2!=doc.id) {props.setNewPin(l.docId2)}
+    if (l) {
+      if (l.docId1 != doc.id) { props.setNewPin(l.docId1) }
+      else if (l.docId2 != doc.id) { props.setNewPin(l.docId2) }
     }
   }
 
-  const connections = props.document.connection || []; 
+  const connections = props.document.connection || [];
   const displayedConnections = expand ? connections : connections.slice(0, 3);
 
   const renderConnections = () => (
@@ -117,10 +131,10 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       </Typography>
       <Box display="flex" flexDirection="column" marginTop={1}>
         {connections.length > 0 ? (
-           displayedConnections.map((conn: string, index: number) => (
-            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e)=>{
-              getLinks(e,index,props.document)
-              }}>
+          displayedConnections.map((conn: string, index: number) => (
+            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e) => {
+              getLinks(e, index, props.document)
+            }}>
               <u>{conn}</u>
             </Typography>
           ))
@@ -135,9 +149,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             {expand ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
           </IconButton>
         )*/}
-        </Box>
-        </Box>
-      );
+      </Box>
+    </Box>
+  );
 
   /*const handleLatChange = (event: React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
   const handleLngChange = (event: React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);*/
@@ -166,12 +180,12 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     }
   };*/
 
-  const setPin = (id:number) => {
-    if(id==props.pin){
+  const setPin = (id: number) => {
+    if (id == props.pin) {
       props.setNewPin(0);
     }
-    else{
-      console.log("click"+id)
+    else {
+      console.log("click" + id)
       props.setNewPin(id);
     }
   }
@@ -228,13 +242,13 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         document.coordinates
       );*/
       //if(!props.document.coordinates.coords){
-        //props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
+      //props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
       //}
       //else{
-        // eslint-disable-next-line no-cond-assign, no-constant-condition
-        //if (props.document.coordinates.type="POINT"){
-          //props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
-        //}
+      // eslint-disable-next-line no-cond-assign, no-constant-condition
+      //if (props.document.coordinates.type="POINT"){
+      //props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
+      //}
       //}
       //props.setNewDocument(props.document);
     }
@@ -271,7 +285,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       alert("No file selected for upload.");
       return;
     }
-  
+
     const fileName = selectedFile.name; // Get the file name
     const file = selectedFile; // Get the selected file
 
@@ -282,7 +296,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       setSnackbarOpen(true);
       return;
     }
-  
+
     try {
       const response = await API.uploadFile(props.document.id, fileName, file);
       if (response && response.fileId) {
@@ -297,7 +311,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       alert("An error occurred while uploading the file.");
     }
   };
-  
+
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,16 +332,19 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <strong>Title: </strong>{props.document.title}
         </Typography>
 
-        {props.pin==props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
+        {props.pin == props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders.join(", ")}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
-          <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography>
+          {/* <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography> */}
+          <Typography>
+            Issuance date: {formatIssuanceDate(props.document.issuanceDate)}
+          </Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
-          
+
           {renderConnections()}
 
           <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
-          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages?props.document.pages:'not available'}</Typography>
+          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages ? props.document.pages : 'not available'}</Typography>
 
           {/* Editable Latitude */}
           <Box display="flex" alignItems="center" gap={2} marginTop={2}>
@@ -335,7 +352,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
               {editLat ? (
                 <TextField
-                disabled={true}
+                  disabled={true}
                   /*value={lat}
                   onChange={handleLatChange}
                   onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
@@ -344,15 +361,15 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                   variant="outlined"
                   size="small"
                   placeholder="Enter latitude"
-                  style={{ marginLeft: '8px', width: '120px', backgroundColor: "#2A2A2A", color: "#FFFFFF"}}
+                  style={{ marginLeft: '8px', width: '120px', backgroundColor: "#2A2A2A", color: "#FFFFFF" }}
                 />
               ) : (
                 <Typography
                   variant="body2"
                   style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                  /*onClick={() => setEditLat(true)}*/
+                /*onClick={() => setEditLat(true)}*/
                 >
-                  {/*lat || "Enter latitude"*/lat?lat:''}
+                  {/*lat || "Enter latitude"*/lat ? lat : ''}
                 </Typography>
               )}
             </Box>
@@ -362,7 +379,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
               {editLng ? (
                 <TextField
-                disabled={true}
+                  disabled={true}
                   /*value={lng}
                   onChange={handleLngChange}
                   onBlur={() => { setEditLng(false); handleSaveCoordinates(); }}
@@ -377,14 +394,14 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                 <Typography
                   variant="body2"
                   style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                  /*onClick={() => setEditLng(true)}*/
+                /*onClick={() => setEditLng(true)}*/
                 >
-                  {/*lng || "Enter longitude"*/lng?lng:''}
+                  {/*lng || "Enter longitude"*/lng ? lng : ''}
                 </Typography>
               )}
             </Box>
           </Box>
-        </Box>: <></>}
+        </Box> : <></>}
 
         {/* Description Section */}
         {/*!editDescription && showDescription && (
@@ -392,9 +409,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <strong>Description:</strong> {description}
           </Typography>
         )*/}
-        {props.pin==props.document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
-            <strong>Description:</strong> {props.document.description}
-          </Typography>:<></>}
+        {props.pin == props.document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
+          <strong>Description:</strong> {props.document.description}
+        </Typography> : <></>}
 
         {/* Files Download */}
         {props.pin == props.document.id ? (
@@ -439,69 +456,71 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           </>
         ) : null*/}
 
-      {/* Upload Files || Files Upload */}
-      {props.pin === props.document.id && props.loggedIn && props.user?.type === "urban_planner" && (
-        <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
-          <input
-            type="file"
-            accept=".pdf,.txt,.png,.jpg"
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-            id="file-upload"
-          />
-          {!selectedFile && (
-            <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
-              <Button 
-                variant="contained" 
-                component="span" 
+        {/* Upload Files || Files Upload */}
+        {props.pin === props.document.id && props.loggedIn && props.user?.type === "urban_planner" && (
+          <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
+            <input
+              type="file"
+              accept=".pdf,.txt,.png,.jpg"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+              id="file-upload"
+            />
+            {!selectedFile && (
+              <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
+                <Button
+                  variant="contained"
+                  component="span"
+                  color="success"
+                  startIcon={<FileUploadIcon />}
+                  fullWidth
+                >
+                  Upload files
+                </Button>
+              </label>
+            )}
+
+            {selectedFile && (
+              <Box mt={2}>
+                <FilePreview fileName={selectedFile.name} onRemove={handleRemoveFile} />
+              </Box>
+            )}
+
+            {selectedFile && (
+              <Button
+                variant="contained"
                 color="success"
                 startIcon={<FileUploadIcon />}
-                fullWidth
+                onClick={handleFileUpload}
+                disabled={!selectedFile}
+                style={{ marginTop: '10px' }}
               >
-                Upload files
+                Upload File
               </Button>
-            </label>
-          )}
-    
-          {selectedFile && (
-            <Box mt={2}>
-              <FilePreview fileName={selectedFile.name} onRemove={handleRemoveFile} />
-            </Box>
-          )}
-
-          {selectedFile && (
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<FileUploadIcon />}
-              onClick={handleFileUpload}
-              disabled={!selectedFile}
-              style={{ marginTop: '10px' }}
-            >
-              Upload File
-            </Button>
-          )}
-        </Box>
-      )}      
+            )}
+          </Box>
+        )}
 
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
-          {props.pin==props.document.id && props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription &&*/ (
+          {props.pin == props.document.id && props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription &&*/ (
             <>
-            <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e)=>{
-              e.stopPropagation();
-              toggleDescription(e)}}>
-              {/*showDescription ? "Hide Description" : "Show Description"*/}
-              Edit
-            </Button>
-            <Button startIcon={<LinkIcon />} variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e)=>{
-              e.stopPropagation();
-              props.handleSearchLinking();
-              props.onLink()}}>
-            Link Document
-          </Button>
-          </>
+              <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e) => {
+                e.stopPropagation();
+                toggleDescription(e)
+              }}>
+                {/*showDescription ? "Hide Description" : "Show Description"*/}
+                Edit
+              </Button>
+              <Button startIcon={<LinkIcon />} variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e) => {
+                e.stopPropagation();
+                props.handleSearchLinking();
+                props.onLink()
+              }}>
+                Link Document
+              </Button>
+            </>
           )}
 
           {/* Link Document or Edit Description Button */}
@@ -524,19 +543,19 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
               {files.map((file) => (
                 // console.log(`file.id: ${file.name}`),
                 <ListItem key={file.id}>
-                <ListItemIcon>
-                <IconButton onClick={() => API.downloadByFileId(file.id, file.name)}>
-                    <DownloadIcon sx={{ color: 'green' }} />
-                  </IconButton>
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {file.name}
-                    </Typography>
-                  }
-                />
-              </ListItem>
+                  <ListItemIcon>
+                    <IconButton onClick={() => API.downloadByFileId(file.id, file.name)}>
+                      <DownloadIcon sx={{ color: 'green' }} />
+                    </IconButton>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                        {file.name}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
               ))}
             </List>
           </DialogContent>

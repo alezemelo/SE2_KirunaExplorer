@@ -164,10 +164,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const getIssuanceDate = () => {
     if (dateOption === "year") {
-      return year ? `${year}` : "";
+      // return year ? `${year}` : "";
+      return year;
     }
     if (dateOption === "yearMonth") {
-      return year && month ? `${year}-${month.padStart(2, "0")}` : "";
+      // return year && month ? `${year}-${month.padStart(2, "0")}` : "";
+      return `${year}-${month.padStart(2, "0")}`;
     }
     if (dateOption === "fullDate") {
       return year && month && day
@@ -292,6 +294,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   }, [props.updating])
 
+  useEffect(() => {
+    if (props.updating && newDocument.issuanceDate) {
+      const dateParts = newDocument.issuanceDate.split("-");
+      setYear(dateParts[0] || "");
+      setMonth(dateParts[1] || "");
+      setDay(dateParts[2] || "");
+      setDateOption(
+        dateParts.length === 3
+          ? "fullDate"
+          : dateParts.length === 2
+            ? "yearMonth"
+            : "year"
+      );
+    }
+  }, [props.updating, newDocument.issuanceDate]);
+
+
 
   useEffect(() => {
     console.log(props.adding)
@@ -364,6 +383,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setOpen(false);
     //setAdding(true);
   }
+
+
 
   const handleAddDocument = async () => {
     const newErrors = [];
@@ -458,6 +479,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     // Procede solo se non ci sono errori
     if (newErrors.length === 0) {
       try {
+        let formattedDate = issueDate;
+        if (dateOption === "year") {
+          formattedDate = year; // Only the year
+        } else if (dateOption === "yearMonth") {
+          formattedDate = `${year}-${month.padStart(2, "0")}`; // Year and month
+        } else if (dateOption === "fullDate") {
+          formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`; // Full date
+        }
+        
         // Conversione della data
         // let date;
         /*if(newDocument.issuanceDate == ""){
@@ -476,7 +506,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           newDocument.title,
           newDocument.type,
           props.user?.username ? props.user?.username : '',
-          issueDate,
+          formattedDate,
           newDocument.language,
           Number(newDocument.pages),
           newDocument.stakeholders,
@@ -489,6 +519,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
         if (props.updating) {
 
+
           if (newDocument.description != oldForm?.description) {
             console.log("nuovo")
             console.log(newDocument.description)
@@ -498,6 +529,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               await API.updateDescription(newDocument.id, newDocument.description);
               await props.fetchDocuments();
             }
+
             /*setDocuments((prev) => 
               prev.map((doc) => 
                 doc.id == newDocument.id
