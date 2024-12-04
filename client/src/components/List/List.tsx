@@ -1158,12 +1158,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             )
           }
 
-          <select onChange={handleSelectChange} value={targetLinkType}>
-            <option value="direct" selected>direct</option>
-            <option value="collateral">collateral</option>
-            <option value="projection">projection</option>
-            <option value="update">update</option>
-          </select>
+          
           {linkErrors.length > 0 && (
             <div className="error-messages">
               {linkErrors.map((error, index) => (
@@ -1171,6 +1166,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               ))}
             </div>)}
         </DialogContent>
+        <select onChange={handleSelectChange} value={targetLinkType} style={{width: '100px'}}>
+            <option value="direct" selected>direct</option>
+            <option value="collateral">collateral</option>
+            <option value="projection">projection</option>
+            <option value="update">update</option>
+          </select>
         <DialogActions>
           <Button onClick={linkDocument} color="primary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
