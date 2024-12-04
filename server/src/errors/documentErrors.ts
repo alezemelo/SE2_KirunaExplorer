@@ -3,6 +3,7 @@ const STAKEHOLDERS_NOT_FOUND = "Stakeholders not found in the db";
 const DOCUMENT_TYPE_NOT_FOUND = "Document type not found in the db";
 const SCALE_NOT_FOUND = "Scale value not found in the db";
 const STAKEHOLDER_ALREADY_EXISTS = "A stakeholder with the same name is already in the db";
+const INVALID_DATE = "Database got an invalid date"
 const DOCUMENT_ALREADY_EXISTS = "A document with the same id is already in the db";
 
 /**
@@ -61,6 +62,17 @@ class DocumentTypeNotFoundError extends Error {
     }
 }
 
+class InvalidDateError extends Error {
+    customCode: number;
+    customMessage: string;
+
+    constructor() {
+        super();
+        this.customMessage = INVALID_DATE;
+        this.customCode = 422;
+    }
+}
+
 class ScaleNotFoundError extends Error {
     customCode: number;
     customMessage: string;
@@ -86,4 +98,4 @@ class DocumentNotAddedError extends Error {
     }
 }
 
-export { DocumentNotFoundError, DocumentNotAddedError, StakeholdersNotFoundError, DocumentAlreadyExistsError, DocumentTypeNotFoundError, ScaleNotFoundError};
+export { DocumentNotFoundError, DocumentNotAddedError, StakeholdersNotFoundError, DocumentAlreadyExistsError, DocumentTypeNotFoundError, ScaleNotFoundError, InvalidDateError};

@@ -3,9 +3,11 @@ import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 import {
   Box,
   Grid,
@@ -470,10 +472,34 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     } else {
     }
 
+
     const issueDate = getIssuanceDate();
     if (!issueDate) {
       newErrors.push("Issuance date is required.");
+    } else {
+      if (!year) {
+        newErrors.push("Year is required.");
+      }
+      if ((dateOption === "yearMonth") || (dateOption === "fullDate")) {
+        if (!month) {
+          newErrors.push("Month is required.");
+        }
+      }
+      if (dateOption === "fullDate") {
+        if (!day) {
+          newErrors.push("Day is required.");
+        }
+      }
     }
+
+    if ((dateOption === "year" && !dayjs(issueDate, 'YYYY', true).isValid()) ||
+      (dateOption === "yearMonth" && !dayjs(issueDate, 'YYYY-MM', true).isValid()) || 
+      (dateOption === "fullDate" && !dayjs(issueDate, 'YYYY-MM-DD', true).isValid()))
+    {
+        newErrors.push("Invalid date format.");
+    }
+    
+    
     setErrors(newErrors);
 
     // Procede solo se non ci sono errori
@@ -521,10 +547,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
           if (newDocument.description != oldForm?.description) {
-            console.log("nuovo")
-            console.log(newDocument.description)
-            console.log("vecchio")
-            console.log(oldForm?.description)
+            //console.log("nuovo")
+            //console.log(newDocument.description)
+            //console.log("vecchio")
+            //console.log(oldForm?.description)
             if (newDocument.description) {
               await API.updateDescription(newDocument.id, newDocument.description);
               await props.fetchDocuments();
@@ -542,6 +568,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             newDocument.id,
             finalDocument.coordinates
           );
+
+          await API.updateDocument(
+            newDocument.id,
+            {
+              title: finalDocument.title,
+              doctype: finalDocument.type,
+              scale: finalDocument.scale,
+              stakeholders: finalDocument.stakeholders,
+              issuanceDate: finalDocument.issuanceDate
+            }
+          )
 
           /*const latLng2 = newDocument.coordinates.coords;
           if (
