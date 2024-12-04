@@ -306,6 +306,7 @@ interface MapProps {
   updating: boolean;
   setCoordMap: any;
   geojson: any;
+  fetchDocuments: any;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -479,7 +480,9 @@ const Map: React.FC<MapProps> = (props) => {
 
   const handleDrag = async (id:number,coordinates:Coordinates) => {
     if(coordinatesInfo && error==''){
-      await API.updateCoordinates(id,coordinates)
+      await API.updateCoordinates(id,coordinates);
+      await props.fetchDocuments();
+      
     }
     setConfirmChanges(false)
   }
