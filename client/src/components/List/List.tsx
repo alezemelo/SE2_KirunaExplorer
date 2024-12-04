@@ -3,9 +3,11 @@ import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 import {
   Box,
   Grid,
@@ -470,10 +472,34 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     } else {
     }
 
+
     const issueDate = getIssuanceDate();
     if (!issueDate) {
       newErrors.push("Issuance date is required.");
+    } else {
+      if (!year) {
+        newErrors.push("Year is required.");
+      }
+      if ((dateOption === "yearMonth") || (dateOption === "fullDate")) {
+        if (!month) {
+          newErrors.push("Month is required.");
+        }
+      }
+      if (dateOption === "fullDate") {
+        if (!day) {
+          newErrors.push("Day is required.");
+        }
+      }
     }
+
+    if ((dateOption === "year" && !dayjs(issueDate, 'YYYY', true).isValid()) ||
+      (dateOption === "yearMonth" && !dayjs(issueDate, 'YYYY-MM', true).isValid()) || 
+      (dateOption === "fullDate" && !dayjs(issueDate, 'YYYY-MM-DD', true).isValid()))
+    {
+        newErrors.push("Invalid date format.");
+    }
+    
+    
     setErrors(newErrors);
 
     // Procede solo se non ci sono errori
