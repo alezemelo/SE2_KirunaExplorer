@@ -626,6 +626,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   }, [props.pin]);
 
+  useEffect(()=>{
+    if(props.updating){
+      setCoordinatesType(newDocument.coordinates.type);
+    }
+  },[props.updating])
+
 
   return (
     <div className="container">
