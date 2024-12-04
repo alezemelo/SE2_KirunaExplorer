@@ -135,7 +135,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
-  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>();
+  const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>(CoordinatesType.MUNICIPALITY);
   const [dateOption, setDateOption] = useState("fullDate"); // Default to fullDate
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
@@ -658,6 +658,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   }, [props.pin]);
 
+  useEffect(()=>{
+    if(props.updating){
+      setCoordinatesType(newDocument.coordinates.type);
+    }
+  },[props.updating])
+
 
   return (
     <div className="container">
@@ -693,15 +699,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{props.updating ? "Update a" : "Add a New"} Document</DialogTitle>
         <DialogContent>
-          {errors.length > 0 && (
-            <Box mt={2}>
-              {errors.map((error, index) => (
-                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
-                  {error}
-                </Alert>
-              ))}
-            </Box>
-          )}
 
           <TextField
             autoFocus
@@ -1027,7 +1024,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             onChange={handleChange}
           />
         </DialogContent>
-
+        {errors.length > 0 && (
+            <Box mt={2}>
+              {errors.map((error, index) => (
+                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
+                  {error}
+                </Alert>
+              ))}
+            </Box>
+          )}
 
         <DialogActions>
           <Button onClick={handleClose} color="secondary">Cancel</Button>

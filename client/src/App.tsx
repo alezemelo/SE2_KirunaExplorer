@@ -210,7 +210,7 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
 
                 <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
                   <Map
-                    //fetchDocuments={fetchDocuments}
+                    fetchDocuments={fetchDocuments}
                     geojson={geojson}
                     pin={pin}
                     setNewPin={setNewPin}
