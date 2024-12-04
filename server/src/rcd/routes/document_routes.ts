@@ -346,6 +346,7 @@ class DocumentRoutes {
         this.authService.isLoggedIn,
         this.authService.isUserAuthorized(UserType.UrbanPlanner),
         param('id').isInt().toInt(),
+        body('title').optional().isString().withMessage('Title must be a string').notEmpty().withMessage('Title must not be empty'),
         body('doctype').optional().isString().withMessage('Doctype must be a string').notEmpty().withMessage('Doctype must not be empty'),
         body('scale').optional().isString().withMessage('Scale must be a string').notEmpty().withMessage('Scale must not be empty')
             // standardizes

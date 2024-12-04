@@ -115,12 +115,13 @@ Adds or updates a description for an existing document, the latter being sent th
 #### PATCH `/kiruna_explorer/documents/:id`
 
 Generic patch api for a document: content of the fields will be overwritten with the sent data.
-Able to overwrite stakeholders, scale, and document type.
+Able to overwrite title, stakeholders, scale, issuanceDate and document type.
 
 - Request Parameters: `id`, an integer number representing the document unique ID
 - Request Body Content:
   ```json
   {
+    "title": "new title"
     "stakeholders": ["Stakeholder1", "Stakeholder2"],
     "type": "new_type",
     "scale": "1:new_scale",

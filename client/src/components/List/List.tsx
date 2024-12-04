@@ -546,6 +546,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           await API.updateDocument(
             newDocument.id,
             {
+              title: finalDocument.title,
               doctype: finalDocument.type,
               scale: finalDocument.scale,
               stakeholders: finalDocument.stakeholders,

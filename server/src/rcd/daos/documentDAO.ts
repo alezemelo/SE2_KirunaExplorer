@@ -195,6 +195,8 @@ class DocumentDAO {
      * @param body.stakeholders - The new stakeholders for the document (list of strings).
      * @param body.scale - The new scale for the document.
      * @param body.type - The new type for the document.
+     * @param body.issuanceDate - The new issuance date for the document.
+     * @param body.title - The new title for the document.
      */
     public async updateDocument(id: number, body: any): Promise<void> {
         try {
@@ -211,6 +213,13 @@ class DocumentDAO {
                 if (!documentExists) {
                     throw new Error(`Document with ID ${id} does not exist.`);
                 }
+
+                if (body.title) {
+                    await trx('documents')
+                        .where({ id })
+                        .update({ title: body.title });
+                }
+
 
                 if (body.scale) {
                     await trx('documents')
