@@ -93,7 +93,11 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
         setLng(s.lng);
       }
     }
-  });
+    if (props.document.coordinates.type == CoordinatesType.MUNICIPALITY) {
+        setLat('');
+        setLng('');
+    }
+  }, [props.document.coordinates]);
 
   const formatIssuanceDate = (date: string) => {
     if (!date) return "N/A";
