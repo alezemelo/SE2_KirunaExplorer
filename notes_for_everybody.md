@@ -76,7 +76,7 @@ This guide explains how to set up and run Cypress for end-to-end testing in your
 ---
 
 ## Setup
-1. **Cypress Directory**: Test files are located in the `cypress/E2E_test/tests` directory.
+1. **Cypress Directory**: Test files are located in the `cypress/tests` directory.
 2. **Configuration**: Cypress configuration file (`cypress.config.ts`) is set up to match your project structure.
 
 ---
@@ -95,7 +95,7 @@ Alternatively, run all tests in headless mode:
 ---
 
 ## Writing Tests
-1. Create a new test file in `cypress/E2E_test/tests` (e.g., `NewTest.cy.ts`).
+1. Create a new test file in `cypress/tests` (e.g., `NewTest.cy.ts`).
 2. Example Test:
    ```typescript
    describe('Example Test', () => {
