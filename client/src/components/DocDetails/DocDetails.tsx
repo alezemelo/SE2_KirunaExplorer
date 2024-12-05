@@ -126,7 +126,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const displayedConnections = expand ? connections : connections.slice(0, 3);
 
   const renderConnections = () => (
-    <Box marginTop={1}>
+    <Box >
       <Typography variant="body2">
         <strong>Connections:</strong>
       </Typography>
@@ -136,7 +136,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e) => {
               getLinks(e, index, props.document)
             }}>
-              <u>{conn}</u>
+             
+              - <u>{conn}</u>
+                
             </Typography>
           ))
         ) : (
@@ -337,18 +339,18 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders.join(", ")}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
           {/* <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography> */}
-          <Typography>
-            Issuance date: {formatIssuanceDate(props.document.issuanceDate)}
+          <Typography  variant="body2">
+          <strong>Issuance date:</strong> {formatIssuanceDate(props.document.issuanceDate)}
           </Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
 
           {renderConnections()}
 
           <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
-          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages ? props.document.pages : 'not available'}</Typography>
+          <Typography variant="body2"><strong>Pages:</strong> {props.document.pages ? props.document.pages : '-'}</Typography>
 
           {/* Editable Latitude */}
-          <Box display="flex" alignItems="center" gap={2} marginTop={2}>
+          <Box display="flex" alignItems="center" gap={2}>
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
               {editLat ? (
@@ -416,7 +418,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
 
         {/* Files Download */}
         {props.pin == props.document.id ? (
-          <Box marginTop={2} display="flex" alignItems="center">
+          <Box marginTop={1} display="flex" alignItems="center">
             <Typography variant="body2">
               <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
             </Typography>
