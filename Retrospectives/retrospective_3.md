@@ -29,7 +29,7 @@ sections:
 - Code present on VCS: 
   - ~12k LOC across 133 files
 - End-to-End tests performed: 
-  - // **TODO**
+  - lots of manual testing + 3 cypress tests
 - Integration tests performed:
   - 266 out of 10 suites
 
