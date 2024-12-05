@@ -703,7 +703,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
   return (
-    <div className="container">
+    <div className="container-list">
       <Typography variant="h6" sx={{ marginTop: 2 }}>Documents</Typography>
 
       {/* Document List */}
