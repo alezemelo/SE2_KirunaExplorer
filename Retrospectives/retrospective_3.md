@@ -23,7 +23,7 @@ sections:
 **Remember**  a story is done ONLY if it fits the Definition of Done:
  
 - Unit Tests passing: 
-  - None
+  - None were written
 - Code review completed: 
   - yes, using SonarCloud's automatic review.
 - Code present on VCS: 
