@@ -49,8 +49,8 @@ sections:
 - Hours per task (average, standard deviation)
   - Average Estimated: 2
   - Average Actual: 1.99
-  - StdDev Estimated: 231.8
-  - StdDev Actual: 236.6
+  - StdDev Estimated: 3h 51m
+  - StdDev Actual: 3h 56m
 - Total task estimation error ratio: sum of total hours estimation / sum of total hours spent -1
   - 0.004
 - Absolute relative task estimation error: sum( abs( spent-task-i / estimation-task-i - 1))/n
