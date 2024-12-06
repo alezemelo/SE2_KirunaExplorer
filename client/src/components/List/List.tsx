@@ -703,32 +703,65 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
   return (
-    <div className="container">
-      <Typography variant="h6" sx={{ marginTop: 2 }}>Documents</Typography>
+    <div className="container-list">
+      <Typography variant="h6" sx={{ corlor: 'white' }}>Documents</Typography>
 
       {/* Document List */}
-      <Box className="scrollable-list" style={{ height: "580px", overflowY: "auto", paddingRight: "10px" }}>
-        <Grid container spacing={3}>
-          {props.documents.map((document, i) => (
-            <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
-              <DocDetails
-                document={document}
-                loggedIn={props.loggedIn}
-                user={props.user}
-                fetchDocuments={props.fetchDocuments}
-                pin={props.pin}
-                setNewPin={props.setNewPin}
-                onLink={() => openLinkingDialog(document)}
-                handleSearchLinking={handleSearchLinking}
-                updating={props.updating}
-                setUpdating={props.setUpdating}
-                newDocument={newDocument}
-                setNewDocument={setNewDocument}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Box className="scrollable-list" sx={{ flex: 1 }}>
+          <Grid container spacing={3}>
+            {props.documents.map((document, i) => (
+              <Grid item xs={12} key={i} ref={(el) => (itemRefs.current[document.id] = el)}>
+                <DocDetails
+                  document={document}
+                  loggedIn={props.loggedIn}
+                  user={props.user}
+                  fetchDocuments={props.fetchDocuments}
+                  pin={props.pin}
+                  setNewPin={props.setNewPin}
+                  onLink={() => openLinkingDialog(document)}
+                  handleSearchLinking={handleSearchLinking}
+                  updating={props.updating}
+                  setUpdating={props.setUpdating}
+                  newDocument={newDocument}
+                  setNewDocument={setNewDocument}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        <Box sx={{ padding: '10px', flexShrink: 0 }}>
+          <label>
+            <input
+              type="checkbox"
+              checked={props.isMunicipalityChecked}
+              name="municipality_filter"
+              onChange={handleCheckboxChange}
+            />
+            All municipality documents
+          </label>
+        </Box>
+
+        
+      {props.loggedIn && props.user?.type === "urban_planner" && (
+        <Box sx={{ padding: '10px', flexShrink: 0, }}>
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={handleClickOpen}
+            style={{ marginTop: "8px" }}
+          >
+            Add a new document
+          </Button>
+        </Box>
+      )}
+
+
+      
+
+    </Box>
 
 
 
@@ -1078,29 +1111,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       </Dialog>
 
 
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={props.isMunicipalityChecked}
-            name="municipality_filter"
-            onChange={handleCheckboxChange}
-          />
-          All municipality documents
-        </label>
-      </div>
+      
 
-      {props.loggedIn && props.user?.type === "urban_planner" && (
-        <Button
-          fullWidth
-          variant="contained"
-          color="primary"
-          onClick={handleClickOpen}
-          style={{ marginTop: "8px" }}
-        >
-          Add a new document
-        </Button>
-      )}
+      
 
 
 

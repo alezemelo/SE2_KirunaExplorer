@@ -1,3 +1,4 @@
+require('cypress-xpath');
 describe('Add Document Test', () => {
     it('Adds a document to the application', () => {
         // Visit the login page
@@ -14,33 +15,57 @@ describe('Add Document Test', () => {
         click();
 
   
-        // Fill out the form
+        
         cy.get('input[name="title"]').type('Test Document');
-        // choose stakeholder form the dropdown menu by label
-        cy.get('select[name="Stakeholders"]').select('LKAB');
-        // cy.get('select[name="stakeholders"]').select('LKAB');
-        // cy.get('select[value="newStakeholder"]').select('LKAB');
+        cy.wait(2000);
+        
+        cy.xpath('/html/body/div[2]/div[3]/div/div[1]/div[2]/div/div/div').click(); 
+        cy.xpath('//li[contains(text(), "LKAB")]').click(); 
+        cy.wait(2000);
+      
+
+        cy.get('body').type('{esc}');
+
+
+
+        
+        
         // choose the doctype from the dropdown menu
-        cy.get('select[id=":r11:"]').select('design_doc');
+
+        cy.xpath('/html/body/div[2]/div[3]/div/div[1]/div[4]/div[1]/div/div').click(); 
+        cy.xpath('//li[contains(text(), "design_doc")]').click(); 
+        cy.wait(2000);
+
         // choose the sclae from the dropdown menu
-        cy.get('select[id=":r12:"]').select('1:1000');
+
+        cy.xpath('/html/body/div[2]/div[3]/div/div[1]/div[5]/div[1]/div/div').click();
+        cy.xpath('//li[contains(text(), "1:1000")]').click();
+        cy.wait(2000);
+
         // select radio button just year
-        cy.get('input[id=":r13:"]').check();
+
+        cy.xpath('/html/body/div[2]/div[3]/div/div[1]/div[6]/div/label[1]/input').check();
+        cy.wait(2000);
+
         //input the date as an example
-        cy.get('input[name="date"]').type('2022');
-        // select the langiuae from the dropdown menu
-        cy.get('select[id=":r15:"]').select('Swedish');
-        // checkbox all municipalities
-        cy.get('input[id=":r16:"]').check();
-        // cy.get('textarea[name="content"]').type('This is a test document.');
-        // cy.get('input[name="location"]').type('Kiruna');
+
+        cy.xpath('/html/body/div[2]/div[3]/div/div[1]/div[7]/div/input').type('2022');
+        cy.wait(2000);
+        
         // write content in description field
+        
         cy.get('textarea[name="description"]').type('This is a test document.');
+        cy.wait(2000);
+
   
         // Submit the form
-        cy.get('button[type="save"]').click();
+
+        cy.xpath('/html/body/div[2]/div[3]/div/div[2]/button[2]').click();
+        cy.wait(2000);
+        
   
         // Check that the document was added
+
         cy.contains('Test Document');
     });
   }
