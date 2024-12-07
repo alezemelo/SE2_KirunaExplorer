@@ -79,7 +79,7 @@ class DocumentRoutes {
         */
         this.router.get(
             '/search',
-            query('title').isString().withMessage("title must be a string").notEmpty().withMessage("title is required"),
+            query('search_query').isString().withMessage("search_query must be a string").notEmpty().withMessage("search_query is required"),
             query('municipality_filter').optional().isIn(['true', 'false']).withMessage('municipality_filter must be either "true" or "false"'),
             //this.authService.isLoggedIn,
             //this.authService.isUserAuthorized(UserType.UrbanPlanner),

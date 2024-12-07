@@ -136,9 +136,9 @@ Able to overwrite title, stakeholders, scale, issuanceDate and document type.
   - All fields are optional, if no field is specified, nothing will be changed in the db.
   - Scale must be in the format 1:integer_positive_number, or "Text" or "blueprint/effect"
 
-#### GET `/kiruna_explorer/documents/search?title=mytitle`
+#### GET `/kiruna_explorer/documents/search?search_query=mysearchquery&municipality_filter=true`
 
-Allows searching docs by title, the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
+Allows full text searching docs by title or description, while also filtering by municipality the frontend should call this multiple times as the user types in the search bar. This is case insensitive.
 municipality_filter is an optional parameter to get only the documents related to all municipality. when it is omitted it searchs all documents. if it is present and true, it searchs the documents related to all municipality.
 - Request query: the string to match with the title, it is required.
   - Example: `/kiruna_explorer/documents/search?title=moving%20of%20church`
