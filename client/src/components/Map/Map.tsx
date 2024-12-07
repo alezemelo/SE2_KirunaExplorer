@@ -289,6 +289,7 @@ import { stringToColor } from "../../Utils/utils";
 import { lightBlue } from "@mui/material/colors";
 import overlayStyle from "../../ReactCssStyles";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import Legend from "./Legend";
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -411,7 +412,6 @@ const Map: React.FC<MapProps> = (props) => {
       }
       
       let pinColor = stringToColor(doc.type);
-      console.log("pincolor", pinColor);
   
       const marker = new mapboxgl.Marker({ color: pinColor, draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
       //const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
@@ -520,7 +520,6 @@ const Map: React.FC<MapProps> = (props) => {
       const centroidCoords = centroid.geometry.coordinates;
 
       let pinColor = stringToColor(doc.type);
-      console.log("pincolor", pinColor); 
 
       console.log("add marker")
       // Add marker at the centroid
@@ -677,6 +676,7 @@ const Map: React.FC<MapProps> = (props) => {
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
           <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>
+        <Legend documents={props.documents}/>
       </ReactMapGL>
     </div>
   );

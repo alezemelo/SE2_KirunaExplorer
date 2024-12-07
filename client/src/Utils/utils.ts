@@ -14,11 +14,6 @@ function stringToColor(str: string): string {
     let g = (hash >> 8) & 0xFF;
     let b = hash & 0xFF;
 
-    // Avoid Earth Tones (Brown and Dark Green)
-    r = avoidEarthTones(r, g, b, 'r');
-    g = avoidEarthTones(r, g, b, 'g');
-    b = avoidEarthTones(r, g, b, 'b');
-
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
