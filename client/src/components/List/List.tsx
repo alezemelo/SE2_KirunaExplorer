@@ -133,6 +133,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
+  const [stakeholderMessage, setStakeholderMessage] = useState<string>("");
+  const [doctypeMessage, setDoctypeMessage] = useState<string>("");
+  const [scaleMessage, setScaleMessage] = useState<string>("");
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
@@ -185,7 +188,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const handleAddNewDoctype = async () => {
     if (!newDoctype.trim()) {
-      alert("Doctype name cannot be empty.");
+      setDoctypeMessage("Documen type name cannot be empty.");
       return;
     }
 
@@ -194,19 +197,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       if (response.status === 201) {
         setDoctypeOptions((prev) => [...prev, newDoctype.trim()]);
         setNewDoctype("");
-        alert("Doctype added successfully!");
-      } else {
-        alert("Failed to add doctype. It may already exist.");
+        setDoctypeMessage("Doctype added successfully!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding doctype:", error);
-      alert("An error occurred while adding the doctype.");
+      if (error.message.includes("already exists")) {
+        setDoctypeMessage("Failed to add Document Type. It already exists.");
+      } else if (error.message.includes("Invalid")){
+        setDoctypeMessage("Document type names must not be empty")
+      } else {
+        setDoctypeMessage("An error occurred while adding the stakeholder.")
+      }
     }
   };
 
   const handleAddNewScale = async () => {
     if (!newScale.trim()) {
-      alert("Scale value cannot be empty.");
+      setScaleMessage("Scale value cannot be empty.");
       return;
     }
 
@@ -215,13 +222,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       if (response.status === 201) {
         setScaleOptions((prev) => [...prev, newScale.trim()]);
         setNewScale("");
-        alert("Scale added successfully!");
-      } else {
-        alert("Failed to add scale. It may already exist.");
+        setScaleMessage("Scale added successfully!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding scale:", error);
-      alert("An error occurred while adding the scale.");
+      if (error.message.includes("already exists")) {
+        setScaleMessage("Failed to add scale. It already exists.");
+      } else if (error.message.includes("Invalid")) {
+        setScaleMessage("Scale must be formatted like 1:integer_number and must not be empty.")
+      } else {
+        setScaleMessage("An error occurred while adding the scale.")
+      }
     }
   }
 
@@ -242,14 +253,16 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       // Clear the input field
       setNewStakeholder("");
 
-      alert("Stakeholder added successfully!");
+      setStakeholderMessage("Stakeholder added successfully!");
+      //alert("Stakeholder added successfully!");
     } catch (error: any) {
       if (error.message.includes("Stakeholder already exists")) {
-        alert("Stakeholder already exists.");
+        setStakeholderMessage("Stakeholder already exists.");
+        //alert("Stakeholder already exists.");
       } else if (error.message.includes("Invalid stakeholder name")) {
-        alert("Invalid stakeholder name. Please enter a valid name.");
+        setStakeholderMessage("Invalid stakeholder name. Please enter a valid name.");
       } else {
-        alert("An error occurred while adding the stakeholder.");
+        setStakeholderMessage("An error occurred while adding the stakeholder.");
       }
       console.error("Error adding stakeholder:", error);
     }
@@ -333,6 +346,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     props.setUpdating(false);
     props.setAdding(false)
     setNewDocument(reset());
+    setDoctypeMessage("");
+    setStakeholderMessage("");
+    setScaleMessage("");
     setErrors([]);
   }
 
@@ -493,13 +509,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
 
     if ((dateOption === "year" && !dayjs(issueDate, 'YYYY', true).isValid()) ||
-      (dateOption === "yearMonth" && !dayjs(issueDate, 'YYYY-MM', true).isValid()) || 
-      (dateOption === "fullDate" && !dayjs(issueDate, 'YYYY-MM-DD', true).isValid()))
-    {
-        newErrors.push("Invalid date format.");
+      (dateOption === "yearMonth" && !dayjs(issueDate, 'YYYY-MM', true).isValid()) ||
+      (dateOption === "fullDate" && !dayjs(issueDate, 'YYYY-MM-DD', true).isValid())) {
+      newErrors.push("Invalid date format.");
     }
-    
-    
+
+
     setErrors(newErrors);
 
     // Procede solo se non ci sono errori
@@ -513,7 +528,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         } else if (dateOption === "fullDate") {
           formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`; // Full date
         }
-        
+
         // Conversione della data
         // let date;
         /*if(newDocument.issuanceDate == ""){
@@ -695,11 +710,11 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   }, [props.pin]);
 
-  useEffect(()=>{
-    if(props.updating){
+  useEffect(() => {
+    if (props.updating) {
       setCoordinatesType(newDocument.coordinates.type);
     }
-  },[props.updating])
+  }, [props.updating])
 
 
   return (
@@ -743,25 +758,25 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           </label>
         </Box>
 
-        
-      {props.loggedIn && props.user?.type === "urban_planner" && (
-        <Box sx={{ padding: '10px', flexShrink: 0, }}>
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={handleClickOpen}
-            style={{ marginTop: "8px" }}
-          >
-            Add a new document
-          </Button>
-        </Box>
-      )}
+
+        {props.loggedIn && props.user?.type === "urban_planner" && (
+          <Box sx={{ padding: '10px', flexShrink: 0, }}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={handleClickOpen}
+              style={{ marginTop: "8px" }}
+            >
+              Add a new document
+            </Button>
+          </Box>
+        )}
 
 
-      
 
-    </Box>
+
+      </Box>
 
 
 
@@ -790,6 +805,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               required
               value={newDocument.stakeholders || []} // Ensure it's an array
               onChange={(e) => {
+                console.log(e.target.value);
                 setNewDocument({ ...newDocument, stakeholders: e.target.value });
               }}
               SelectProps={{
@@ -813,6 +829,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             onChange={(e) => setNewStakeholder(e.target.value)}
           />
 
+          {stakeholderMessage &&
+            <Alert severity={stakeholderMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+              {stakeholderMessage}
+            </Alert>
+          }
+
           <Button
             variant="contained"
             color="primary"
@@ -826,13 +848,24 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               textTransform: "none",
               fontWeight: "bold",
             }}
-            onClick={async () => {
+            onClick={async (e) => {
               if (!newStakeholder.trim()) {
-                alert("Stakeholder name cannot be empty.");
+                setStakeholderMessage("Stakeholder name cannot be empty.");
                 return;
               }
 
+              /*
+              const matchedStakeholder = stakeholderOptions.find((stakeholder) => stakeholder.name.toLowerCase() === newStakeholder.trim().toLowerCase());
+              if (matchedStakeholder && !newDocument.stakeholders.includes(matchedStakeholder.name)) {
+                setNewDocument({...newDocument, stakeholders: [...newDocument.stakeholders, matchedStakeholder.name].join(', ')});
+                setNewStakeholder(''); // Optionally reset the textbox after setting the dropdown
+                console.log(newDocument)
+                return;
+              }
+                */
+
               try {
+
                 // Add the new stakeholder to the backend
                 await API.addStakeholder({ name: newStakeholder.trim() });
 
@@ -842,14 +875,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
                 // Clear the input field
                 setNewStakeholder("");
-                alert("Stakeholder added successfully!");
+                setStakeholderMessage("Stakeholder added successfully!");
               } catch (error: any) {
                 if (error.message.includes("Stakeholder already exists")) {
-                  alert("Stakeholder already exists.");
+                  setStakeholderMessage("Stakeholder already exists.");
+                  //alert("Stakeholder already exists.");
                 } else if (error.message.includes("Invalid stakeholder name")) {
-                  alert("Invalid stakeholder name. Please enter a valid name.");
+                  setStakeholderMessage("Invalid stakeholder name. Please enter a valid name.");
                 } else {
-                  alert("An error occurred while adding the stakeholder.");
+                  setStakeholderMessage("An error occurred while adding the stakeholder.");
                 }
                 console.error("Error adding stakeholder:", error);
               }
@@ -857,6 +891,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           >
             Add Stakeholder
           </Button>
+
 
 
 
@@ -890,6 +925,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               value={newDoctype}
               onChange={(e) => setNewDoctype(e.target.value)}
             />
+
+            {doctypeMessage &&
+            <Alert severity={doctypeMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+              {doctypeMessage}
+            </Alert>
+          }
+
             <Button
               variant="outlined"
               color="primary"
@@ -900,7 +942,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             </Button>
           </FormControl>
 
-          {/* Other fields */}
+          {/* Scale */}
           <FormControl fullWidth margin="dense" disabled={loading}>
             <TextField
               select
@@ -926,6 +968,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               value={newScale}
               onChange={(e) => setNewScale(e.target.value)}
             />
+
+            {scaleMessage &&
+            <Alert severity={scaleMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+              {scaleMessage}
+            </Alert>
+            }
+
             <Button
               variant="outlined"
               color="primary"
@@ -1095,14 +1144,14 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           />
         </DialogContent>
         {errors.length > 0 && (
-            <Box mt={2}>
-              {errors.map((error, index) => (
-                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
-                  {error}
-                </Alert>
-              ))}
-            </Box>
-          )}
+          <Box mt={2}>
+            {errors.map((error, index) => (
+              <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
+                {error}
+              </Alert>
+            ))}
+          </Box>
+        )}
 
         <DialogActions>
           <Button onClick={handleClose} color="secondary">Cancel</Button>
@@ -1111,9 +1160,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       </Dialog>
 
 
-      
 
-      
+
+
 
 
 

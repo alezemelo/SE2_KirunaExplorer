@@ -367,7 +367,13 @@ async function addScale(data: { value: string }): Promise<Response> {
   });
 
   if (!response.ok) {
-    throw new Error(`Error adding scale: ${response.statusText}`);
+    if (response.status === 409) {
+      throw new Error("Scale already exists.");
+    } else if (response.status === 422) {
+      throw new Error("Invalid scale value.");
+    } else {
+      throw new Error(`Error adding scale: ${response.statusText}`);
+    }
   }
 
   return response;
