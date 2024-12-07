@@ -180,7 +180,7 @@ class DocumentController {
         }
     }
 
-    async searchDocuments(query: { title: string },municipality_filter?: boolean): Promise<Document[]> {
+    async searchDocuments(query: { search_query: string },municipality_filter?: boolean): Promise<Document[]> {
         try {
             /*const docs = await this.dao.searchDocuments(query.title);
             docs.map(doc => {
@@ -190,7 +190,7 @@ class DocumentController {
                 }
             })
             return docs;*/
-            const docs = municipality_filter ? await this.dao.searchDocuments(query.title,municipality_filter) : await this.dao.searchDocuments(query.title);
+            const docs = municipality_filter ? await this.dao.searchDocuments(query.search_query,municipality_filter) : await this.dao.searchDocuments(query.search_query);
             return docs;
         } catch (error) {
             throw error;

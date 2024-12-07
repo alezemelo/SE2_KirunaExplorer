@@ -156,9 +156,9 @@ async function getDocuments() {
   return await response.json();
 }
 
-async function searchDocumentsByTitle(title: string,municipality_filter?:boolean) {
+async function searchDocumentsByTitle(search_query: string,municipality_filter?:boolean) {
   try {
-    let url = `http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`;
+    let url = `http://localhost:3000/kiruna_explorer/documents/search?search_query=${encodeURIComponent(search_query)}`;
 
     if (municipality_filter) {
       url += `&municipality_filter=${encodeURIComponent(municipality_filter)}`;
