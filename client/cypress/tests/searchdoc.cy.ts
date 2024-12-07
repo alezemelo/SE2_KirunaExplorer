@@ -1,7 +1,6 @@
 // write test for search document as like as the others test and serach for the objects with full xpath
-// search for the document  as an anonymous user
-require('cypress-xpath');
-
+/// <reference types="cypress-xpath" />
+import 'cypress-xpath';
 describe('Search Document Test', () => {
     it('Searches for a document in the application', () => {
 

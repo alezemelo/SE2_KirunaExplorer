@@ -1,4 +1,5 @@
-require('cypress-xpath');
+/// <reference types="cypress-xpath" />
+import 'cypress-xpath';
 describe('Add Document Test', () => {
     it('Adds a document to the application', () => {
         // Visit the login page
