@@ -286,6 +286,7 @@ import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/c
 import API from "../../API";
 import * as fs from 'fs'
 import { lightBlue } from "@mui/material/colors";
+import overlayStyle from "../../ReactCssStyles";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
@@ -595,18 +596,6 @@ const Map: React.FC<MapProps> = (props) => {
     }
   }, [props.adding, props.updating, props.setCoordMap]);
 
-  const overlayStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Sfondo semi-trasparente
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  };
 
   const modalStyle: React.CSSProperties = {
     backgroundColor: 'white',
@@ -630,22 +619,25 @@ const Map: React.FC<MapProps> = (props) => {
   return (
     <div ref={mapRef} style={{ height: "100vh", width: "100%" }}>
       {confirmChanges && <div style={overlayStyle} >
-      <div style={modalStyle}>
-        {error == '' ? <><h3>Do you want to change the coordinates of this document</h3>
-          <button style={buttonStyle} onClick={() => {
-            if(coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
-            handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
-            }} >Confirm</button>
-          <button style={buttonStyle} onClick={()=>{
-            setConfirmChanges(false);
-            if(!map) return;
-            addMarkersToMap(map)
-            }}>Cancel</button></> : <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
+        <div style={modalStyle}>
+          {error == '' ?
+            <><h3>Do you want to change the coordinates of this document</h3>
+              <button style={buttonStyle} onClick={() => {
+                if (coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
+                  handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
+              }} >Confirm</button>
+              <button style={buttonStyle} onClick={() => {
+                setConfirmChanges(false);
+                if (!map) return;
+                addMarkersToMap(map)
+              }}>Cancel</button></>
+            :
+            <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
               setConfirmChanges(false);
               setError('')
-              if(!map) return;
-            addMarkersToMap(map)
-              }}>Confirm</button></>}
+              if (!map) return;
+              addMarkersToMap(map)
+            }}>Go back</button></>}
         </div>
       </div>}
       <ReactMapGL
