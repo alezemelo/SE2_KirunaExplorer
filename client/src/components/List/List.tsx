@@ -1206,7 +1206,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
       {/* Linking Dialog */}
       <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
-        <DialogTitle>Link Document</DialogTitle>
+        <DialogTitle>New Connection</DialogTitle>
         <DialogContent>
           {/* Search Input */}
           <div className="search">
