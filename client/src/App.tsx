@@ -232,6 +232,7 @@ function App() {
                       onLocationSelected={handleMapLocationSelected}
                       updating={updating}
                       isMunicipalityChecked={isMunicipalityChecked}
+                      isLoggedIn={loggedIn}
                     />
                   </Box>
                 </Grid>

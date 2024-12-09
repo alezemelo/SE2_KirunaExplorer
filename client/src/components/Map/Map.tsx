@@ -1,15 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // There was old commented code here. If you want to see it again, check commits before 2024/09/12
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
-import { Position } from "geojson";import * as turf from '@turf/turf';
+import { FeatureCollection, Position } from "geojson";import * as turf from '@turf/turf';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 import API from "../../API";
-import { lightBlue } from "@mui/material/colors";
 import overlayStyle from "../../ReactCssStyles";
-import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import { point, booleanPointInPolygon } from '@turf/turf';
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -31,6 +31,7 @@ interface MapProps {
   geojson: any;
   fetchDocuments: any;
   isMunicipalityChecked: boolean;
+  isLoggedIn: boolean;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -45,15 +46,25 @@ const Map: React.FC<MapProps> = (props) => {
   );
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const [buttonText, setButtonText] = useState("Switch to Street View");
-  const markersRef = useRef<{ id: number, marker: mapboxgl.Marker }[]>([]);
+  // const markersRef = useRef<{ id: number, marker: mapboxgl.Marker }[]>([]);
   const [confirmChanges, setConfirmChanges] = useState(false); //open the dialog for confirmation
   const [coordinatesInfo, setCoordinatesInfo] = useState<{id: number, coordinates:Coordinates}|undefined>(undefined); //informations for the coordinates for updating
   const [selectedMarker, setSelectedMarker] = useState<mapboxgl.Marker | null>(null);
-  const centroidsRef = useRef<(mapboxgl.Marker | null)[]>([]);
+  // const centroidsRef = useRef<(mapboxgl.Marker | null)[]>([]);
   const [error,setError] = useState('')
+
+  // eslint may say that these are unused for some reason, but they are used in the useEffects
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedFeatureId, setDraggedFeatureId] = useState<number | null>(null);
+  const [dragTimeout, setDragTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [hasDragged, setHasDragged] = useState(false);
+
+  const [currentPopup, setCurrentPopup] = useState<mapboxgl.Popup | null>(null);
 
   const mapRef = useRef<any>(null);
 
+  /* ====================== UseEffects and Auxiliary Functions ====================== */
+  
   useEffect(() => {
     if (map) {
       map.resize();
@@ -110,10 +121,21 @@ const Map: React.FC<MapProps> = (props) => {
     };
   }, [map, props.isSelectingLocation, props.onLocationSelected, selectedMarker]);
 
-  /* list all sources for debugging */
-  const listActiveSources = (mapInstance: mapboxgl.Map) => {
+  /* Hides all active polygons using the active list */
+  const hidePolygons = (mapInstance: mapboxgl.Map) => {
     const sources = mapInstance.getStyle()?.sources;
-    console.log("Active sources:", sources);
+    if (sources) {
+      Object.keys(sources).forEach((sourceId) => {
+        if (sourceId.startsWith('polygon-')) {
+          if (mapInstance.getLayer(sourceId)) {
+            mapInstance.removeLayer(sourceId);
+          }
+          if (mapInstance.getSource(sourceId)) {
+            mapInstance.removeSource(sourceId);
+          }
+        }
+      });
+    }
   };
 
   /* Use Effect for removing the polygons when the checkbox is checked */
@@ -121,118 +143,443 @@ const Map: React.FC<MapProps> = (props) => {
     if (!map) return;
   
     if (props.isMunicipalityChecked === true) {
-      // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
-      listActiveSources(map);
-
-      const sources = map.getStyle()?.sources;
-      if (sources) {
-        Object.keys(sources).forEach((sourceId) => {
-          if (sourceId.startsWith('polygon-')) {
-            // console.log(`Removing polygon source ${sourceId}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
-            if (map.getSource(sourceId)) {
-              map.removeLayer(sourceId);
-              map.removeSource(sourceId);
-            }
-          }
-        });
-      }
+      hidePolygons(map);
     }
   }, [props.isMunicipalityChecked, map]);
 
-  const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("adding marker to map")
-    markersRef.current.forEach(({ marker }) => {
-      marker.remove();
-    });
+  // const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
+  //   console.log("adding marker to map")
+  //   markersRef.current.forEach(({ marker }) => {
+  //     marker.remove();
+  //   });
   
-    markersRef.current = [];
+  //   markersRef.current = [];
 
+  //   props.documents.forEach((doc) => {
+  //     doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
+
+  //     if (doc.getCoordinates()?.getType() !== "POINT") {
+  //       return;
+  //     }
+
+  //     const pointCoords = doc.getCoordinates()?.getLatLng();
+
+  //     if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
+  //       console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
+  //       return;
+  //     }
+  
+  //     const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
+  //       .setLngLat([pointCoords.lng, pointCoords.lat])
+  //       .addTo(mapInstance);
+
+  //     if(doc.id == props.pin){
+  //       const markerLngLat = marker.getLngLat();
+  //       mapInstance.fitBounds(
+  //         [
+  //           [markerLngLat.lng - 0.0001, markerLngLat.lat - 0.0001],
+  //           [markerLngLat.lng + 0.0001, markerLngLat.lat + 0.0001],
+  //         ],
+  //         {
+  //           padding: 20,
+  //           maxZoom: 12,
+  //         }
+  //       );
+  //     }
+  
+  //     markersRef.current.push({ id: doc.id, marker });
+  
+  //     const popup = new mapboxgl.Popup({ offset: 25 })
+  //       .setHTML(
+  //         `<div style="font-size: 14px; color: black;">
+  //           <strong>${doc.title}</strong><br />
+  //           ${doc.description ? doc.description : "No description available."}
+  //         </div>`
+  //       );
+  
+  //     marker.getElement()?.addEventListener("click", (event) => {
+  //       event.preventDefault(); // Prevent default behavior
+      
+  //       if (pointCoords.lng !== null && pointCoords.lat !== null) {
+  //         popup.addTo(mapInstance).setLngLat([pointCoords.lng, pointCoords.lat]);
+  //       }
+      
+  //       if (props.pin !== doc.id) {  
+  //         props.setNewPin(doc.id);
+  //       } else if (props.pin !== 0) {
+  //         props.setNewPin(0);
+  //       }
+  //     });
+  
+      // marker.on('dragend', (e) => {
+      //   const currentLngLat = e.target.getLngLat();
+      //   const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat, currentLngLat.lng));
+      //   if(booleanPointInPolygon(point([currentLngLat.lng,currentLngLat.lat]),props.geojson.features[0])){
+      //     setCoordinatesInfo({ id: doc.id, coordinates: coordinates });
+      //   }else{
+      //     setError('Marker out of Kiruna municipality')
+      //   }
+      //   setConfirmChanges(true);
+      // });
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   /*if (!markersRef.current) return;
+  //   const selectedMarker = markersRef.current.find((item) => item.id === props.pin);
+  //   if (selectedMarker?.marker.getElement()) {
+  //     markersRef.current.forEach((item) => {
+  //       if (item.marker.getElement()) {
+  //         item.marker.getElement().style.transform = 'scale(1)';
+  //       }
+  //     });
+  //     selectedMarker.marker.getElement().style.transform = 'scale(2)';
+  //   }*/
+  //  if(!map) return;
+  //   addMarkersToMap(map);
+  //   addPolygonsToMap(map);
+  // }, [props.pin]);
+
+
+  // const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
+  //   console.log("Adding polygons to map as points:", props.documents);
+
+  //   centroidsRef.current.forEach((centroid) => {centroid?.remove();});
+  //   centroidsRef.current = [];
+
+  //   props.documents.forEach((doc) => {
+  //     doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
+  //     if (doc.getCoordinates()?.getType() !== "POLYGON") {
+  //       return; // Skip non-POLYGON documents
+  //     }
+
+  //     const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
+  //     if (!polygonCoords || polygonCoords.length === 0) {
+  //       console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
+  //       return;
+  //     }
+
+  //     // Calculate the centroid of the polygon
+  //     const polygonFeature = turf.polygon(polygonCoords);
+  //     const centroid = turf.centroid(polygonFeature);
+
+  //     const centroidCoords = centroid.geometry.coordinates;
+
+  //     console.log("add marker")
+  //     // Add marker at the centroid
+  //     const marker = new mapboxgl.Marker({ color: "blue" })
+  //       .setLngLat(centroidCoords as [number, number])
+  //       .addTo(mapInstance);
+
+  //     centroidsRef.current.push(marker);
+
+
+  //     if(props.pin == doc.id){
+  //       // Zoom to the polygon
+  //       console.error(`Zooming to polygon ${props.pin}`);
+  //       mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
+  //         padding: 20,
+  //       });
+  //     }
+  
+  //     // Marker click handler to display the polygon
+  //     marker.getElement()?.addEventListener("click", () => {
+  //       console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
+
+  //       if(props.pin!=doc.id){
+  //         props.setNewPin(doc.id)
+  //       }
+  //       const sourceId = `polygon-${doc.id}`;
+  //       if (mapInstance.getSource(sourceId)) {
+  //         // Remove the polygon if it already exists
+  //         // console.error(`Removing polygon ${doc.id}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
+  //         mapInstance.removeLayer(sourceId);
+  //         mapInstance.removeSource(sourceId);
+  //         return;
+  //       }
+
+  //       // Add the polygon layer
+  //       mapInstance.addSource(sourceId, {
+  //         type: "geojson",
+  //         data: polygonFeature,
+  //       });
+
+  //       mapInstance.addLayer({
+  //         id: sourceId,
+  //         type: "fill",
+  //         source: sourceId,
+  //         paint: {
+  //           // fill light blue
+  //           "fill-color": "lightBlue" , // Highlight the polygon with a distinct color
+  //           "fill-opacity": 0.5,
+  //         },
+  //       });
+  //     });
+  //   });
+  // };
+
+  /* Combine all the GeoJSON data from the documents in a single FeatureCollection */
+  const getCombinedGeoJSONData = () => {
+    const features: any[] = [];
+  
     props.documents.forEach((doc) => {
       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-
-      if (doc.getCoordinates()?.getType() !== "POINT") {
-        return;
-      }
-
-      const pointCoords = doc.getCoordinates()?.getLatLng();
-
-      if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
-        console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
-        return;
-      }
+      const docId = doc.id;
+      const docTitle = doc.title;
+      const docDescription = doc.description;
   
-      const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
-        .setLngLat([pointCoords.lng, pointCoords.lat])
-        .addTo(mapInstance);
-
-      if(doc.id == props.pin){
-        const markerLngLat = marker.getLngLat();
-        mapInstance.fitBounds(
-          [
-            [markerLngLat.lng - 0.0001, markerLngLat.lat - 0.0001],
-            [markerLngLat.lng + 0.0001, markerLngLat.lat + 0.0001],
-          ],
-          {
-            padding: 20,
-            maxZoom: 12,
-          }
-        );
-      }
-  
-      markersRef.current.push({ id: doc.id, marker });
-  
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(
-          `<div style="font-size: 14px; color: black;">
-            <strong>${doc.title}</strong><br />
-            ${doc.description ? doc.description : "No description available."}
-          </div>`
-        );
-  
-      marker.getElement()?.addEventListener("click", (event) => {
-        event.preventDefault(); // Prevent default behavior
-      
-        if (pointCoords.lng !== null && pointCoords.lat !== null) {
-          popup.addTo(mapInstance).setLngLat([pointCoords.lng, pointCoords.lat]);
+      if (doc.getCoordinates()?.getType() === "POINT") {
+        const pointCoords = doc.getCoordinates()?.getLatLng();
+        if (pointCoords && pointCoords.lat !== null && pointCoords.lng !== null) {
+          features.push({
+            type: "Feature",
+            properties: {
+              id: docId,
+              title: docTitle,
+              description: docDescription,
+              type: "point", // Add a type to distinguish
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [pointCoords.lng, pointCoords.lat],
+            },
+          });
         }
-      
-        if (props.pin !== doc.id) {  
-          props.setNewPin(doc.id);
-        } else if (props.pin !== 0) {
-          props.setNewPin(0);
-        }
-      });
+      } else if (doc.getCoordinates()?.getType() === "POLYGON") {
+        // Calculate centroid of the polygon
+        const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
+        if (polygonCoords && polygonCoords.length > 0) {
+          const polygonFeature = turf.polygon(polygonCoords);
+          const centroid = turf.centroid(polygonFeature);
+          const centroidCoords = centroid.geometry.coordinates;
   
-      marker.on('dragend', (e) => {
-        const currentLngLat = e.target.getLngLat();
-        const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat, currentLngLat.lng));
-        if(booleanPointInPolygon(point([currentLngLat.lng,currentLngLat.lat]),props.geojson.features[0])){
-          setCoordinatesInfo({ id: doc.id, coordinates: coordinates });
-        }else{
-          setError('Marker out of Kiruna municipality')
+          features.push({
+            type: "Feature",
+            properties: {
+              id: docId,
+              title: docTitle,
+              description: docDescription,
+              type: "centroid", // Add a type to distinguish
+              polygon: polygonFeature, // Include the polygon data
+            },
+            geometry: {
+              type: "Point",
+              coordinates: centroidCoords,
+            },
+          });
         }
-        setConfirmChanges(true);
-      });
+      }
     });
+  
+    return {
+      type: "FeatureCollection",
+      features: features,
+    };
   };
 
+  /* Use Effect for adding the markers and polygons at the same time to the map. This way we allow for clustering */
   useEffect(() => {
-    /*if (!markersRef.current) return;
-    const selectedMarker = markersRef.current.find((item) => item.id === props.pin);
-    if (selectedMarker?.marker.getElement()) {
-      markersRef.current.forEach((item) => {
-        if (item.marker.getElement()) {
-          item.marker.getElement().style.transform = 'scale(1)';
-        }
-      });
-      selectedMarker.marker.getElement().style.transform = 'scale(2)';
-    }*/
-   if(!map) return;
-    addMarkersToMap(map);
-    addPolygonsToMap(map);
-  }, [props.pin]);
+    if (!map) return;
   
+    const combinedGeoJSON = getCombinedGeoJSONData() as FeatureCollection;
+  
+    // Check if source already exists and update it; otherwise, add it
+    if (map.getSource('documents')) {
+      (map.getSource('documents') as mapboxgl.GeoJSONSource).setData(combinedGeoJSON);
+    } else {
+      map.addSource('documents', {
+        type: 'geojson',
+        data: combinedGeoJSON,
+        cluster: true,
+        // TODO: modify the vaules below to fine-tune clustering zoom iintended
+        clusterMaxZoom: 14, 
+        clusterRadius: 50,  
+      });
+  
+      // Add cluster circle layer
+      map.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'documents',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#51bbd6',
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20,  // Size of clusters with fewer than 100 points
+            10,
+            30,  // Size of clusters with 100-750 points
+          ],
+        },
+      });
+  
+      // Add cluster count layer
+      map.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'documents',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-size': 12,
+        },
+      });
+  
+      // Add unclustered point layer
+      map.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'documents',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': [
+            'match',
+            ['get', 'type'],
+            'point',
+            'red',
+            'centroid',
+            'blue',
+            'gray', // Fallback color
+          ],
+          'circle-radius': 8,
+        },
+      });
+    }
+  
+    // Event handlers
+    map.on('click', 'clusters', (e) => {
+      const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+      const clusterId = features[0].properties?.cluster_id;
+      (map.getSource('documents') as mapboxgl.GeoJSONSource).getClusterExpansionZoom(
+        clusterId,
+        (err, zoom) => {
+          if (err) return;
+          map.easeTo({
+            center: (features[0].geometry as any).coordinates,
+            zoom: zoom as any,
+          });
+        }
+      );
+    });
+  
+    map.on('click', 'unclustered-point', (e) => {
+      const features = e.features as mapboxgl.MapboxGeoJSONFeature[];
+      const feature = features[0];
+      const coordinates = (feature.geometry as any).coordinates.slice();
+      const { id, title, description } = feature.properties as any;
+    
+      // Remove the existing popup if any
+      if (currentPopup) {
+        currentPopup.remove();
+      }
+    
+      // Create a new popup
+      // Only show the title for cleaner look. Need to open side window for more details
+      const popup = new mapboxgl.Popup()
+        .setLngLat(coordinates)
+        .setHTML(
+          `<div style="font-size: 14px; color: black; padding: 10px; border-radius: 5px; background-color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+            <strong style="font-size: 16px; color: #333;">${title}</strong><br />
+          </div>`
+        )
+        .addTo(map);
+    
+      // Update the current popup reference
+      setCurrentPopup(popup);
+    
+      // Toggle the selected pin
+      if (props.pin !== id) {
+        props.setNewPin(id);
+      }
+    });
+  
+    map.on('mouseenter', 'clusters', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'clusters', () => {
+      map.getCanvas().style.cursor = '';
+    });
+  
+    map.on('mouseenter', 'unclustered-point', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'unclustered-point', () => {
+      map.getCanvas().style.cursor = '';
+    });
+  
+    // Cleanup event listeners on unmount
+    return () => {
+      if (map) {
+        map.off('click', 'clusters', () => {});
+        map.off('click', 'unclustered-point', () => {});
+      }
+    };
+  
+  }, [map, props.documents, confirmChanges]);
 
+  /* Use Effect for handling the zooming to the point or polygon */
+  useEffect(() => {
+    if (!map) return;
+  
+    if (props.pin === 0) {
+      // Hide all polygons when no pin is selected
+      // console.error('No pin selected. Hiding polygons.');
+      hidePolygons(map);
+      return;
+    }
+  
+    const combinedGeoJSON = getCombinedGeoJSONData();
+  
+    const feature = combinedGeoJSON.features.find(f => f.properties.id === props.pin);
+  
+    if (feature) {
+      const coordinates = feature.geometry.coordinates;
+  
+      if (feature.properties.type === 'point') {
+        // Zoom to point
+        map.flyTo({
+          center: coordinates,
+          zoom: 14,
+          essential: true,
+        });
+        // Hide any displayed polygons
+        hidePolygons(map);
+      } else if (feature.properties.type === 'centroid') {
+        // Hide existing polygons before showing the new one
+        hidePolygons(map);
+  
+        // Zoom to polygon bounds
+        const polygonFeature = feature.properties.polygon;
+  
+        const bbox = turf.bbox(polygonFeature);
+        map.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], {
+          padding: 20,
+        });
+  
+        // Display the polygon
+        const sourceId = `polygon-${props.pin}`;
+        if (!map.getSource(sourceId)) {
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: polygonFeature,
+          });
+  
+          map.addLayer({
+            id: sourceId,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+              'fill-color': 'lightBlue',
+              'fill-opacity': 0.5,
+            },
+          });
+        }
+      }
+    }
+  }, [map, props.pin]);
+
+  /* Function to handle the dragging of markers */
   const handleDrag = async (id:number,coordinates:Coordinates) => {
     if(coordinatesInfo && error==''){
       await API.updateCoordinates(id,coordinates);
@@ -242,112 +589,131 @@ const Map: React.FC<MapProps> = (props) => {
     setConfirmChanges(false)
   }
 
-  const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("Adding polygons to map as points:", props.documents);
-
-    centroidsRef.current.forEach((centroid) => centroid?.remove());
-    centroidsRef.current = [];
-
-    props.documents.forEach((doc) => {
-      doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-      if (doc.getCoordinates()?.getType() !== "POLYGON") {
-        return; // Skip non-POLYGON documents
-      }
-
-      const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
-      if (!polygonCoords || polygonCoords.length === 0) {
-        console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
-        return;
-      }
-
-      // Calculate the centroid of the polygon
-      const polygonFeature = turf.polygon(polygonCoords);
-      const centroid = turf.centroid(polygonFeature);
-
-      const centroidCoords = centroid.geometry.coordinates;
-
-      console.log("add marker")
-      // Add marker at the centroid
-      const marker = new mapboxgl.Marker({ color: "blue" })
-        .setLngLat(centroidCoords as [number, number])
-        .addTo(mapInstance);
-
-      centroidsRef.current.push(marker);
-
-
-      if(props.pin == doc.id){
-        // Zoom to the polygon
-        console.error(`Zooming to polygon ${props.pin}`);
-        mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
-          padding: 20,
-        });
-      }
-  
-      // Marker click handler to display the polygon
-      marker.getElement()?.addEventListener("click", () => {
-        console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
-
-        if(props.pin!=doc.id){
-          props.setNewPin(doc.id)
-        }
-        const sourceId = `polygon-${doc.id}`;
-        if (mapInstance.getSource(sourceId)) {
-          // Remove the polygon if it already exists
-          // console.error(`Removing polygon ${doc.id}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
-          mapInstance.removeLayer(sourceId);
-          mapInstance.removeSource(sourceId);
-          return;
-        }
-
-        // Add the polygon layer
-        mapInstance.addSource(sourceId, {
-          type: "geojson",
-          data: polygonFeature,
-        });
-
-        mapInstance.addLayer({
-          id: sourceId,
-          type: "fill",
-          source: sourceId,
-          paint: {
-            // fill light blue
-            "fill-color": "lightBlue" , // Highlight the polygon with a distinct color
-            "fill-opacity": 0.5,
-          },
-        });
-      });
-    });
-  };
-
+  /* Use Effect for handling the dragging of markers */
   useEffect(() => {
     if (!map) return;
-
-    const handleStyleLoad = () => {
-      console.log("Style loaded; adding markers and polygons.");
-      addMarkersToMap(map);
-      addPolygonsToMap(map);
+  
+    const combinedGeoJSON = getCombinedGeoJSONData() as FeatureCollection;
+  
+    let isDragging = false;
+    let draggedFeature: any = null;
+  
+    const onMouseDown = (e: mapboxgl.MapMouseEvent) => {
+      if (e.features && e.features.length && !isDragging) {
+        const feature = e.features[0];
+  
+        // Check if the feature is of type 'point'
+        if (feature.layer?.id === 'unclustered-point' && feature.properties?.type === 'point' && e.originalEvent.ctrlKey && props.isLoggedIn) {
+          e.preventDefault();
+  
+          isDragging = true;
+          draggedFeature = feature;
+  
+          // Change the cursor to indicate dragging
+          map.getCanvas().style.cursor = 'grabbing';
+        }
+      }
     };
-
-    map.on("styledata", handleStyleLoad);
-
+  
+    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (!isDragging || !draggedFeature) return;
+  
+      e.preventDefault();
+  
+      const coords = [e.lngLat.lng, e.lngLat.lat];
+  
+      // Update the feature's geometry in the source data
+      const featureId = draggedFeature.properties.id;
+  
+      // Update the combinedGeoJSON data
+      const updatedFeatures = combinedGeoJSON.features.map((f) => {
+        if (f.properties?.id === featureId) {
+          return {
+            ...f,
+            geometry: {
+              ...f.geometry,
+              coordinates: coords,
+            },
+          };
+        }
+        return f;
+      });
+  
+      // Update the source data
+      (map.getSource('documents') as mapboxgl.GeoJSONSource).setData({
+        ...combinedGeoJSON,
+        features: updatedFeatures,
+      });
+    };
+  
+    const onMouseUp = (e: mapboxgl.MapMouseEvent) => {
+      if (!isDragging || !draggedFeature) return;
+  
+      e.preventDefault();
+  
+      isDragging = false;
+      map.getCanvas().style.cursor = '';
+  
+      const finalCoords = [e.lngLat.lng, e.lngLat.lat];
+  
+      // Create new Coordinates instance
+      const newCoordinates = new Coordinates(
+        CoordinatesType.POINT,
+        new CoordinatesAsPoint(finalCoords[1], finalCoords[0])
+      );
+  
+      // Check if the new point is within the allowed area
+      if (booleanPointInPolygon(point(finalCoords), props.geojson.features[0])) {
+        setCoordinatesInfo({ id: draggedFeature.properties.id, coordinates: newCoordinates });
+      } else {
+        setError('Marker out of Kiruna municipality');
+      }
+      setConfirmChanges(true);
+  
+      draggedFeature = null;
+      setDraggedFeatureId(null);
+    };
+  
+    // Add event listeners
+    map.on('mousedown', 'unclustered-point', onMouseDown);
+    map.on('mousemove', onMouseMove);
+    map.on('mouseup', onMouseUp);
+  
+    // Change the cursor to a pointer when over unclustered-point
+    map.on('mouseenter', 'unclustered-point', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+  
+    map.on('mouseleave', 'unclustered-point', () => {
+      if (!isDragging) {
+        map.getCanvas().style.cursor = '';
+      }
+    });
+  
+    // Cleanup on unmount
     return () => {
-      map.off("styledata", handleStyleLoad);
+      map.off('mousedown', 'unclustered-point', onMouseDown);
+      map.off('mousemove', onMouseMove);
+      map.off('mouseup', onMouseUp);
+      map.off('mouseenter', 'unclustered-point', () => {});
+      map.off('mouseleave', 'unclustered-point', () => {});
     };
   }, [map, props.documents]);
 
-  useEffect(() => {
-    if (!map || !props.documents) return;
+  // useEffect(() => {
+  //   if (!map || !props.documents) return;
 
-    // Re-add markers and polygons whenever the map style changes
-    addMarkersToMap(map);
-    addPolygonsToMap(map);
-  }, [map, mapStyle, props.documents]);
+  //   // Re-add markers and polygons whenever the map style changes
+  //   addMarkersToMap(map);
+  //   addPolygonsToMap(map);
+  // }, [map, mapStyle, props.documents]);
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
     if (props.adding || props.updating) {
       const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
       props.setCoordMap(c);
     }
+    props.setNewPin(0);
   }, [props.adding, props.updating, props.setCoordMap]);
 
 
@@ -383,14 +749,16 @@ const Map: React.FC<MapProps> = (props) => {
               <button style={buttonStyle} onClick={() => {
                 setConfirmChanges(false);
                 if (!map) return;
-                addMarkersToMap(map)
+                // addMarkersToMap(map)
+                // TODO: Consider adding some state update here if update isn't visualized immediately
               }}>Cancel</button></>
             :
             <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
               setConfirmChanges(false);
               setError('')
               if (!map) return;
-              addMarkersToMap(map)
+              // addMarkersToMap(map)
+              // TODO: Consider adding some state update here if update isn't visualized immediately
             }}>Go back</button></>}
         </div>
       </div>}
