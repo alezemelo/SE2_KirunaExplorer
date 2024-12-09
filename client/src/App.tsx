@@ -5,7 +5,7 @@ import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import Login from "./components/Login/Login";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
-import { Coordinates } from "./models/coordinates";
+import { Coordinates, CoordinatesAsPolygon } from "./models/coordinates";
 import "./App.css";
 import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -22,7 +22,7 @@ function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
   const [pin, setNewPin] = useState(0);
-  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined);
+  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined);  //it is used only for points
   const [adding, setAdding] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -38,6 +38,8 @@ function App() {
 
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [polygon, setPolygon] = useState<CoordinatesAsPolygon>()  //it is only used for polygon 
 
 
 // Handle the location selected from the map
@@ -149,6 +151,12 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
     renderMunicipality();
   },[])
 
+  useEffect(() => {
+    if(pin!=0 && !isDocumentListOpen){
+      setIsDocumentListOpen(true);
+    }
+  },[pin])
+
   return (
     <>
       <CssBaseline />
@@ -185,7 +193,10 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                       user={user}
                       isMunicipalityChecked = {isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
-                      
+                      drawing={drawing}
+                    setDrawing={setDrawing}
+                    polygon={polygon}
+                    setPolygon={setPolygon}
                     />
                   </Grid>
                 )}
@@ -222,6 +233,9 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                     isSelectingLocation={isSelectingLocation}
                     onLocationSelected={handleMapLocationSelected}
                     updating={updating}
+                    drawing={drawing}
+                    setDrawing={setDrawing}
+                    setPolygon={setPolygon}
                   />
                 </Grid>
               </Grid>

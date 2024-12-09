@@ -282,11 +282,15 @@ import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 import API from "../../API";
 import * as fs from 'fs'
 import { lightBlue } from "@mui/material/colors";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import "mapbox-gl/dist/mapbox-gl.css";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { Coordinates as CoordinatesLocal } from "../../type";
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -307,6 +311,9 @@ interface MapProps {
   setCoordMap: any;
   geojson: any;
   fetchDocuments: any;
+  drawing: boolean;
+  setDrawing: any;
+  setPolygon: any;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -335,12 +342,61 @@ const Map: React.FC<MapProps> = (props) => {
       map.resize();
     }
   }, [props.isDocumentListOpen]);
+
+  useEffect(() => {
+
+    if (!map) return;
+
+    if(props.drawing){
+      const draw = new MapboxDraw({
+        displayControlsDefault: false, 
+        controls: {
+          polygon: true, 
+          trash: true, 
+        },
+        defaultMode: "draw_polygon", 
+      });
+
+      if (map.getSource("mapbox-gl-draw-cold")) {
+        map.removeControl(draw); 
+      }
+  
+      map.on("draw.create", (e: any) => {
+        const features = e.features;
+        const geojsondata =  features[0].geometry.coordinates[0];
+        const data:CoordinatesAsPoint[] = []
+        for(let i=0;i<geojsondata.length;i++){
+          data.push(new CoordinatesAsPoint(geojsondata[i][1], geojsondata[i][0]));
+        }
+        const coord = new CoordinatesAsPolygon(data);
+        console.log(coord)
+        props.setPolygon(data);
+        props.setDrawing(false);
+        map.removeControl(draw);
+      });
+  
+      /*map.on("draw.update", (e: any) => {
+        const features = e.features;
+        console.log("Poligono aggiornato:", features);
+      });
+  
+      map.on("draw.delete", (e: any) => {
+        const features = e.features;
+        console.log("Poligono eliminato:", features);
+      });
+  */
+      map?.addControl(draw)
+
+    }
+
+
+  }, [props.drawing]);
   
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
       const newStyle =
         prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-          ? "mapbox://styles/mapbox/traffic-night-v2"
+          ? "mapbox://styles/mapbox/traffic-day-v2"
           : "mapbox://styles/mapbox/satellite-streets-v11";
 
       setButtonText(
@@ -407,8 +463,9 @@ const Map: React.FC<MapProps> = (props) => {
         console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
         return;
       }
+
   
-      const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
+      const marker = new mapboxgl.Marker({color: 'red', draggable: true })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
 
@@ -513,9 +570,11 @@ const Map: React.FC<MapProps> = (props) => {
 
       console.log("add marker")
       // Add marker at the centroid
-      const marker = new mapboxgl.Marker({ color: "blue" })
-        .setLngLat(centroidCoords as [number, number])
-        .addTo(mapInstance);
+  
+      const marker = new mapboxgl.Marker({ color: 'blue', draggable: true })
+      .setLngLat(centroidCoords as [number, number])
+      .addTo(mapInstance);
+        
 
       centroidsRef.current.push(marker);
 
@@ -587,11 +646,12 @@ const Map: React.FC<MapProps> = (props) => {
   }, [map, mapStyle, props.documents]);
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
-    if (props.adding || props.updating) {
+    console.log(props.drawing)
+  if((props.adding || props.updating) && !props.drawing) {
       const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
       props.setCoordMap(c);
     }
-  }, [props.adding, props.updating, props.setCoordMap]);
+  }, [props.adding, props.updating, props.setCoordMap, props.drawing]);
 
   const overlayStyle: React.CSSProperties = {
     position: 'fixed',
@@ -674,6 +734,7 @@ const Map: React.FC<MapProps> = (props) => {
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
           <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>
+
       </ReactMapGL>
     </div>
   );
