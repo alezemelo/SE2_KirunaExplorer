@@ -21,8 +21,8 @@ function App() {
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
-  const [pin, setNewPin] = useState(0);
-  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined);  //it is used only for points
+  const [pin, setPin] = useState(0);
+  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined); //it is used only for points
   const [adding, setAdding] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -35,18 +35,16 @@ function App() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
   const [geojson, setGeojson] = useState(null);
-
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [polygon, setPolygon] = useState<CoordinatesAsPolygon>()  //it is only used for polygon 
 
-
-// Handle the location selected from the map
-const handleMapLocationSelected = (lat: number, lng: number) => {
-  setCoordMap({ lat, lng });
-  setIsSelectingLocation(false);
-};
+  // Handle the location selected from the map
+  const handleMapLocationSelected = (lat: number, lng: number) => {
+    setCoordMap({ lat, lng });
+    setIsSelectingLocation(false);
+  };
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -77,13 +75,13 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
 
   const toggleDocumentList = () => {
     setIsDocumentListOpen((prev) => !prev);
-    setNewPin(0);
+    setPin(0);
   };
 
   const handleSearch = async () => {
     try {
       if (searchQuery.trim()) {
-        const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery,true) : await API.searchDocumentsByTitle(searchQuery);
+        const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery, true) : await API.searchDocumentsByTitle(searchQuery);
         setDocuments(matchingDocs);
       } else {
         fetchDocuments();
@@ -141,21 +139,25 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
     }
   };
 
-  
-  useEffect(()=>{
-    const renderMunicipality = async() => {
+  useEffect(() => {
+    const renderMunicipality = async () => {
       const res = await fetch('KirunaMunicipality.geojson');
       const data = await res.json();
       setGeojson(data);
     }
     renderMunicipality();
-  },[])
+  }, []);
 
-  useEffect(() => {
-    if(pin!=0 && !isDocumentListOpen){
-      setIsDocumentListOpen(true);
+  // Modified setNewPin function
+  const setNewPinWithScroll = (docId: any) => {
+    setPin(docId);
+    if (docId !== 0) {
+      const element = document.getElementById(`doc-${docId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
-  },[pin])
+  };
 
   return (
     <>
@@ -164,7 +166,7 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
         <Route
           path="/"
           element={
-            <div className="container">
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
               <Header
                 onToggleDocumentList={toggleDocumentList}
                 loggedIn={loggedIn}
@@ -173,9 +175,9 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                 setSearchQuery={setSearchQuery}
                 searchQuery={searchQuery}
               />
-              <Grid container spacing={0} style={{ height: "100vh", width: "100%", margin: 0, padding: 0 }}>
+              <Grid container sx={{ flex: 1, overflow: 'hidden' }}>
                 {isDocumentListOpen && (
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={4} sx={{ overflow: 'auto' }}>
                     <DocumentList
                       geojson={geojson}
                       updating={updating}
@@ -184,14 +186,14 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                       setDocuments={setDocuments}
                       fetchDocuments={fetchDocuments}
                       pin={pin}
-                      setNewPin={setNewPin}
+                      setNewPin={setNewPinWithScroll}
                       coordMap={coordMap}
                       setCoordMap={setCoordMap}
                       adding={adding}
                       setAdding={setAdding}
                       loggedIn={loggedIn}
                       user={user}
-                      isMunicipalityChecked = {isMunicipalityChecked}
+                      isMunicipalityChecked={isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
                       drawing={drawing}
                     setDrawing={setDrawing}
@@ -218,28 +220,28 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
                     {isDocumentListOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
                   </Button>
                 </Box>
-
-                <Grid item xs={12} md={isDocumentListOpen ? 8 : 12}>
-                  <Map
-                    fetchDocuments={fetchDocuments}
-                    geojson={geojson}
-                    pin={pin}
-                    setNewPin={setNewPin}
-                    setCoordMap={setCoordMap}
-                    adding={adding}
-                    //setAdding={setAdding}
-                    documents={documents}
-                    isDocumentListOpen={isDocumentListOpen} // Pass the state to Map
-                    isSelectingLocation={isSelectingLocation}
-                    onLocationSelected={handleMapLocationSelected}
-                    updating={updating}
+                <Grid item xs={12} md={isDocumentListOpen ? 8 : 12} sx={{ overflow: 'hidden' }}>
+                  <Box sx={{ height: '100%', width: '100%', overflow: 'hidden', position: 'relative' }}>
+                    <Map
+                      fetchDocuments={fetchDocuments}
+                      geojson={geojson}
+                      pin={pin}
+                      setNewPin={setNewPinWithScroll}
+                      setCoordMap={setCoordMap}
+                      adding={adding}
+                      documents={documents}
+                      isDocumentListOpen={isDocumentListOpen}
+                      isSelectingLocation={isSelectingLocation}
+                      onLocationSelected={handleMapLocationSelected}
+                      updating={updating}
                     drawing={drawing}
                     setDrawing={setDrawing}
                     setPolygon={setPolygon}
-                  />
+                    />
+                  </Box>
                 </Grid>
               </Grid>
-            </div>
+            </Box>
           }
         />
         <Route
@@ -258,4 +260,3 @@ const handleMapLocationSelected = (lat: number, lng: number) => {
 }
 
 export default App;
-

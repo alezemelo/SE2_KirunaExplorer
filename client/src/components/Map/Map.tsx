@@ -493,15 +493,17 @@ const Map: React.FC<MapProps> = (props) => {
           </div>`
         );
   
-      marker.getElement()?.addEventListener("click", () => {
+      marker.getElement()?.addEventListener("click", (event) => {
+        event.preventDefault(); // Prevent default behavior
+      
         if (pointCoords.lng !== null && pointCoords.lat !== null) {
           popup.addTo(mapInstance).setLngLat([pointCoords.lng, pointCoords.lat]);
         }
+      
         if (props.pin !== doc.id) {  
           props.setNewPin(doc.id);
-        }
-        else if(props.pin!=0){
-          props.setNewPin(0)
+        } else if (props.pin !== 0) {
+          props.setNewPin(0);
         }
       });
   

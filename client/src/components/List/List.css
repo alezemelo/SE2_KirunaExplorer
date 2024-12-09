@@ -1,10 +1,11 @@
 /* List.css */
 
-.container {
+.container-list {
   padding: 20px; /* Added uniform padding for better spacing */
-  background-color: #0d1117; /* Slightly softer black background */
+  background-color: black; /* Slightly softer black background */
   color: #c9d1d9; /* Muted white text for a modern look */
   font-family: "Roboto", sans-serif; /* Clean font for readability */
+  height: 100vh;
 }
 
 .scrollable-list {
