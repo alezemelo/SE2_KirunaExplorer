@@ -104,16 +104,15 @@ const Login: React.FC<LoginPageProps> = (props) => {
               />
 
               <Box mt={2} display="flex" justifyContent="space-between">
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => {
-                  props.setMessage(null); // Clear the message
-                  navigate('../'); // Navigate back
-                }}
-              >
-                Back
-              </Button>
+                <Button
+                  variant="contained" color="error"
+                  onClick={() => {
+                    props.setMessage(null); // Clear the message
+                    navigate('/map'); // Navigate back
+                  }}
+                >
+                  Back
+                </Button>
                 <Button variant="contained" color="success" type="submit">
                   Enter
                 </Button>

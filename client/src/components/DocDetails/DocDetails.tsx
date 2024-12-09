@@ -521,15 +521,15 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                 props.handleSearchLinking();
                 props.onLink()
               }}>
-                Link Document
+                New Connection
               </Button>
             </>
           )}
 
-          {/* Link Document or Edit Description Button */}
+          {/* New Connection or Edit Description Button */}
           {/*pin==document.id && (!showDescription && !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
-              Link Document
+              New Connection
             </Button>
           ) : !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={toggleEditDescription}>

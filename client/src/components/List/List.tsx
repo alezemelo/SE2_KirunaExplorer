@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // List.tsx
 import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
@@ -203,7 +204,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       console.error("Error adding doctype:", error);
       if (error.message.includes("already exists")) {
         setDoctypeMessage("Failed to add Document Type. It already exists.");
-      } else if (error.message.includes("Invalid")){
+      } else if (error.message.includes("Invalid")) {
         setDoctypeMessage("Document type names must not be empty")
       } else {
         setDoctypeMessage("An error occurred while adding the stakeholder.")
@@ -211,30 +212,68 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   };
 
+
   const handleAddNewScale = async () => {
-    if (!newScale.trim()) {
+
+    const trimmedScale = newScale.trim();
+
+
+    if (!trimmedScale) {
       setScaleMessage("Scale value cannot be empty.");
       return;
     }
 
+
+    if (!/^\d+:\d+$/.test(trimmedScale)) {
+      setScaleMessage("Invalid format. Scale must be formatted like '1:integer_number'.");
+      return;
+    }
+
+
+    if (scaleOptions.includes(trimmedScale)) {
+      // Set the document scale to the existing scale
+      setNewDocument((prev) => ({ ...prev, scale: trimmedScale }));
+      
+      setNewScale("");
+    
+      setScaleMessage("This scale already exists and has been selected from the list.");
+      return;
+    }
+
+
+    if (trimmedScale.includes("Text")) {
+      setScaleMessage("Invalid format. Scale must be formatted like '1:integer_number' without text.");
+      return;
+    }
+
+
+    const [_, secondPart] = trimmedScale.split(":");
+    if (secondPart.includes(".")) {
+      setScaleMessage("Invalid format. Scale must be formatted like '1:integer_number' without decimals.");
+      return;
+    }
+
+
     try {
-      const response = await API.addScale({ value: newScale.trim() });
+      const response = await API.addScale({ value: trimmedScale });
       if (response.status === 201) {
-        setScaleOptions((prev) => [...prev, newScale.trim()]);
+        setScaleOptions((prev) => [...prev, trimmedScale]);
         setNewScale("");
         setScaleMessage("Scale added successfully!");
       }
     } catch (error: any) {
       console.error("Error adding scale:", error);
+
       if (error.message.includes("already exists")) {
         setScaleMessage("Failed to add scale. It already exists.");
       } else if (error.message.includes("Invalid")) {
-        setScaleMessage("Scale must be formatted like 1:integer_number and must not be empty.")
+        setScaleMessage("Scale must be formatted like '1:integer_number'.");
       } else {
-        setScaleMessage("An error occurred while adding the scale.")
+        setScaleMessage("An error occurred while adding the scale.");
       }
     }
-  }
+  };
+
 
   const handleAddNewStakeholder = async () => {
     if (!newStakeholder.trim()) {
@@ -690,18 +729,19 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           props.setDocuments(t)
         }
         props.setIsMunicipalityChecked(true);
+        props.setNewPin(undefined);
       } else {
         await props.fetchDocuments();
         props.setIsMunicipalityChecked(false);
       }
     }
     else if (event.target.name == "coordinates_type") {
-
+      // probably not needed
     }
 
   }
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     if (itemRefs.current[props.pin]) {
@@ -848,7 +888,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               textTransform: "none",
               fontWeight: "bold",
             }}
-            onClick={async (e) => {
+            onClick={async () => {
               if (!newStakeholder.trim()) {
                 setStakeholderMessage("Stakeholder name cannot be empty.");
                 return;
@@ -927,10 +967,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             />
 
             {doctypeMessage &&
-            <Alert severity={doctypeMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
-              {doctypeMessage}
-            </Alert>
-          }
+              <Alert severity={doctypeMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+                {doctypeMessage}
+              </Alert>
+            }
 
             <Button
               variant="outlined"
@@ -970,9 +1010,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             />
 
             {scaleMessage &&
-            <Alert severity={scaleMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
-              {scaleMessage}
-            </Alert>
+              <Alert severity={scaleMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+                {scaleMessage}
+              </Alert>
             }
 
             <Button
@@ -1168,7 +1208,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
       {/* Linking Dialog */}
       <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
-        <DialogTitle>Link Document</DialogTitle>
+        <DialogTitle>New Connection</DialogTitle>
         <DialogContent>
           {/* Search Input */}
           <div className="search">
