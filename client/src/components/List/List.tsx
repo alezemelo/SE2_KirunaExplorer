@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // List.tsx
 import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
@@ -728,18 +729,19 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           props.setDocuments(t)
         }
         props.setIsMunicipalityChecked(true);
+        props.setNewPin(undefined);
       } else {
         await props.fetchDocuments();
         props.setIsMunicipalityChecked(false);
       }
     }
     else if (event.target.name == "coordinates_type") {
-
+      // probably not needed
     }
 
   }
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     if (itemRefs.current[props.pin]) {
@@ -886,7 +888,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               textTransform: "none",
               fontWeight: "bold",
             }}
-            onClick={async (e) => {
+            onClick={async () => {
               if (!newStakeholder.trim()) {
                 setStakeholderMessage("Stakeholder name cannot be empty.");
                 return;
