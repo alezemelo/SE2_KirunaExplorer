@@ -3,8 +3,9 @@ import React from "react";
 import { AppBar, Toolbar, Typography, Box, IconButton, InputBase, Button } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import LogoutIcon from '@mui/icons-material/Logout';
-import SearchIcon from '@mui/icons-material/Search'; // Import icon for search
-import MenuIcon from "@mui/icons-material/Menu"; // Import icon for toggle
+import SearchIcon from '@mui/icons-material/Search'; 
+import MenuIcon from "@mui/icons-material/Menu"; 
+import HomeIcon from '@mui/icons-material/Home';
 import { useNavigate } from "react-router-dom";
 import "./Header.css";
 
@@ -34,6 +35,9 @@ const Header: React.FC<Header> = (props) => {
           <Typography variant="h5" className="title" style={{ marginLeft: 8 }}>
             Kiruna Explorer
           </Typography>
+          <IconButton color="inherit" onClick={() => navigate('/')} edge="end" style={{ marginLeft: 'auto' }}>
+            <HomeIcon /> {/* Home button to navigate to / */}
+          </IconButton>
         </Box>
         <Box display="flex" alignItems="center">
           <Typography variant="h6" className="title">

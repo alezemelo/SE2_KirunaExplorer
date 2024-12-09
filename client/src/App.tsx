@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Header from "./components/Header/Header";
@@ -12,6 +13,8 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { User, Coordinates as CoordinatesLocal } from "./type";
 import { Document } from "./models/document";
+import LandingPage from "./components/LandingPage/LandingPage";
+import TimeDiagram from "./components/TimeDiagram/TimeDiagram";
 
 function App() {
   const [coordinates, setCoordinates] = useState<CoordinatesLocal>({
@@ -115,7 +118,7 @@ function App() {
         setLoggedIn(true);
         setUser(user || undefined);
         setMessage(null);
-        navigate("/");
+        navigate("/map");
       } else {
         setMessage({ msg: "Invalid credentials. Please try again.", type: "danger" });
       }
@@ -161,9 +164,9 @@ function App() {
     <>
       <CssBaseline />
       <Routes>
-        <Route
-          path="/"
-          element={
+      <Route path="/" element={<LandingPage />} />
+        <Route path="/map" element={
+          /* ====================== Map Component ====================== */
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
               <Header
                 onToggleDocumentList={toggleDocumentList}
@@ -234,7 +237,9 @@ function App() {
               </Grid>
             </Box>
           }
+          /* ====================== End Of Map Component ====================== */
         />
+        <Route path="/time-diagram" element={<TimeDiagram />} />
         <Route
           path="/login"
           element={
