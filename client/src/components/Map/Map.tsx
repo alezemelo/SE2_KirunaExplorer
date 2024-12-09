@@ -7,9 +7,12 @@ import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 import API from "../../API";
+import * as fs from 'fs'
+import { stringToColor } from "../../Utils/utils";
 import { lightBlue } from "@mui/material/colors";
 import overlayStyle from "../../ReactCssStyles";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import Legend from "./Legend";
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -160,8 +163,11 @@ const Map: React.FC<MapProps> = (props) => {
         console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
         return;
       }
+      
+      let pinColor = stringToColor(doc.type);
   
-      const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
+      const marker = new mapboxgl.Marker({ color: pinColor, draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
+      //const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
 
@@ -266,9 +272,12 @@ const Map: React.FC<MapProps> = (props) => {
 
       const centroidCoords = centroid.geometry.coordinates;
 
+      let pinColor = stringToColor(doc.type);
+
       console.log("add marker")
       // Add marker at the centroid
-      const marker = new mapboxgl.Marker({ color: "blue" })
+      const marker = new mapboxgl.Marker({ color: pinColor })
+      //const marker = new mapboxgl.Marker({ color: "blue" })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
 
@@ -422,6 +431,7 @@ const Map: React.FC<MapProps> = (props) => {
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
           <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>
+        <Legend documents={props.documents}/>
       </ReactMapGL>
     </div>
   );
