@@ -4,6 +4,7 @@
  * @returns the HEX value for the color
  */
 function stringToColor(str: string): string {
+    str = str.replace(/_doc[a-zA-Z0-9]*/, '').trim();
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);

@@ -6,7 +6,7 @@ function Legend(props: any) {
 
     const uniqueDocumentTypes = Array.from(
         new Set(props.documents.map((doc: any) => doc.type)) // Ensure the Set contains strings
-    ) as string[]; // Cast the resulting array to string[]
+    ).sort((a: any , b: any) => a.localeCompare(b)) as string[]; // Cast the resulting array to string[]
 
     return (
         <div className="legend">

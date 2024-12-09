@@ -180,19 +180,18 @@ class DocumentDAO {
 
     public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
         try {
-            let update_count;
-            if (newCoordinates.getType() === CoordinatesType.MUNICIPALITY) {
-                update_count = await dbUpdate('documents', { id: docId }, { coordinates_type: CoordinatesType.MUNICIPALITY, coordinates: null });
+            const newType = newCoordinates.getType();
+            const updateData: { coordinates_type: CoordinatesType; coordinates?: string | null } = { 
+                coordinates_type: newType 
+            };
+            if (newType === CoordinatesType.MUNICIPALITY) {
+                updateData.coordinates = null;
+            } else if (newType === CoordinatesType.POINT || newType === CoordinatesType.POLYGON) {
+                updateData.coordinates = newCoordinates.toGeographyString();
             } else {
-                if (newCoordinates.getType() !== CoordinatesType.POINT && newCoordinates.getType() !== CoordinatesType.POLYGON) {
-                    throw new Error("Invalid coordinates type. Shouldn't be possible");
-                }
-                const newType = newCoordinates.getType();
-                const newWktCoords = newCoordinates.toGeographyString();
-                update_count = await dbUpdate('documents', { id: docId }, { coordinates_type: newType, coordinates: newWktCoords });
+                throw new Error("Invalid coordinates type. Shouldn't be possible");
             }
-
-            return update_count;
+            return await dbUpdate('documents', { id: docId }, updateData);
         } catch (error) {
             console.error(error);
             throw error;
