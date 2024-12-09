@@ -82,7 +82,7 @@ Creates a new document
 
 #### PATCH `/kiruna_explorer/documents/:id/coordinates`
 
-Edits the coordinates of a document
+Edits the coordinates of a document, works with both single coordinate and polygon.
 
 - Request Parameters: `:id`, the doc id
 - Request Body Content:

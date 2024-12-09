@@ -129,7 +129,6 @@ class DocumentController {
 
     async updateCoordinates(id: number, coordinates: Coordinates): Promise<void> {
         try {
-            console.log(coordinates)
             const amount_updated = await this.dao.updateCoordinates(id, coordinates);
             if (amount_updated === 0) {
                 throw new DocumentNotFoundError([id]);
