@@ -217,9 +217,9 @@ class DocumentRoutes {
                         ) {
                             throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
                         }
-                    } else if (coordinates.type !== 'MUNICIPALITY') {
+                    } /*else if (coordinates.type !== 'MUNICIPALITY') {
                         throw new Error('Invalid coordinates type');
-                    }
+                    }*/
                     return true;
                 }),
             this.authService.isLoggedIn,

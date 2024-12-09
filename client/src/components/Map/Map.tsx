@@ -5,7 +5,7 @@ import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 import API from "../../API";
 import * as fs from 'fs'
 import { stringToColor } from "../../Utils/utils";
@@ -13,6 +13,10 @@ import { lightBlue } from "@mui/material/colors";
 import overlayStyle from "../../ReactCssStyles";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
 import Legend from "./Legend";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import "mapbox-gl/dist/mapbox-gl.css";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { Coordinates as CoordinatesLocal } from "../../type";
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -33,6 +37,9 @@ interface MapProps {
   setCoordMap: any;
   geojson: any;
   fetchDocuments: any;
+  drawing: boolean;
+  setDrawing: any;
+  setPolygon: any;
   isMunicipalityChecked: boolean;
 }
 
@@ -62,12 +69,61 @@ const Map: React.FC<MapProps> = (props) => {
       map.resize();
     }
   }, [props.isDocumentListOpen]);
+
+  useEffect(() => {
+
+    if (!map) return;
+
+    if(props.drawing){
+      const draw = new MapboxDraw({
+        displayControlsDefault: false, 
+        controls: {
+          polygon: true, 
+          trash: true, 
+        },
+        defaultMode: "draw_polygon", 
+      });
+
+      if (map.getSource("mapbox-gl-draw-cold")) {
+        map.removeControl(draw); 
+      }
+  
+      map.on("draw.create", (e: any) => {
+        const features = e.features;
+        const geojsondata =  features[0].geometry.coordinates[0];
+        const data:CoordinatesAsPoint[] = []
+        for(let i=0;i<geojsondata.length;i++){
+          data.push(new CoordinatesAsPoint(geojsondata[i][1], geojsondata[i][0]));
+        }
+        const coord = new CoordinatesAsPolygon(data);
+        console.log(coord)
+        props.setPolygon(data);
+        props.setDrawing(false);
+        map.removeControl(draw);
+      });
+  
+      /*map.on("draw.update", (e: any) => {
+        const features = e.features;
+        console.log("Poligono aggiornato:", features);
+      });
+  
+      map.on("draw.delete", (e: any) => {
+        const features = e.features;
+        console.log("Poligono eliminato:", features);
+      });
+  */
+      map?.addControl(draw)
+
+    }
+
+
+  }, [props.drawing]);
   
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
       const newStyle =
         prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-          ? "mapbox://styles/mapbox/traffic-night-v2"
+          ? "mapbox://styles/mapbox/traffic-day-v2"
           : "mapbox://styles/mapbox/satellite-streets-v11";
 
       setButtonText(
@@ -276,8 +332,7 @@ const Map: React.FC<MapProps> = (props) => {
 
       console.log("add marker")
       // Add marker at the centroid
-      const marker = new mapboxgl.Marker({ color: pinColor })
-      //const marker = new mapboxgl.Marker({ color: "blue" })
+      const marker = new mapboxgl.Marker({ color: "blue" })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
 
@@ -353,11 +408,12 @@ const Map: React.FC<MapProps> = (props) => {
   }, [map, mapStyle, props.documents]);
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
-    if (props.adding || props.updating) {
+    console.log(props.drawing)
+  if((props.adding || props.updating) && !props.drawing) {
       const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
       props.setCoordMap(c);
     }
-  }, [props.adding, props.updating, props.setCoordMap]);
+  }, [props.adding, props.updating, props.setCoordMap, props.drawing]);
 
 
   const modalStyle: React.CSSProperties = {
