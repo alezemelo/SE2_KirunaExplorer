@@ -217,9 +217,22 @@ class DocumentRoutes {
                         ) {
                             throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
                         }
-                    } /*else if (coordinates.type !== 'MUNICIPALITY') {
+                    } else if (coordinates.type === 'POLYGON') {
+                        if (coordinates.coords.coordinates.length < 4) {
+                            throw new Error('Invalid POLYGON coordinates: must have at least 4 coordinates');
+                        }
+                        coordinates.coords.coordinates.every((coord: any) => {
+                            if (
+                                !coord ||
+                                typeof coord.lat !== 'number' ||
+                                typeof coord.lng !== 'number'
+                            ) {
+                                throw new Error('Invalid POLYGON coordinates: lat and lng must be numbers');
+                            }
+                        })
+                    } else if (coordinates.type !== 'MUNICIPALITY') {
                         throw new Error('Invalid coordinates type');
-                    }*/
+                    }
                     return true;
                 }),
             this.authService.isLoggedIn,
