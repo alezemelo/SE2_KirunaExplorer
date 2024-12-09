@@ -231,6 +231,7 @@ function App() {
                       isSelectingLocation={isSelectingLocation}
                       onLocationSelected={handleMapLocationSelected}
                       updating={updating}
+                      isMunicipalityChecked={isMunicipalityChecked}
                     />
                   </Box>
                 </Grid>
