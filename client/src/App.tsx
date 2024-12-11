@@ -37,11 +37,23 @@ function App() {
   const [updating, setUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
+  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
+  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
+  const [openLinkDialog, setOpenLinkDialog] = useState(false);
+
+
+
   const [geojson, setGeojson] = useState(null);
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [polygon, setPolygon] = useState<CoordinatesAsPolygon>()  //it is only used for polygon 
+
+  const openLinkingDialog = (document: Document) => {
+    setCurrentDocument(document);
+    setOpenLinkDialog(true);
+
+  };
 
   // Handle the location selected from the map
   const handleMapLocationSelected = (lat: number, lng: number) => {
@@ -89,6 +101,27 @@ function App() {
       } else {
         fetchDocuments();
       }
+    } catch (error) {
+      console.error("Error searching documents:", error);
+    }
+  };
+  const handleSearchLinking = async () => {
+    try {
+      let matchingDocs = [];
+      if (searchQuery.trim()) {
+        // Fetch matching documents based on the search query
+        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+      } else {
+        // Default to all documents if no query
+
+        matchingDocs = documents;
+
+      }
+
+      // Exclude the current document
+      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== pin);
+      setLinkDocuments(filteredDocs);
+
     } catch (error) {
       console.error("Error searching documents:", error);
     }
@@ -182,6 +215,14 @@ function App() {
                 {isDocumentListOpen && (
                   <Grid item xs={12} md={4} sx={{ overflow: 'auto' }}>
                     <DocumentList
+                    setLinkDocuments={setLinkDocuments}
+                      OpenLinkingDialog={openLinkingDialog}
+                      setOpenLinkDialog={setOpenLinkDialog}
+                      currentDocument={currentDocument}
+                      setCurrentDocument={setCurrentDocument}
+                      handleSearchLinking={handleSearchLinking}
+                      linkDocuments={linkDocuments}
+                      openLinkDialog={openLinkDialog}
                       geojson={geojson}
                       updating={updating}
                       setUpdating={setUpdating}
@@ -261,7 +302,17 @@ function App() {
                     searchQuery={searchQuery}
                   />
           <TimeDiagram 
-                      documents={documents}
+                  documents={documents}
+                  loggedIn={loggedIn}
+                  user={user}
+                  fetchDocuments={fetchDocuments}
+                  pin={pin}
+                  setNewPin={setNewPinWithScroll}
+                  onLink={openLinkingDialog}
+                  handleSearchLinking={handleSearchLinking}
+                  updating={updating}
+                  setUpdating={setUpdating}
+                  
                       
                         
           />

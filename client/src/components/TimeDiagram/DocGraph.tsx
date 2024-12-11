@@ -23,14 +23,12 @@ import { Document } from "../../models/document";
 
 interface DocGraphProps {
   document: any;
-  onLink: () => void;
+  onLink: (document:Document) => void;
   fetchDocuments: () => Promise<void>;
   pin: number;
   setNewPin: any;
   updating: boolean,
   setUpdating: any;
-  newDocument: any;
-  setNewDocument: any;
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
@@ -358,7 +356,7 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
               <Button startIcon={<LinkIcon />} variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e) => {
                 e.stopPropagation();
                 props.handleSearchLinking();
-                props.onLink()
+                props.onLink(props.document);
               }}>
                 New Connection
               </Button>
