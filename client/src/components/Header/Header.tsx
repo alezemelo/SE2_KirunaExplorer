@@ -6,7 +6,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search'; 
 import MenuIcon from "@mui/icons-material/Menu"; 
 import HomeIcon from '@mui/icons-material/Home';
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./Header.css";
 
 interface Header {
@@ -20,10 +20,12 @@ interface Header {
 
 const Header: React.FC<Header> = (props) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLoginClick = () => {
     navigate("/login");
   };
+
 
   return (
     <AppBar position="static" sx={{ backgroundColor: "#000" }}>
@@ -39,6 +41,7 @@ const Header: React.FC<Header> = (props) => {
             <HomeIcon /> {/* Home button to navigate to / */}
           </IconButton>
         </Box>
+        {location.pathname === "/map" && (
         <Box display="flex" alignItems="center">
           <Typography variant="h6" className="title">
             Explore documents
@@ -69,6 +72,7 @@ const Header: React.FC<Header> = (props) => {
             </IconButton>
           </div>
         </Box>
+        )}
         <div>
           {props.loggedIn ? (
             <Button
