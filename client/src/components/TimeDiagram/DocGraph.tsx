@@ -19,6 +19,7 @@ import API from "../../API";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
 import FilePreview from "../DocDetails/FilePreview";
 import { Document } from "../../models/document";
+import { DocumentType } from "../../type";
 
 
 interface DocGraphProps {
@@ -32,6 +33,8 @@ interface DocGraphProps {
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
+  newDocument: DocumentType;
+  setNewDocument: React.Dispatch<React.SetStateAction<DocumentType>>;
 }
 
 const DocGraph: React.FC<DocGraphProps> = (props) => {
@@ -44,6 +47,8 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);

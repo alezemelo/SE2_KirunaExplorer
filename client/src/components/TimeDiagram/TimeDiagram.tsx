@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import React, { useRef, useEffect, useState } from 'react';
 import { User } from "../../type";
 import { Document } from "../../models/document";
+import {  DocumentType as DocumentLocal } from "../../type";
+
 import * as d3 from 'd3';
 import { NumberValue } from 'd3';
 import DocGraph from './DocGraph';
@@ -17,6 +19,8 @@ interface ScatterplotProps {
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
+  newDocument: DocumentLocal;
+  setNewDocument: React.Dispatch<React.SetStateAction<DocumentLocal>>;
 }
 
 const Scatterplot: React.FC<ScatterplotProps> = (props) => {
@@ -133,7 +137,10 @@ const Scatterplot: React.FC<ScatterplotProps> = (props) => {
       onLink={props.onLink}
       handleSearchLinking={props.handleSearchLinking}
       updating={props.updating}
-      setUpdating={props.setUpdating} />
+      setUpdating={props.setUpdating} 
+      newDocument={props.newDocument}
+      setNewDocument={props.setNewDocument}
+      />
       }
       <svg ref={svgRef} style={{ width: '100%', height: '500px', border: '1px solid black' }} />
       {tooltip && (

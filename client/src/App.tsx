@@ -6,21 +6,41 @@ import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import Login from "./components/Login/Login";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
-import { Coordinates, CoordinatesAsPolygon } from "./models/coordinates";
+import { Coordinates, CoordinatesAsPolygon, CoordinatesType } from "./models/coordinates";
 import "./App.css";
 import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { User, Coordinates as CoordinatesLocal } from "./type";
+import { User, Coordinates as CoordinatesLocal,  DocumentType as DocumentLocal } from "./type";
+
 import { Document } from "./models/document";
 import LandingPage from "./components/LandingPage/LandingPage";
 import TimeDiagram from "./components/TimeDiagram/TimeDiagram";
 
-function App() {
+const App: React.FC<any> = () => {
   const [coordinates, setCoordinates] = useState<CoordinatesLocal>({
     lat: 67.85572,
     lng: 20.22513,
   });
+
+  const reset = () => {
+    
+    return {
+      id: 0,
+      title: "",
+      stakeholders: "",
+      scale: "",
+      lastModifiedBy: "admin",
+      issuanceDate: "",
+      type: "informative_doc",
+      connection: [],
+      language: "English",
+      pages: 1,
+      description: "",
+      coordinates: new Coordinates(CoordinatesType.MUNICIPALITY, null)
+    }
+  } 
+
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
@@ -40,6 +60,8 @@ function App() {
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
+  const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
+
 
 
 
@@ -215,6 +237,9 @@ function App() {
                 {isDocumentListOpen && (
                   <Grid item xs={12} md={4} sx={{ overflow: 'auto' }}>
                     <DocumentList
+                    newDocument={newDocument}
+                    setNewDocument={setNewDocument}
+                    reset={reset}
                     setLinkDocuments={setLinkDocuments}
                       OpenLinkingDialog={openLinkingDialog}
                       setOpenLinkDialog={setOpenLinkDialog}
@@ -312,6 +337,8 @@ function App() {
                   handleSearchLinking={handleSearchLinking}
                   updating={updating}
                   setUpdating={setUpdating}
+                  newDocument={newDocument}
+                  setNewDocument={setNewDocument}
                   
                       
                         
