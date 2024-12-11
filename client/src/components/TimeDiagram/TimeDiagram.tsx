@@ -2,88 +2,129 @@ import dayjs from 'dayjs';
 import React, { useRef, useEffect, useState } from 'react';
 import { Document } from "../../models/document";
 import * as d3 from 'd3';
+import { NumberValue } from 'd3';
 
 interface ScatterplotProps {
   documents: Document[];
-  onDocumentClick: (docId: number) => void; // Callback function when a document is clicked
 }
 
 const Scatterplot: React.FC<ScatterplotProps> = (props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const [tooltip, setTooltip] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
 
-  // Define the function to handle document click event inside the component
+
+  const types = Array.from(new Set(props.documents.map(d => d.type || 'Unknown')));
+  const colorScale = d3.scaleOrdinal<string>()
+      .domain(types)
+      .range(d3.schemeCategory10); // Or any other color palette
   const onDocumentClick = (document: any) => {
-    // Here, you can set the selected document in the state
-    //setSelectedDocument(document);
-    // Optionally, do something with the selected document (e.g., open a modal)
     alert(`Document Clicked: ${document.title}`);
   };
 
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current);
-      const width = svg.node()!.getBoundingClientRect().width;
-      const height = svg.node()!.getBoundingClientRect().height;
+      const margin = { top: 20, right: 50, bottom: 50, left: 100 };
+      const width = svg.node()!.getBoundingClientRect().width - margin.left - margin.right;
+      const height = svg.node()!.getBoundingClientRect().height - margin.top - margin.bottom;
+      
 
-      // Clear the previous SVG contents before rendering the new scatterplot
+      // Clear the previous SVG contents
       svg.selectAll('*').remove();
 
-      // Create a Set to keep track of unique scales
-      let scales: Set<string> = new Set();  // Set to keep track of unique values
+      // Extract unique scales
+      const scales = Array.from(
+        new Set(props.documents.map(d => d.scale || 'Undefined'))
+      );
 
-      props.documents.forEach(item => {
-        if (item.scale) {
-          scales.add(item.scale);  // Add the item to the set
-        }
-      });
-
-      scales.add('Undefined'); // Add an entry for undefined values
-
-      // Create scales for positioning the points
+      // Define X-Scale (time-based)
       const xScale = d3.scaleTime()
-        .domain([0, d3.max(props.documents, d => dayjs(d.issuanceDate)) || 1]) // Scale for X-axis
-        .range([0, width]);
+        .domain(d3.extent(props.documents, d => dayjs(d.issuanceDate).toDate()) as [Date, Date])
+        .range([50, width - 50]);
 
-      // Create the Y-scale using d3.scaleBand for categorical data
-      const yScale = d3.scaleBand(Array.from(scales), [0, height])
-        //.domain(Array.from(scales))
-        //.range([height, 0]);
+      // Define Y-Scale (categorical)
+      const yScale = d3.scaleBand()
+      .domain(scales)
+      .range([margin.top, height])
+      .padding(0.2);
+    
 
       // Add circles for each document
       svg.selectAll('circle')
         .data(props.documents)
         .enter()
         .append('circle')
-        .attr('cx', d => xScale(dayjs(d.issuanceDate))) // Set X position based on issuanceDate
-        .attr('cy', d => yScale(d.scale ? d.scale : 'Undefined')) // Set Y position based on scale
+        .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
+        .attr('cy', d => yScale(d.scale || 'Undefined')! + yScale.bandwidth() / 2)
         .attr('r', 8)
-        .attr('fill', 'steelblue')
+        .attr('fill', d => colorScale(d.type || 'Unknown'))        
         .attr('cursor', 'pointer')
-        .on('click', (event, d) => {
-          onDocumentClick(d.id); // Handle document click
-        })
+        .on('click', (event, d) => onDocumentClick(d))
         .on('mouseover', (event, d) => {
-          setTooltip(d.title); // Show title on hover
+          setTooltip({
+            x: event.pageX,
+            y: event.pageY,
+            content: d.title,
+          });
         })
-        .on('mouseout', () => {
-          setTooltip(null); // Hide title when mouse leaves
-        });
+        .on('mouseout', () => setTooltip(null));
 
-      // Optional: Add axes to the scatterplot (X and Y)
+      // Add X-axis
       svg.append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(xScale));
+      .attr('transform', `translate(0,${height})`)
+      .call(d3.axisBottom(xScale).tickFormat((domainValue: Date | NumberValue) => {
+        const date = domainValue instanceof Date ? domainValue : new Date(domainValue.valueOf());
+        return d3.timeFormat('%b %Y')(date);
+      }));
 
+
+      // Add Y-axis
       svg.append('g')
-        .call(d3.axisLeft(yScale));
+      .attr('transform', `translate(${margin.left},0)`)
+      .call(d3.axisLeft(yScale));
+
+      // Optional: Add a legend
+    const legend = svg.append('g')
+    .attr('transform', `translate(${width - 100},${margin.top})`);
+
+      types.forEach((type, i) => {
+        legend.append('circle')
+          .attr('cx', 0)
+          .attr('cy', i * 20)
+          .attr('r', 6)
+          .attr('fill', colorScale(type));
+        
+        legend.append('text')
+          .attr('x', 15)
+          .attr('y', i * 20 + 5)
+          .text(type)
+          .attr('font-size', '12px')
+          .attr('alignment-baseline', 'middle')
+          .attr('fill', 'white'); // Adjust for dark background
+      });
     }
+
   }, [props.documents]);
 
   return (
-    <div>
-      <svg ref={svgRef} width="100%" height="500px" />
-      {tooltip && <div style={{ position: 'absolute', background: 'white', padding: '5px', border: '1px solid black' }}>{tooltip}</div>}
+    <div style={{ position: 'relative' }}>
+      <svg ref={svgRef} style={{ width: '100%', height: '500px', border: '1px solid black' }} />
+      {tooltip && (
+        <div
+          style={{
+            position: 'absolute',
+            left: tooltip.x,
+            top: tooltip.y,
+            background: 'white',
+            color: 'black',
+            border: '1px solid black',
+            padding: '5px',
+            pointerEvents: 'none',
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 };

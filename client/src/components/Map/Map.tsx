@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
+import {Button, Typography } from "@mui/material";
+
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
@@ -417,46 +419,51 @@ const Map: React.FC<MapProps> = (props) => {
 
 
   const modalStyle: React.CSSProperties = {
-    backgroundColor: 'white',
+    backgroundColor: 'black',
+    color:'white',
     padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     textAlign: 'center',
   };
   
-  const buttonStyle: React.CSSProperties = {
-    padding: '10px 20px',
-    fontSize: '16px',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    margin: '5px',
-  };
 
   return (
     <div ref={mapRef} style={{ height: "100vh", width: "100%" }}>
       {confirmChanges && <div style={overlayStyle} >
         <div style={modalStyle}>
           {error == '' ?
-            <><h3>Do you want to change the coordinates of this document</h3>
-              <button style={buttonStyle} onClick={() => {
-                if (coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
-                  handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
-              }} >Confirm</button>
-              <button style={buttonStyle} onClick={() => {
+            <><Typography variant="h5">
+            <strong>Do you want to change the coordinates of this document?</strong>
+          </Typography> 
+              <Button variant="contained"
+                  component="span"
+                  color="error" 
+                  style={{marginRight: '10px',marginTop: '20px'}}
+                  onClick={() => {
                 setConfirmChanges(false);
                 if (!map) return;
                 addMarkersToMap(map)
-              }}>Cancel</button></>
+              }}>Cancel</Button>
+              <Button variant="contained"
+                  component="span"
+                  color="success"
+                  style={{marginTop: '20px'}}
+                  onClick={() => {
+                if (coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
+                  handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
+              }} >Confirm</Button></>
             :
-            <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
+            <><h3>{error}</h3><Button 
+            variant="contained"
+            component="span"
+            color="error"
+             onClick={() => {
               setConfirmChanges(false);
               setError('')
               if (!map) return;
               addMarkersToMap(map)
-            }}>Go back</button></>}
+            }}>Go back</Button></>}
         </div>
       </div>}
       <ReactMapGL
