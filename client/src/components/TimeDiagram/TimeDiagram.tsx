@@ -1,23 +1,37 @@
 import dayjs from 'dayjs';
 import React, { useRef, useEffect, useState } from 'react';
+import { User } from "../../type";
 import { Document } from "../../models/document";
 import * as d3 from 'd3';
 import { NumberValue } from 'd3';
+import DocGraph from './DocGraph';
 
 interface ScatterplotProps {
   documents: Document[];
+  onLink: (document: Document) => void;
+  fetchDocuments: () => Promise<void>;
+  pin: number;
+  setNewPin: any;
+  updating: boolean,
+  setUpdating: any;
+  loggedIn: boolean;
+  user: User | undefined;
+  handleSearchLinking: () => Promise<void>;
 }
 
 const Scatterplot: React.FC<ScatterplotProps> = (props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
-
+  const [popUp, setPopUp] = useState<Document | undefined>(undefined);
 
   const types = Array.from(new Set(props.documents.map(d => d.type || 'Unknown')));
+  
   const colorScale = d3.scaleOrdinal<string>()
       .domain(types)
       .range(d3.schemeCategory10); // Or any other color palette
-  const onDocumentClick = (document: any) => {
+
+  const onDocumentClick = (document: Document) => {
+    setPopUp(document);
     alert(`Document Clicked: ${document.title}`);
   };
 
@@ -108,6 +122,19 @@ const Scatterplot: React.FC<ScatterplotProps> = (props) => {
 
   return (
     <div style={{ position: 'relative' }}>
+      {popUp && 
+      <DocGraph 
+      document={props.documents}
+      loggedIn={props.loggedIn}
+      user={props.user}
+      fetchDocuments={props.fetchDocuments}
+      pin={props.pin}
+      setNewPin={props.setNewPin}
+      onLink={props.onLink}
+      handleSearchLinking={props.handleSearchLinking}
+      updating={props.updating}
+      setUpdating={props.setUpdating} />
+      }
       <svg ref={svgRef} style={{ width: '100%', height: '500px', border: '1px solid black' }} />
       {tooltip && (
         <div

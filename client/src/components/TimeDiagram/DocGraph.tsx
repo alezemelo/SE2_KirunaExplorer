@@ -17,18 +17,16 @@ import dayjs from "dayjs";
 import { User } from "../../type";
 import API from "../../API";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
-import FilePreview from "./FilePreview";
+import FilePreview from "../DocDetails/FilePreview";
 import { Document } from "../../models/document";
 
 
-interface DocDetailsProps {
+interface DocGraphProps {
   document: any;
   onLink: () => void;
   fetchDocuments: () => Promise<void>;
   pin: number;
   setNewPin: any;
-  /*docExpand?: number;
-  setDocExpand?:any;*/
   updating: boolean,
   setUpdating: any;
   newDocument: any;
@@ -38,7 +36,7 @@ interface DocDetailsProps {
   handleSearchLinking: () => Promise<void>;
 }
 
-const DocDetails: React.FC<DocDetailsProps> = (props) => {
+const DocGraph: React.FC<DocGraphProps> = (props) => {
   
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
@@ -152,33 +150,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     </Box>
   );
 
-  /*const handleLatChange = (event: React.ChangeEvent<HTMLInputElement>) => setLat(event.target.value);
-  const handleLngChange = (event: React.ChangeEvent<HTMLInputElement>) => setLng(event.target.value);*/
-
-  /*const handleSaveCoordinates = async () => {
-    if(lat && lng){
-      if (Number(lat) < -90 || Number(lat) > 90 || Number(lng) < -180 || Number(lng) > 180) {
-        console.error("Invalid coordinates");
-      } else {
-        /*try {
-          const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/coordinates`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lat: parseFloat(lat), lng: parseFloat(lng) }),
-          });
-
-          if (!response.ok) throw new Error("Error: " + response.statusText);
-          
-          await fetchDocuments();
-        } catch (error) {
-          console.error("Error:", error);
-        }
-       await API.updateCoordinates(props.document.id, lat, lng)
-       await props.fetchDocuments();
-      }
-    }
-  };*/
-
+  
   const setPin = (id: number) => {
     if (id == props.pin) {
       props.setNewPin(0);
@@ -193,63 +165,16 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
     console.log(props.pin)
   }, [props.pin]);
 
-  /*const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, field: "lat" | "lng") => {
-    if (event.key === 'Enter') {
-      handleSaveCoordinates();
-      if (field === "lat") setEditLat(false);
-      if (field === "lng") setEditLng(false);
-    }
-  };*/
+  
 
-  //const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
   const toggleDescription = (e: React.MouseEvent) => {
     //setShowDescription(!showDescription);
     e.stopPropagation();
     //if (props.document && props.document.coordinates.type!="POLYGON") {
     if (props.document) {
-      /*props.setUpdating(true);
-      console.log(props.updating)
-      const convertedDocument = {
-        id: props.document.id,
-        title: document.title,
-        stakeholders: props.document.stakeholders,
-        scale: props.document.scale,
-        issuanceDate: props.document.issuance_date,
-        type: props.document.type,
-        connection: props.document.connection,
-        language: props.document.language,
-        pages: props.document.pages,
-        description: props.document.description,
-        lat: props.document.coordinates?.lat,
-        lng: props.document.coordinates?.lng,
-      };
-      props.setNewDocument(convertedDocument);*/
+      
       props.setNewDocument(props.document);
       props.setUpdating(true);
-      //console.log(props.updating)
-      /*const convertedDocument = new Document(
-        document.id,
-        document.title,
-        document.type,
-        document.lastModifiedBy,
-        document.issuanceDate,
-        document.language,
-        document.pages,
-        document.stakeholders,
-        document.scale,
-        document.description,
-        document.coordinates
-      );*/
-      //if(!props.document.coordinates.coords){
-      //props.document.coordinates = new Coordinates(CoordinatesType.MUNICIPALITY,null);
-      //}
-      //else{
-      // eslint-disable-next-line no-cond-assign, no-constant-condition
-      //if (props.document.coordinates.type="POINT"){
-      //props.document.coordinates = new Coordinates(CoordinatesType.POINT,new CoordinatesAsPoint(props.document.coordinates.coords.lat,props.document.coordinates.coords.lng));
-      //}
-      //}
-      //props.setNewDocument(props.document);
     }
   }
  
@@ -351,12 +276,6 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           </Box>
         </Box> : <></>}
 
-        {/* Description Section */}
-        {/*!editDescription && showDescription && (
-          <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
-            <strong>Description:</strong> {description}
-          </Typography>
-        )*/}
         {props.pin == props.document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
           <strong>Description:</strong> {props.document.description}
         </Typography> : <></>}
@@ -377,32 +296,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <></>
         )}
 
-        {/* editDescription ? (
-          <>
-            <TextField value={description} autoFocus fullWidth multiline rows={6} onChange={handleDescriptionChange} />
-            <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
-              { Save Button }
-              <Button
-                variant="contained"
-                color="primary"
-                style={{ width: "48%" }}
-                onClick={saveDescription}
-              >
-                Save
-              </Button>
-
-              { Cancel Button }
-              <Button
-                variant="contained"
-                color="error"
-                style={{ width: "48%" }}
-                onClick={closeEditDescription}
-              >
-                Cancel
-              </Button>
-            </Box>
-          </>
-        ) : null*/}
+        
 
         {/* Upload Files || Files Upload */}
         {props.pin === props.document.id && props.loggedIn && props.user?.type === "urban_planner" && (
@@ -471,16 +365,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </>
           )}
 
-          {/* New Connection or Edit Description Button */}
-          {/*pin==document.id && (!showDescription && !editDescription ? (
-            <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
-              New Connection
-            </Button>
-          ) : !editDescription ? (
-            <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={toggleEditDescription}>
-              Edit Description
-            </Button>
-          ) : null)*/}
+          
         </Box>
 
         {/* Dialog for File List */}
@@ -525,5 +410,5 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   );
 };
 
-export default DocDetails;
+export default DocGraph;
 

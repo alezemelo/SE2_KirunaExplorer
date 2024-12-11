@@ -53,6 +53,14 @@ import { title } from "process";
 
 
 interface DocumentListProps {
+  setLinkDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
+  setOpenLinkDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentDocument: React.Dispatch<React.SetStateAction<Document | null>>;
+  OpenLinkingDialog: (document:Document) => void;
+  currentDocument: Document | null;
+  handleSearchLinking: () => Promise<void>;
+  linkDocuments: Document[];
+  openLinkDialog: boolean;
   documents: Document[];
   setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
   fetchDocuments: () => Promise<void>;
@@ -133,8 +141,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [open, setOpen] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
 
-  const [openLinkDialog, setOpenLinkDialog] = useState(false);
-  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
@@ -143,7 +149,6 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [scaleMessage, setScaleMessage] = useState<string>("");
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
   const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>(CoordinatesType.MUNICIPALITY);
   const [dateOption, setDateOption] = useState("fullDate"); // Default to fullDate
@@ -401,15 +406,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   }
 
   const openLinkingDialog = (document: Document) => {
-    setCurrentDocument(document);
-    setOpenLinkDialog(true);
+    props.setCurrentDocument(document);
+    props.setOpenLinkDialog(true);
 
   };
   const closeLinkingDialog = () => {
-    setOpenLinkDialog(false);
+    props.setOpenLinkDialog(false);
     setTargetDocumentId(0);
     setTargetLinkType("direct");
-    setLinkDocuments([]);
+    props.setLinkDocuments([]);
     setSearchQuery('');
     setLinkErrors([])
 
@@ -657,31 +662,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             }
           )
 
-          /*const latLng2 = newDocument.coordinates.coords;
-          if (
-              latLng2?.lat != null && 
-              latLng2?.lng != null
-          ) {
-            if(booleanPointInPolygon(point([latLng2.lng,latLng2.lat]),props.geojson.features[0])){
-              await API.updateCoordinates(
-                newDocument.id,
-                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng2.lat), Number(latLng2.lng)))
-            );
-            }
-            else{
-              newErrors.push("coordinates out of the municipality area")
-              setErrors(newErrors);
-            }
-          }
-          else if(newDocument.coordinates.type==CoordinatesType.MUNICIPALITY){
-            await API.updateCoordinates(
-              newDocument.id,
-              new Coordinates(CoordinatesType.MUNICIPALITY, null)
-          );
-          }*/
+          
           props.setUpdating(false);
         }
-        //if adding:
         else {
           await API.addDocument(finalDocument);
         }
@@ -699,9 +682,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
   const linkDocument = async () => {
-    if (currentDocument && targetDocumentId && targetLinkType) {
+    if (props.currentDocument && targetDocumentId && targetLinkType) {
       try {
-        await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
+        await API.createLink(props.currentDocument?.id, targetDocumentId, targetLinkType);
         await props.fetchDocuments();
         closeLinkingDialog();
       }
@@ -718,28 +701,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     console.log(linkErrors)
   }, [linkErrors])
 
-  const handleSearchLinking = async () => {
-    try {
-      let matchingDocs = [];
-      if (searchQuery.trim()) {
-        // Fetch matching documents based on the search query
-        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
-      } else {
-        // Default to all documents if no query
-
-        matchingDocs = props.documents;
-
-      }
-
-      // Exclude the current document
-      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin);
-      setLinkDocuments(filteredDocs);
-
-    } catch (error) {
-      console.error("Error searching documents:", error);
-    }
-  };
-
+  
 
 
 
@@ -798,7 +760,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                   pin={props.pin}
                   setNewPin={props.setNewPin}
                   onLink={() => openLinkingDialog(document)}
-                  handleSearchLinking={handleSearchLinking}
+                  handleSearchLinking={props.handleSearchLinking}
                   updating={props.updating}
                   setUpdating={props.setUpdating}
                   newDocument={newDocument}
@@ -1235,7 +1197,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
       {/* Linking Dialog */}
-      <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
+      <Dialog open={props.openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
         <DialogTitle>New Connection</DialogTitle>
         <DialogContent>
           {/* Search Input */}
@@ -1251,7 +1213,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               className="inputRoot"
             />
             <Button
-              onClick={handleSearchLinking}
+              onClick={props.handleSearchLinking}
               color="primary"
               variant="contained"
               style={{ marginLeft: '8px' }}
@@ -1266,13 +1228,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
           {/* Search Results */}
           {
-            linkDocuments.length === 0 ? (
+            props.linkDocuments.length === 0 ? (
               <Typography variant="body1" color="textSecondary">
                 No matched Document to be linked
               </Typography>
             ) : (
               <List>
-                {linkDocuments.map((doc) => (
+                {props.linkDocuments.map((doc) => (
                   <ListItemButton
                     key={doc.id}
                     onClick={() => setTargetDocumentId(doc.id)}

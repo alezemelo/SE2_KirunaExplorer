@@ -237,6 +237,7 @@ function App() {
                       isSelectingLocation={isSelectingLocation}
                       onLocationSelected={handleMapLocationSelected}
                       updating={updating}
+                      loggedIn={loggedIn}
                     drawing={drawing}
                     setDrawing={setDrawing}
                     setPolygon={setPolygon}
@@ -250,19 +251,21 @@ function App() {
           /* ====================== End Of Map Component ====================== */
         />
         <Route path="/time-diagram" element={
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
-        <Header
-                onToggleDocumentList={toggleDocumentList}
-                loggedIn={loggedIn}
-                logOut={handleLogout}
-                handleSearch={handleSearch}
-                setSearchQuery={setSearchQuery}
-                searchQuery={searchQuery}
-              />
-        <TimeDiagram 
-                    documents={documents}
-        />
-        </Box>}
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
+            <Header
+                    onToggleDocumentList={toggleDocumentList}
+                    loggedIn={loggedIn}
+                    logOut={handleLogout}
+                    handleSearch={handleSearch}
+                    setSearchQuery={setSearchQuery}
+                    searchQuery={searchQuery}
+                  />
+          <TimeDiagram 
+                      documents={documents}
+                      
+                        
+          />
+          </Box>}
         />
         <Route
           path="/login"

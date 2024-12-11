@@ -31,6 +31,7 @@ interface MapProps {
   documents: Document[];
   isDocumentListOpen: boolean; // Add this prop to track sidebar state
   pin: number;
+  loggedIn: boolean;
   setNewPin: (id: number) => void;
   isSelectingLocation: boolean; // If we are in "Choose on Map" mode
   onLocationSelected: (lat: number, lng: number) => void; // Callback for location selection
@@ -137,6 +138,8 @@ const Map: React.FC<MapProps> = (props) => {
       return newStyle;
     });
   };
+
+  
 
   useEffect(() => {
     if (!map) return;
@@ -266,7 +269,15 @@ const Map: React.FC<MapProps> = (props) => {
           props.setNewPin(0);
         }
       });
-  
+
+ 
+    
+      marker.on('dragstart', (e) => {
+        if(!props.loggedIn){
+          setError('Login to change the coordinates');
+        }
+      });
+
       marker.on('dragend', (e) => {
         const currentLngLat = e.target.getLngLat();
         const coordinates = new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(currentLngLat.lat, currentLngLat.lng));
@@ -276,7 +287,9 @@ const Map: React.FC<MapProps> = (props) => {
           setError('Marker out of Kiruna municipality')
         }
         setConfirmChanges(true);
-      });
+      }
+    
+    );
     });
   };
 
