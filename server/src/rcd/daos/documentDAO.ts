@@ -9,7 +9,7 @@ import { Document } from '../../models/document';
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from '../../models/coordinates';
 import { groupEntriesById } from './helperDaos';
 import { UniqueConstraintError } from '../../errors/dbErrors';
-import { DocumentNotFoundError, DocumentTypeNotFoundError, ScaleNotFoundError, StakeholdersNotFoundError, InvalidDateError} from '../../errors/documentErrors';
+import { DocumentNotFoundError, DocumentTypeNotFoundError, ScaleNotFoundError, StakeholdersNotFoundError, InvalidDateError } from '../../errors/documentErrors';
 
 class DocumentDAO {
     private db: any;
@@ -117,21 +117,31 @@ class DocumentDAO {
                 last_modified_by
                 FROM documents where title ILIKE $1`, [param]);
             return res.rows;*/
-            const param = `%${query}%`;
+            //const param = `%${query}%`;
             //const res = await pgdb.client.query(`SELECT * FROM documents where title ILIKE $1`, [param]);
 
+            const formattedQuery = query 
+                .trim()
+                .split(/\s+/) // Split on whitespace
+                .map(word => word.toLowerCase()) // Normalize case
+                .join(' & '); // Join with AND operator (&)
+            console.log(formattedQuery); 
+
             const res = await db('documents')
-    .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
-    .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
-    .select('documents.*', 'stakeholders.name as stakeholders')
-    .where('documents.title', 'ILIKE', `%${query}%`)
-    .modify(function (queryBuilder) {
-        if (municipality_filter) {
-            queryBuilder.andWhere('documents.coordinates_type', '=', 'MUNICIPALITY');
-        }
-    })
-    .orderBy('documents.id', 'asc');
-          
+                .leftJoin('document_stakeholders', 'documents.id', '=', 'document_stakeholders.doc_id')
+                .leftJoin('stakeholders', 'document_stakeholders.stakeholder_id', '=', 'stakeholders.name')
+                .select('documents.*', 'stakeholders.name as stakeholders',
+                    db.raw("ts_rank(documents.search_vector, plainto_tsquery(?)) as rank", [formattedQuery]))
+                //.where('documents.title', 'ILIKE', `%${query}%`)
+                .whereRaw('documents.search_vector @@ plainto_tsquery(?)', [formattedQuery])
+                .modify(function (queryBuilder) {
+                    if (municipality_filter) {
+                        queryBuilder.andWhere('documents.coordinates_type', '=', 'MUNICIPALITY');
+                    }
+                })
+                .orderBy('rank', 'desc') // Sort by rank
+                .orderBy('documents.id', 'asc');
+
             // merge fix: 
             //  - changed from `const documents = groupEntriesById(res);` to incoming from sprint3 `const documents = await groupEntriesById(res, db);`
             //  - added the code marked with the comment 2) below
@@ -139,6 +149,7 @@ class DocumentDAO {
 
             // Again, as before, I'll do many queries until I'm sure this works, then I'll do a single big join query
             // 2) Get the file IDs associated with the document in a separate call cause else the join would be too complex
+            console.log(documents[0]);
             for (const doc of documents) {
                 const fileRes = await db('document_files')
                     .where({ doc_id: doc.id })
@@ -169,19 +180,18 @@ class DocumentDAO {
 
     public async updateCoordinates(docId: number, newCoordinates: Coordinates): Promise<number> {
         try {
-            let update_count;
-            if (newCoordinates.getType() === CoordinatesType.MUNICIPALITY) {
-                update_count = await dbUpdate('documents', { id: docId }, { coordinates_type: CoordinatesType.MUNICIPALITY, coordinates: null });
+            const newType = newCoordinates.getType();
+            const updateData: { coordinates_type: CoordinatesType; coordinates?: string | null } = { 
+                coordinates_type: newType 
+            };
+            if (newType === CoordinatesType.MUNICIPALITY) {
+                updateData.coordinates = null;
+            } else if (newType === CoordinatesType.POINT || newType === CoordinatesType.POLYGON) {
+                updateData.coordinates = newCoordinates.toGeographyString();
             } else {
-                if (newCoordinates.getType() !== CoordinatesType.POINT && newCoordinates.getType() !== CoordinatesType.POLYGON) {
-                    throw new Error("Invalid coordinates type. Shouldn't be possible");
-                }
-                const newType = newCoordinates.getType();
-                const newWktCoords = newCoordinates.toGeographyString();
-                update_count = await dbUpdate('documents', { id: docId }, { coordinates_type: newType, coordinates: newWktCoords });
+                throw new Error("Invalid coordinates type. Shouldn't be possible");
             }
-
-            return update_count;
+            return await dbUpdate('documents', { id: docId }, updateData);
         } catch (error) {
             console.error(error);
             throw error;
@@ -239,7 +249,7 @@ class DocumentDAO {
                         .where({ id })
                         .update({ date_type: date_type });
                 }
-                
+
                 if (body.stakeholders) {
                     const deletedRows = await trx('document_stakeholders')
                         .where({ doc_id: id })
@@ -248,8 +258,8 @@ class DocumentDAO {
                     if (body.stakeholders.length > 0) {
                         console.log("adding new stakeholders...")
                         const stakeholdersRows = body.stakeholders.map((stakeholder: any) => ({
-                        doc_id: id,
-                        stakeholder_id: stakeholder,
+                            doc_id: id,
+                            stakeholder_id: stakeholder,
                         }));
                         console.log(stakeholdersRows)
                         await trx('document_stakeholders').insert(stakeholdersRows);
@@ -339,26 +349,26 @@ class DocumentDAO {
                 const res = await trx('documents')
                     .insert(document_to_insert)
                     .returning('id');
-    
+
                 if (res.length !== 1) {
                     throw new Error('Error adding document to the database');
                 }
                 const documentId = res[0].id;
-    
+
                 // Insert the stakeholders relationships
                 if (doc.stakeholders && doc.stakeholders.length > 0) {
                     const stakeholdersRows = doc.stakeholders.map((stakeholder) => ({
                         doc_id: documentId,
                         stakeholder_id: stakeholder,
                     }));
-    
+
                     await trx('document_stakeholders').insert(stakeholdersRows);
                 }
-    
+
                 // Return the document ID if all operations succeed
                 return documentId;
             });
-            
+
             return documentId;
 
             /*

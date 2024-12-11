@@ -1,292 +1,22 @@
-// import React, { useState, useEffect } from "react";
-// import ReactMapGL, { ViewStateChangeEvent } from "react-map-gl";
-// import mapboxgl from "mapbox-gl";
-// import { Document, DocumentJSON } from "../../models/document";
-// import { Position } from "geojson";
-// import * as turf from "@turf/turf";
-// // import { feature, point } from "@turf/turf";
-
-// const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-// if (!accessToken) {
-//   console.error("Mapbox access token is missing!");
-// }
-// mapboxgl.accessToken = accessToken!;
-
-// interface MapProps {
-//   documents: Document[];
-//   isDocumentListOpen: boolean; // Add this prop to track sidebar state
-//   pin: number;
-//   setNewPin: (id: number) => void;
-//   isSelectingLocation: boolean; // If we are in "Choose on Map" mode
-//   onLocationSelected: (lat: number, lng: number) => void; 
-// }
-
-// const Map: React.FC<MapProps> = (props) => {
-//   const [viewport, setViewport] = useState({
-//     latitude: 67.85394,
-//     longitude: 20.222309,
-//     zoom: 12,
-//   });
-
-//   const [mapStyle, setMapStyle] = useState(
-//     "mapbox://styles/mapbox/satellite-streets-v11"
-//   );
-//   const getRandomColor = () => {
-//     const letters = "0123456789ABCDEF";
-//     let color = "#";
-//     for (let i = 0; i < 6; i++) {
-//       color += letters[Math.floor(Math.random() * 16)];
-//     }
-//     return color;
-//   }
-//   const [map, setMap] = useState<mapboxgl.Map | null>(null);
-//   const [buttonText, setButtonText] = useState("Switch to Street View");
-//   // const [map, setMap] = useState<mapboxgl.Map | null>(null);
-//   const [selectedMarker, setSelectedMarker] = useState<mapboxgl.Marker | null>(null);
-
-
-
-//   const toggleMapStyle = () => {
-//     setMapStyle((prevStyle) => {
-//       const newStyle =
-//         prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-//           ? "mapbox://styles/mapbox/traffic-night-v2"
-//           : "mapbox://styles/mapbox/satellite-streets-v11";
-
-//       setButtonText(
-//         newStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-//           ? "Switch to Street View"
-//           : "Switch to Satellite View"
-//       );
-
-//       return newStyle;
-//     });
-//   };
-
-//   useEffect(() => {
-//     if (!map) return;
-    
-
-//     const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
-//       if (props.isSelectingLocation) {
-//         const { lng, lat } = e.lngLat;
-
-//         console.log(`Map clicked at: Latitude ${lat}, Longitude ${lng}`);
-
-//         // Remove existing marker if any
-//         if (selectedMarker) {
-//           selectedMarker.remove();
-//         }
-
-//         // Add a new marker
-//         const marker = new mapboxgl.Marker({ color: "green", draggable: true })
-//           .setLngLat([lng, lat])
-//           .addTo(map);
-
-//         setSelectedMarker(marker);
-
-//         // Attach a popup to the marker
-//         const popup = new mapboxgl.Popup({ offset: 25 })
-//           .setHTML(
-//             `<div style="text-align: center;">
-//               <h3>Set Location</h3>
-//               <button id="confirmLocation" style="margin-top: 5px;">Confirm</button>
-//             </div>`
-//           )
-//           .addTo(map);
-
-//         marker.setPopup(popup);
-//         popup.on("open", () => {
-//           const confirmButton = document.getElementById("confirmLocation");
-          
-//           confirmButton?.addEventListener("click", () => {
-//             // Pass the coordinates back to the parent component
-//             onLocationSelected(lat, lng);
-//             popup.remove();
-//           });
-//         });
-
-//         // Close popup on marker click
-//         marker.getElement().addEventListener("click", () => {
-//           popup.remove();
-//           setSelectedMarker(null); // Reset selected marker
-//         });
-//       }
-//     };
-
-//     map.on("click", handleMapClick);
-
-//     return () => {
-//       map.off("click", handleMapClick);
-//     };
-//   }, [map, isSelectingLocation, selectedMarker, onLocationSelected]);
-  
-  
-
-
-//   const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
-//     console.log("Adding markers to map:", props.documents);
-  
-//     props.documents.forEach((doc) => {
-//       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-  
-//       if (doc.getCoordinates()?.getType() !== "POINT") {
-//         return; // Skip non-POINT documents
-//       }
-  
-//       const pointCoords = doc.getCoordinates()?.getLatLng();
-  
-//       if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
-//         console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
-//         return;
-//       }
-  
-//       // Add marker to the map
-//       const marker = new mapboxgl.Marker({ color: "red" })
-//         .setLngLat([pointCoords.lng, pointCoords.lat])
-//         .addTo(mapInstance);
-  
-//       // Add a popup with the document's title and details
-//       const popup = new mapboxgl.Popup({ offset: 25 }) // Offset for better positioning
-//         .setHTML(
-//           `<div style="font-size: 14px; color: black;">
-//             <strong>${doc.title}</strong><br />
-//             ${doc.description ? doc.description : "No description available."}
-//           </div>`
-//         );
-  
-//       // Attach popup and setNewPin to marker click
-//       marker.getElement()?.addEventListener("click", () => {
-//         console.log(`Marker for Document ${doc.id} clicked`);
-        
-//         // Show the popup
-//         if (pointCoords.lng !== null && pointCoords.lat !== null) {
-//           popup.addTo(mapInstance).setLngLat([pointCoords.lng, pointCoords.lat]);
-//         }
-  
-//         // Call setNewPin to handle additional actions when a marker is clicked
-//         props.setNewPin(doc.id);
-//       });
-//     });
-//   };
-  
-
-//   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-//     console.log("Adding polygons to map as points:", props.documents);
-  
-//     props.documents.forEach((doc) => {
-//       doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-//       if (doc.getCoordinates()?.getType() !== "POLYGON") {
-//         return; // Skip non-POLYGON documents
-//       }
-  
-//       const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
-//       if (!polygonCoords || polygonCoords.length === 0) {
-//         console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
-//         return;
-//       }
-  
-//       // Calculate the centroid of the polygon
-//       const polygonFeature = turf.polygon(polygonCoords);
-//       const centroid = turf.centroid(polygonFeature);
-  
-//       const centroidCoords = centroid.geometry.coordinates;
-  
-//       // Add marker at the centroid
-//       const marker = new mapboxgl.Marker({ color: "blue" })
-//         .setLngLat(centroidCoords as [number, number])
-//         .addTo(mapInstance);
-  
-//       // Marker click handler to display the polygon
-//       marker.getElement()?.addEventListener("click", () => {
-//         console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
-  
-//         const sourceId = `polygon-${doc.id}`;
-//         if (mapInstance.getSource(sourceId)) {
-//           // Remove the polygon if it already exists
-//           mapInstance.removeLayer(sourceId);
-//           mapInstance.removeSource(sourceId);
-//           return;
-//         }
-  
-//         // Add the polygon layer
-//         mapInstance.addSource(sourceId, {
-//           type: "geojson",
-//           data: polygonFeature,
-//         });
-  
-//         mapInstance.addLayer({
-//           id: sourceId,
-//           type: "fill",
-//           source: sourceId,
-//           paint: {
-//             "fill-color": getRandomColor(), // Highlight the polygon with a distinct color
-//             "fill-opacity": 0.5,
-//           },
-//         });
-  
-//         // Zoom to the polygon
-//         mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
-//           padding: 20,
-//         });
-//       });
-//     });
-//   };
-  
-
-//   useEffect(() => {
-//     if (!map) return;
-
-//     const handleStyleLoad = () => {
-//       console.log("Style loaded; adding markers and polygons.");
-//       addMarkersToMap(map);
-//       addPolygonsToMap(map);
-//     };
-
-//     map.on("styledata", handleStyleLoad);
-
-//     return () => {
-//       map.off("styledata", handleStyleLoad);
-//     };
-//   }, [map, props.documents]);
-
-//   useEffect(() => {
-//     if (!map || !props.documents) return;
-
-//     // Re-add markers and polygons whenever the map style changes
-//     addMarkersToMap(map);
-//     addPolygonsToMap(map);
-//   }, [map, mapStyle, props.documents]);
-
-//   return (
-//     <div style={{ height: "100vh", width: "100%" }}>
-//       <ReactMapGL
-//         {...viewport}
-//         mapStyle={mapStyle}
-//         onMove={(event: ViewStateChangeEvent) => setViewport(event.viewState)}
-//         onLoad={(event) => setMap(event.target as mapboxgl.Map)}
-//       >
-//         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
-//           <button onClick={toggleMapStyle}>{buttonText}</button>
-//         </div>
-//       </ReactMapGL>
-//     </div>
-//   );
-// };
-
-// export default Map;
-
+// There was old commented code here. If you want to see it again, check commits before 2024/09/12
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import { Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon, CoordinatesType } from "../../models/coordinates";
 import API from "../../API";
 import * as fs from 'fs'
+import { stringToColor } from "../../Utils/utils";
 import { lightBlue } from "@mui/material/colors";
+import overlayStyle from "../../ReactCssStyles";
 import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import Legend from "./Legend";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import "mapbox-gl/dist/mapbox-gl.css";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { Coordinates as CoordinatesLocal } from "../../type";
 
 const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 console.log(import.meta.env)
@@ -307,6 +37,10 @@ interface MapProps {
   setCoordMap: any;
   geojson: any;
   fetchDocuments: any;
+  drawing: boolean;
+  setDrawing: any;
+  setPolygon: any;
+  isMunicipalityChecked: boolean;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -335,12 +69,61 @@ const Map: React.FC<MapProps> = (props) => {
       map.resize();
     }
   }, [props.isDocumentListOpen]);
+
+  useEffect(() => {
+
+    if (!map) return;
+
+    if(props.drawing){
+      const draw = new MapboxDraw({
+        displayControlsDefault: false, 
+        controls: {
+          polygon: true, 
+          trash: true, 
+        },
+        defaultMode: "draw_polygon", 
+      });
+
+      if (map.getSource("mapbox-gl-draw-cold")) {
+        map.removeControl(draw); 
+      }
+  
+      map.on("draw.create", (e: any) => {
+        const features = e.features;
+        const geojsondata =  features[0].geometry.coordinates[0];
+        const data:CoordinatesAsPoint[] = []
+        for(let i=0;i<geojsondata.length;i++){
+          data.push(new CoordinatesAsPoint(geojsondata[i][1], geojsondata[i][0]));
+        }
+        const coord = new CoordinatesAsPolygon(data);
+        console.log(coord)
+        props.setPolygon(data);
+        props.setDrawing(false);
+        map.removeControl(draw);
+      });
+  
+      /*map.on("draw.update", (e: any) => {
+        const features = e.features;
+        console.log("Poligono aggiornato:", features);
+      });
+  
+      map.on("draw.delete", (e: any) => {
+        const features = e.features;
+        console.log("Poligono eliminato:", features);
+      });
+  */
+      map?.addControl(draw)
+
+    }
+
+
+  }, [props.drawing]);
   
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
       const newStyle =
         prevStyle === "mapbox://styles/mapbox/satellite-streets-v11"
-          ? "mapbox://styles/mapbox/traffic-night-v2"
+          ? "mapbox://styles/mapbox/traffic-day-v2"
           : "mapbox://styles/mapbox/satellite-streets-v11";
 
       setButtonText(
@@ -386,6 +169,35 @@ const Map: React.FC<MapProps> = (props) => {
     };
   }, [map, props.isSelectingLocation, props.onLocationSelected, selectedMarker]);
 
+  /* list all sources for debugging */
+  const listActiveSources = (mapInstance: mapboxgl.Map) => {
+    const sources = mapInstance.getStyle()?.sources;
+    console.log("Active sources:", sources);
+  };
+
+  /* Use Effect for removing the polygons when the checkbox is checked */
+  useEffect(() => {
+    if (!map) return;
+  
+    if (props.isMunicipalityChecked === true) {
+      // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
+      listActiveSources(map);
+
+      const sources = map.getStyle()?.sources;
+      if (sources) {
+        Object.keys(sources).forEach((sourceId) => {
+          if (sourceId.startsWith('polygon-')) {
+            // console.log(`Removing polygon source ${sourceId}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
+            if (map.getSource(sourceId)) {
+              map.removeLayer(sourceId);
+              map.removeSource(sourceId);
+            }
+          }
+        });
+      }
+    }
+  }, [props.isMunicipalityChecked, map]);
+
   const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
     console.log("adding marker to map")
     markersRef.current.forEach(({ marker }) => {
@@ -407,8 +219,11 @@ const Map: React.FC<MapProps> = (props) => {
         console.error(`Document ${doc.id} does not have valid POINT coordinates.`);
         return;
       }
+      
+      let pinColor = stringToColor(doc.type);
   
-      const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
+      const marker = new mapboxgl.Marker({ color: pinColor, draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
+      //const marker = new mapboxgl.Marker({ color: "red", draggable: true, scale: props.pin==doc.id ? 1.5 : 1 })
         .setLngLat([pointCoords.lng, pointCoords.lat])
         .addTo(mapInstance);
 
@@ -513,6 +328,8 @@ const Map: React.FC<MapProps> = (props) => {
 
       const centroidCoords = centroid.geometry.coordinates;
 
+      let pinColor = stringToColor(doc.type);
+
       console.log("add marker")
       // Add marker at the centroid
       const marker = new mapboxgl.Marker({ color: "blue" })
@@ -524,6 +341,7 @@ const Map: React.FC<MapProps> = (props) => {
 
       if(props.pin == doc.id){
         // Zoom to the polygon
+        console.error(`Zooming to polygon ${props.pin}`);
         mapInstance.fitBounds(turf.bbox(polygonFeature) as mapboxgl.LngLatBoundsLike, {
           padding: 20,
         });
@@ -539,6 +357,7 @@ const Map: React.FC<MapProps> = (props) => {
         const sourceId = `polygon-${doc.id}`;
         if (mapInstance.getSource(sourceId)) {
           // Remove the polygon if it already exists
+          // console.error(`Removing polygon ${doc.id}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
           mapInstance.removeLayer(sourceId);
           mapInstance.removeSource(sourceId);
           return;
@@ -589,24 +408,13 @@ const Map: React.FC<MapProps> = (props) => {
   }, [map, mapStyle, props.documents]);
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
-    if (props.adding || props.updating) {
+    console.log(props.drawing)
+  if((props.adding || props.updating) && !props.drawing) {
       const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
       props.setCoordMap(c);
     }
-  }, [props.adding, props.updating, props.setCoordMap]);
+  }, [props.adding, props.updating, props.setCoordMap, props.drawing]);
 
-  const overlayStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Sfondo semi-trasparente
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  };
 
   const modalStyle: React.CSSProperties = {
     backgroundColor: 'white',
@@ -630,22 +438,25 @@ const Map: React.FC<MapProps> = (props) => {
   return (
     <div ref={mapRef} style={{ height: "100vh", width: "100%" }}>
       {confirmChanges && <div style={overlayStyle} >
-      <div style={modalStyle}>
-        {error == '' ? <><h3>Do you want to change the coordinates of this document</h3>
-          <button style={buttonStyle} onClick={() => {
-            if(coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
-            handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
-            }} >Confirm</button>
-          <button style={buttonStyle} onClick={()=>{
-            setConfirmChanges(false);
-            if(!map) return;
-            addMarkersToMap(map)
-            }}>Cancel</button></> : <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
+        <div style={modalStyle}>
+          {error == '' ?
+            <><h3>Do you want to change the coordinates of this document</h3>
+              <button style={buttonStyle} onClick={() => {
+                if (coordinatesInfo && coordinatesInfo.id && coordinatesInfo?.coordinates)
+                  handleDrag(coordinatesInfo.id, coordinatesInfo.coordinates)
+              }} >Confirm</button>
+              <button style={buttonStyle} onClick={() => {
+                setConfirmChanges(false);
+                if (!map) return;
+                addMarkersToMap(map)
+              }}>Cancel</button></>
+            :
+            <><h3>{error}</h3><button style={buttonStyle} onClick={() => {
               setConfirmChanges(false);
               setError('')
-              if(!map) return;
-            addMarkersToMap(map)
-              }}>Confirm</button></>}
+              if (!map) return;
+              addMarkersToMap(map)
+            }}>Go back</button></>}
         </div>
       </div>}
       <ReactMapGL
@@ -676,6 +487,7 @@ const Map: React.FC<MapProps> = (props) => {
         <div style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
           <button onClick={toggleMapStyle}>{buttonText}</button>
         </div>
+        <Legend documents={props.documents}/>
       </ReactMapGL>
     </div>
   );

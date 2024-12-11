@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // List.tsx
 import React, { useEffect, useState, useRef } from "react";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import { point, booleanPointInPolygon, Coord, polygon } from '@turf/turf';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
@@ -68,6 +69,10 @@ interface DocumentListProps {
   isMunicipalityChecked: boolean;
   setIsMunicipalityChecked: any;
   geojson: any;
+  drawing: boolean;
+  setDrawing: any;
+  polygon:any;
+  setPolygon:any;
 }
 
 /*interface DocumentLocal {
@@ -133,6 +138,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
+  const [stakeholderMessage, setStakeholderMessage] = useState<string>("");
+  const [doctypeMessage, setDoctypeMessage] = useState<string>("");
+  const [scaleMessage, setScaleMessage] = useState<string>("");
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
@@ -185,7 +193,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const handleAddNewDoctype = async () => {
     if (!newDoctype.trim()) {
-      alert("Doctype name cannot be empty.");
+      setDoctypeMessage("Documen type name cannot be empty.");
       return;
     }
 
@@ -194,36 +202,82 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       if (response.status === 201) {
         setDoctypeOptions((prev) => [...prev, newDoctype.trim()]);
         setNewDoctype("");
-        alert("Doctype added successfully!");
-      } else {
-        alert("Failed to add doctype. It may already exist.");
+        setDoctypeMessage("Doctype added successfully!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding doctype:", error);
-      alert("An error occurred while adding the doctype.");
+      if (error.message.includes("already exists")) {
+        setDoctypeMessage("Failed to add Document Type. It already exists.");
+      } else if (error.message.includes("Invalid")) {
+        setDoctypeMessage("Document type names must not be empty")
+      } else {
+        setDoctypeMessage("An error occurred while adding the stakeholder.")
+      }
     }
   };
 
+
   const handleAddNewScale = async () => {
-    if (!newScale.trim()) {
-      alert("Scale value cannot be empty.");
+
+    const trimmedScale = newScale.trim();
+
+
+    if (!trimmedScale) {
+      setScaleMessage("Scale value cannot be empty.");
       return;
     }
 
-    try {
-      const response = await API.addScale({ value: newScale.trim() });
-      if (response.status === 201) {
-        setScaleOptions((prev) => [...prev, newScale.trim()]);
-        setNewScale("");
-        alert("Scale added successfully!");
-      } else {
-        alert("Failed to add scale. It may already exist.");
-      }
-    } catch (error) {
-      console.error("Error adding scale:", error);
-      alert("An error occurred while adding the scale.");
+
+    if (!/^\d+:\d+$/.test(trimmedScale)) {
+      setScaleMessage("Invalid format. Scale must be formatted like '1:integer_number'.");
+      return;
     }
-  }
+
+
+    if (scaleOptions.includes(trimmedScale)) {
+      // Set the document scale to the existing scale
+      setNewDocument((prev) => ({ ...prev, scale: trimmedScale }));
+      
+      setNewScale("");
+    
+      setScaleMessage("This scale already exists and has been selected from the list.");
+      return;
+    }
+
+
+    if (trimmedScale.includes("Text")) {
+      setScaleMessage("Invalid format. Scale must be formatted like '1:integer_number' without text.");
+      return;
+    }
+
+
+    const [_, secondPart] = trimmedScale.split(":");
+    if (secondPart.includes(".")) {
+      setScaleMessage("Invalid format. Scale must be formatted like '1:integer_number' without decimals.");
+      return;
+    }
+
+
+    try {
+      const response = await API.addScale({ value: trimmedScale });
+      if (response.status === 201) {
+        setScaleOptions((prev) => [...prev, trimmedScale]);
+        setNewScale("");
+        setScaleMessage("Scale added successfully!");
+      }
+    } catch (error: any) {
+      console.error("Error adding scale:", error);
+
+      if (error.message.includes("already exists")) {
+        setScaleMessage("Failed to add scale. It already exists.");
+      } else if (error.message.includes("Invalid")) {
+        setScaleMessage("Scale must be formatted like '1:integer_number'.");
+      } else {
+        setScaleMessage("An error occurred while adding the scale.");
+      }
+    }
+  };
+
 
   const handleAddNewStakeholder = async () => {
     if (!newStakeholder.trim()) {
@@ -242,14 +296,16 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       // Clear the input field
       setNewStakeholder("");
 
-      alert("Stakeholder added successfully!");
+      setStakeholderMessage("Stakeholder added successfully!");
+      //alert("Stakeholder added successfully!");
     } catch (error: any) {
       if (error.message.includes("Stakeholder already exists")) {
-        alert("Stakeholder already exists.");
+        setStakeholderMessage("Stakeholder already exists.");
+        //alert("Stakeholder already exists.");
       } else if (error.message.includes("Invalid stakeholder name")) {
-        alert("Invalid stakeholder name. Please enter a valid name.");
+        setStakeholderMessage("Invalid stakeholder name. Please enter a valid name.");
       } else {
-        alert("An error occurred while adding the stakeholder.");
+        setStakeholderMessage("An error occurred while adding the stakeholder.");
       }
       console.error("Error adding stakeholder:", error);
     }
@@ -331,9 +387,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const handleClose = () => {
     setOpen(false);
     props.setUpdating(false);
-    props.setAdding(false)
+    props.setAdding(false);
+    props.setDrawing(false);
     setNewDocument(reset());
+    setDoctypeMessage("");
+    setStakeholderMessage("");
+    setScaleMessage("");
     setErrors([]);
+    setYear("");
+    setMonth("");
+    setDay("");
+    setDateOption("fullDate");
   }
 
   const openLinkingDialog = (document: Document) => {
@@ -468,6 +532,20 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         } else {
           newErrors.push("Latitude and Longitude must be defined.");
         }
+      } else if (coordinates_type == CoordinatesType.POLYGON){
+        let validated = true;
+        if(props.polygon){
+          for(let i=0;i<props.polygon.length;i++){
+            if(!booleanPointInPolygon(point([props.polygon[i].lng,props.polygon[i].lat]),props.geojson.features[0])){
+              validated = false;
+            }
+          }
+          if(!validated){
+            newErrors.push("coordinates out of the municipality area")
+          }else{
+            coordinates1 = new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(props.polygon))
+          }
+        }
       }
     } else {
     }
@@ -493,13 +571,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
 
     if ((dateOption === "year" && !dayjs(issueDate, 'YYYY', true).isValid()) ||
-      (dateOption === "yearMonth" && !dayjs(issueDate, 'YYYY-MM', true).isValid()) || 
-      (dateOption === "fullDate" && !dayjs(issueDate, 'YYYY-MM-DD', true).isValid()))
-    {
-        newErrors.push("Invalid date format.");
+      (dateOption === "yearMonth" && !dayjs(issueDate, 'YYYY-MM', true).isValid()) ||
+      (dateOption === "fullDate" && !dayjs(issueDate, 'YYYY-MM-DD', true).isValid())) {
+      newErrors.push("Invalid date format.");
     }
-    
-    
+
+
     setErrors(newErrors);
 
     // Procede solo se non ci sono errori
@@ -513,7 +590,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         } else if (dateOption === "fullDate") {
           formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`; // Full date
         }
-        
+
         // Conversione della data
         // let date;
         /*if(newDocument.issuanceDate == ""){
@@ -606,7 +683,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         }
         //if adding:
         else {
-          await API.addDocument(finalDocument)
+          await API.addDocument(finalDocument);
         }
         await props.fetchDocuments();
 
@@ -675,18 +752,19 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           props.setDocuments(t)
         }
         props.setIsMunicipalityChecked(true);
+        props.setNewPin(undefined);
       } else {
         await props.fetchDocuments();
         props.setIsMunicipalityChecked(false);
       }
     }
     else if (event.target.name == "coordinates_type") {
-
+      // probably not needed
     }
 
   }
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     if (itemRefs.current[props.pin]) {
@@ -695,11 +773,11 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     }
   }, [props.pin]);
 
-  useEffect(()=>{
-    if(props.updating){
+  useEffect(() => {
+    if (props.updating) {
       setCoordinatesType(newDocument.coordinates.type);
     }
-  },[props.updating])
+  }, [props.updating])
 
 
   return (
@@ -743,25 +821,25 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           </label>
         </Box>
 
-        
-      {props.loggedIn && props.user?.type === "urban_planner" && (
-        <Box sx={{ padding: '10px', flexShrink: 0, }}>
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={handleClickOpen}
-            style={{ marginTop: "8px" }}
-          >
-            Add a new document
-          </Button>
-        </Box>
-      )}
+
+        {props.loggedIn && props.user?.type === "urban_planner" && (
+          <Box sx={{ padding: '10px', flexShrink: 0, }}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={handleClickOpen}
+              style={{ marginTop: "8px" }}
+            >
+              Add a new document
+            </Button>
+          </Box>
+        )}
 
 
-      
 
-    </Box>
+
+      </Box>
 
 
 
@@ -790,6 +868,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               required
               value={newDocument.stakeholders || []} // Ensure it's an array
               onChange={(e) => {
+                console.log(e.target.value);
                 setNewDocument({ ...newDocument, stakeholders: e.target.value });
               }}
               SelectProps={{
@@ -813,6 +892,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             onChange={(e) => setNewStakeholder(e.target.value)}
           />
 
+          {stakeholderMessage &&
+            <Alert severity={stakeholderMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+              {stakeholderMessage}
+            </Alert>
+          }
+
           <Button
             variant="contained"
             color="primary"
@@ -828,11 +913,22 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             }}
             onClick={async () => {
               if (!newStakeholder.trim()) {
-                alert("Stakeholder name cannot be empty.");
+                setStakeholderMessage("Stakeholder name cannot be empty.");
                 return;
               }
 
+              /*
+              const matchedStakeholder = stakeholderOptions.find((stakeholder) => stakeholder.name.toLowerCase() === newStakeholder.trim().toLowerCase());
+              if (matchedStakeholder && !newDocument.stakeholders.includes(matchedStakeholder.name)) {
+                setNewDocument({...newDocument, stakeholders: [...newDocument.stakeholders, matchedStakeholder.name].join(', ')});
+                setNewStakeholder(''); // Optionally reset the textbox after setting the dropdown
+                console.log(newDocument)
+                return;
+              }
+                */
+
               try {
+
                 // Add the new stakeholder to the backend
                 await API.addStakeholder({ name: newStakeholder.trim() });
 
@@ -842,14 +938,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
                 // Clear the input field
                 setNewStakeholder("");
-                alert("Stakeholder added successfully!");
+                setStakeholderMessage("Stakeholder added successfully!");
               } catch (error: any) {
                 if (error.message.includes("Stakeholder already exists")) {
-                  alert("Stakeholder already exists.");
+                  setStakeholderMessage("Stakeholder already exists.");
+                  //alert("Stakeholder already exists.");
                 } else if (error.message.includes("Invalid stakeholder name")) {
-                  alert("Invalid stakeholder name. Please enter a valid name.");
+                  setStakeholderMessage("Invalid stakeholder name. Please enter a valid name.");
                 } else {
-                  alert("An error occurred while adding the stakeholder.");
+                  setStakeholderMessage("An error occurred while adding the stakeholder.");
                 }
                 console.error("Error adding stakeholder:", error);
               }
@@ -857,6 +954,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           >
             Add Stakeholder
           </Button>
+
 
 
 
@@ -890,6 +988,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               value={newDoctype}
               onChange={(e) => setNewDoctype(e.target.value)}
             />
+
+            {doctypeMessage &&
+              <Alert severity={doctypeMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+                {doctypeMessage}
+              </Alert>
+            }
+
             <Button
               variant="outlined"
               color="primary"
@@ -900,7 +1005,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             </Button>
           </FormControl>
 
-          {/* Other fields */}
+          {/* Scale */}
           <FormControl fullWidth margin="dense" disabled={loading}>
             <TextField
               select
@@ -926,6 +1031,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               value={newScale}
               onChange={(e) => setNewScale(e.target.value)}
             />
+
+            {scaleMessage &&
+              <Alert severity={scaleMessage.includes("successfully") ? "success" : "error"} sx={{ marginBottom: 1 }}>
+                {scaleMessage}
+              </Alert>
+            }
+
             <Button
               variant="outlined"
               color="primary"
@@ -1078,7 +1190,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating ? true : false} onChange={handleChange} />
           <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={() => setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates" /><Button color="primary" >All municipality</Button></label>
           <Button color="primary" onClick={() => setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
-          <Button color="primary" >Draw a polygon</Button>
+          <Button color="primary" onClick={()=>{
+            setCoordinatesType(CoordinatesType.POLYGON)
+            props.setDrawing(true);
+            setOpen(false);
+            props
+          }} >Draw a polygon</Button>
           {coordinates_type == CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={newDocument.coordinates?.coords?.lat/* || ""*/} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={newDocument.coordinates?.coords?.lng /*|| ""*/} onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
@@ -1095,14 +1212,14 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           />
         </DialogContent>
         {errors.length > 0 && (
-            <Box mt={2}>
-              {errors.map((error, index) => (
-                <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
-                  {error}
-                </Alert>
-              ))}
-            </Box>
-          )}
+          <Box mt={2}>
+            {errors.map((error, index) => (
+              <Alert severity="error" key={index} sx={{ marginBottom: 1 }}>
+                {error}
+              </Alert>
+            ))}
+          </Box>
+        )}
 
         <DialogActions>
           <Button onClick={handleClose} color="secondary">Cancel</Button>
@@ -1111,15 +1228,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       </Dialog>
 
 
-      
 
-      
+
+
 
 
 
       {/* Linking Dialog */}
       <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
-        <DialogTitle>Link Document</DialogTitle>
+        <DialogTitle>New Connection</DialogTitle>
         <DialogContent>
           {/* Search Input */}
           <div className="search">
@@ -1167,12 +1284,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             )
           }
 
-          <select onChange={handleSelectChange} value={targetLinkType}>
-            <option value="direct" selected>direct</option>
-            <option value="collateral">collateral</option>
-            <option value="projection">projection</option>
-            <option value="update">update</option>
-          </select>
+          
           {linkErrors.length > 0 && (
             <div className="error-messages">
               {linkErrors.map((error, index) => (
@@ -1180,6 +1292,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               ))}
             </div>)}
         </DialogContent>
+        <select onChange={handleSelectChange} value={targetLinkType} style={{width: '100px'}}>
+            <option value="direct" selected>direct</option>
+            <option value="collateral">collateral</option>
+            <option value="projection">projection</option>
+            <option value="update">update</option>
+          </select>
         <DialogActions>
           <Button onClick={linkDocument} color="primary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>
