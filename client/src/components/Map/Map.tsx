@@ -51,7 +51,7 @@ const Map: React.FC<MapProps> = (props) => {
   const [viewport, setViewport] = useState({
     latitude: 67.85394,
     longitude: 20.222309,
-    zoom: 12,
+    zoom: 13,
   });
 
   interface DebounceFunction {
@@ -143,8 +143,8 @@ const Map: React.FC<MapProps> = (props) => {
       type: "geojson",
       data: generateGeoJSON(),
       cluster: true,
-      clusterMaxZoom: 12, // Clusters disappear at zoom > 14
-      clusterRadius: 50,  // Pixel radius of clusters
+      clusterMaxZoom: 22, // Clusters disappear at zoom > 14
+      clusterRadius: 100,  // Pixel radius of clusters
     });
   
     // Add the cluster layer
@@ -210,7 +210,7 @@ const Map: React.FC<MapProps> = (props) => {
         // Show markers and polygon markers, hide clusters
         mapInstance.setLayoutProperty("clusters", "visibility", "none");
         mapInstance.setLayoutProperty("cluster-count", "visibility", "none");
-        mapInstance.setLayoutProperty("unclustered-points", "visibility", "visible");
+        mapInstance.setLayoutProperty("unclustered-points", "visibility", "none");
 
         addMarkersToMap(mapInstance);
   
@@ -224,7 +224,7 @@ const Map: React.FC<MapProps> = (props) => {
         // Show clusters, hide markers and polygon markers
         mapInstance.setLayoutProperty("clusters", "visibility", "visible");
         mapInstance.setLayoutProperty("cluster-count", "visibility", "visible");
-        mapInstance.setLayoutProperty("unclustered-points", "visibility", "none");
+        mapInstance.setLayoutProperty("unclustered-points", "visibility", "visible");
 
         // Clear manual markers
     markersRef.current.forEach(({ marker }) => marker.remove());
@@ -238,6 +238,41 @@ const Map: React.FC<MapProps> = (props) => {
         }
       }
     };
+
+    //following code to refresh layers when zooming or updating the map:
+
+    mapInstance.on("move",()=>{
+      const source = mapInstance.getSource("documents-cluster-source");
+      if (source) {
+        (source as mapboxgl.GeoJSONSource).setData(generateGeoJSON());
+      }
+    });
+
+    
+
+    // when click on cluster it shoudl zoom on that cluster
+
+    mapInstance.on("click", "clusters", (e) => {
+      const features = mapInstance.queryRenderedFeatures(e.point, {
+        layers: ["clusters"],
+      });
+      if (!features[0] || !features[0].properties) return;
+      const clusterId = features[0].properties.cluster_id;
+      const source = mapInstance.getSource("documents-cluster-source") as mapboxgl.GeoJSONSource;
+      if (!source || !source.getClusterExpansionZoom) return;
+      source.getClusterExpansionZoom(
+        clusterId,
+        (err: any, zoom: any) => {
+          if (err) return;
+  
+          if (!features[0].geometry || !('coordinates' in features[0].geometry)) return;
+          mapInstance.easeTo({
+            center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
+            zoom: zoom,
+          });
+        }
+      );
+    });
   
     // Attach zoom event listener
     mapInstance.on("zoom", handleZoom);
@@ -253,6 +288,32 @@ const Map: React.FC<MapProps> = (props) => {
   
     addClusteringLayers(map);
   }, [map]);
+
+  useEffect(() => {
+    if (!map) return;
+  
+    const updateClusterSource = () => {
+      const source = map.getSource("documents-cluster-source") as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData(generateGeoJSON());
+      }
+    };
+  
+    updateClusterSource(); // Update cluster source immediately on map load
+  
+    map.on("moveend", updateClusterSource); // Update cluster source after map moves or zooms
+  
+    return () => {
+      map.off("moveend", updateClusterSource); // Cleanup listener
+    };
+  }, [map, props.documents]);
+
+  useEffect(() => {
+    if (!map || !props.documents || props.documents.length === 0) return;
+  
+    addClusteringLayers(map); // Add clustering only when data is available
+  }, [map, props.documents]);
+  
   
 
   useEffect(() => {
@@ -327,38 +388,9 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
 
-  // useEffect(() => {
-  //   if (!map) return;
 
-  //   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
-  //     if (props.isSelectingLocation) {
-  //       const { lng, lat } = e.lngLat;
 
-  //       console.log(`Map clicked at: Latitude ${lat}, Longitude ${lng}`);
 
-  //       // Remove existing marker if any
-  //       if (selectedMarker) {
-  //         selectedMarker.remove();
-  //       }
-
-  //       // Add a new marker
-  //       const marker = new mapboxgl.Marker({ color: "green", draggable: true })
-  //         .setLngLat([lng, lat])
-  //         .addTo(map);
-
-  //       setSelectedMarker(marker);
-
-  //       // Call the parent callback with the selected location
-  //       props.onLocationSelected(lat, lng);
-  //     }
-  //   };
-
-  //   map.on("click", handleMapClick);
-
-  //   return () => {
-  //     map.off("click", handleMapClick);
-  //   };
-  // }, [map, props.isSelectingLocation, props.onLocationSelected, selectedMarker]);
 
   /* list all sources for debugging */
   const listActiveSources = (mapInstance: mapboxgl.Map) => {
@@ -415,6 +447,14 @@ const Map: React.FC<MapProps> = (props) => {
       if (doc.getCoordinates()?.getType() !== "POINT") {
         return; // Skip non-point coordinates
       }
+
+      const markerElement = document.createElement("div");
+    markerElement.className = "custom-marker";
+
+    // Add a circle element as a background
+    const circle = document.createElement("div");
+    circle.className = "marker-circle";
+    markerElement.appendChild(circle);
   
       const pointCoords = doc.getCoordinates()?.getLatLng();
       if (!pointCoords || pointCoords.lat === null || pointCoords.lng === null) {
@@ -514,104 +554,10 @@ const Map: React.FC<MapProps> = (props) => {
     setConfirmChanges(false)
   }
 
-  // const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-  //   console.log("Adding polygons to map as points:", props.documents);
-
-  //   centroidsRef.current.forEach((centroid) => centroid?.remove());
-  //   centroidsRef.current = [];
-
-  //   props.documents.forEach((doc) => {
-  //     doc = Document.fromJSONfront(doc as unknown as DocumentJSON);
-  //     if (doc.getCoordinates()?.getType() !== "POLYGON") {
-  //       return; // Skip non-POLYGON documents
-  //     }
-
-  //     const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
-  //     if (!polygonCoords || polygonCoords.length === 0) {
-  //       console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
-  //       return;
-  //     }
-
-  //     // Calculate the centroid of the polygon
-  //     const polygonFeature = turf.polygon(polygonCoords);
-  //     const centroid = turf.centroid(polygonFeature);
-
-  //     const centroidCoords = centroid.geometry.coordinates;
-  //     const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
-  //   const markerColor = isSelected ? "red" : "blue"; // Use red for selected, blue for others
-
-  //     let pinColor = stringToColor(doc.type);
-
-  //     console.log("add marker")
-  //     // Add marker at the centroid
-  //     const marker = new mapboxgl.Marker({ color: markerColor, draggable: false, scale: isSelected ? 1.5 : 1 })
-  //       .setLngLat(centroidCoords as [number, number])
-  //       .addTo(mapInstance);
-
-  //     centroidsRef.current.push(marker);
-
-  //     const zoomToPolygon = debounce((mapInstance: mapboxgl.Map, bbox: mapboxgl.LngLatBoundsLike) => {
-  //       mapInstance.fitBounds(bbox, {
-  //         padding: 20,
-  //         duration: 1000,
-  //       });
-  //     }, 300);
-  //     // zoom to the polygon when clicked
-  //     marker.getElement()?.addEventListener("click", () => {
-  //       if (selectedPolygon !== doc.id) {
-  //         setSelectedPolygon(doc.id);
-  //         const bounds = new mapboxgl.LngLatBounds();
-  //         polygonCoords[0].forEach((coord) => bounds.extend(coord as mapboxgl.LngLatLike));
-  //         zoomToPolygon(mapInstance, bounds);
-  //       } else {
-  //         setSelectedPolygon(null);
-  //       }
-        
-  //     }
-  //     );
   
      
-  //     marker.getElement()?.addEventListener("click", () => {
-  //       console.log(`Centroid marker for Polygon Document ${doc.id} clicked`);
-      
-  //       if (props.pin !== doc.id) {
-  //         props.setNewPin(doc.id);
-  //       }
-      
-  //       const sourceId = `polygon-${doc.id}`;
-  //       if (!mapInstance.getSource(sourceId)) {
-  //         console.warn(`Source ${sourceId} does not exist`);
-  //         return;
-  //       }
-      
-  //       // Remove the polygon if it already exists
-  //       if (mapInstance.getLayer(sourceId)) {
-  //         mapInstance.removeLayer(sourceId);
-  //         mapInstance.removeSource(sourceId);
-  //         return;
-  //       }
-      
-  //       // Add the polygon layer
-  //       // const polygonFeature = turf.polygon(polygonCoords);
-  //       mapInstance.addSource(sourceId, {
-  //         type: "geojson",
-  //         data: polygonFeature,
-  //       });
-      
-  //       mapInstance.addLayer({
-  //         id: sourceId,
-  //         type: "fill",
-  //         source: sourceId,
-  //         paint: {
-  //           "fill-color": "lightBlue",
-  //           "fill-opacity": 0.5,
-  //         },
-  //       });
-  //     });
-      
-  //   });
-  // };
-
+     
+  
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
     console.log("Adding polygons to map as points:", props.documents);
   
@@ -637,7 +583,6 @@ const Map: React.FC<MapProps> = (props) => {
       // Calculate the centroid of the polygon
       const polygonFeature = turf.polygon(polygonCoords);
       const centroid = turf.centroid(polygonFeature);
-  
       const centroidCoords = centroid.geometry.coordinates;
   
       // Add a marker at the centroid
@@ -686,7 +631,12 @@ const Map: React.FC<MapProps> = (props) => {
           const bounds = new mapboxgl.LngLatBounds();
           polygonCoords[0].forEach((coord) => bounds.extend(coord as mapboxgl.LngLatLike));
           mapInstance.fitBounds(bounds, { padding: 20, duration: 1000 });
+
+          // update the list with the selected polygon
+          props.setNewPin(doc.id);
         } else {
+
+          
           // Deselect the polygon
           setSelectedPolygon(null);
   
@@ -698,6 +648,9 @@ const Map: React.FC<MapProps> = (props) => {
             mapInstance.removeLayer(layerId);
             mapInstance.removeSource(sourceId);
           }
+
+          // reset the list with the selected polygon
+          props.setNewPin(0);
         }
       });
     });
@@ -752,6 +705,13 @@ const Map: React.FC<MapProps> = (props) => {
   
     setDocuments(convertedDocuments); // Set the converted documents into state
   }, [props.documents]);
+
+  // useEffect(() => {
+  //   if (map) {
+  //     map.getSource("documents-cluster-source").setData(generateGeoJSON());
+  //   }
+  // }, [props.documents]);
+  
   
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
@@ -781,6 +741,9 @@ const Map: React.FC<MapProps> = (props) => {
     cursor: 'pointer',
     margin: '5px',
   };
+
+  
+  
 
  
   return (
@@ -842,6 +805,8 @@ const Map: React.FC<MapProps> = (props) => {
                 "#f28cb1", // Large clusters
               ],
               "circle-radius": [
+                "interpolate",
+                
                 "step",
                 ["get", "point_count"],
                 15, // Small clusters
@@ -872,8 +837,8 @@ const Map: React.FC<MapProps> = (props) => {
             filter={["!", ["has", "point_count"]]}
             paint={{
               "circle-color": "#11b4da",
-              "circle-radius": 6,
-              "circle-stroke-width": 1,
+              "circle-radius": 8,
+              "circle-stroke-width": 2,
               "circle-stroke-color": "#fff",
             }}
           />
