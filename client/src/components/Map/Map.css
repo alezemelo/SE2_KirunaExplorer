@@ -46,6 +46,25 @@
   .marker:hover .markerTitle {
     display: block;
   }
+  .custom-marker {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    z-index: 100;
+  }
+  
+  .marker-circle {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #11b4da;
+    border-radius: 50%;
+    border: 1px solid white;
+  }
+  
   
   
 
