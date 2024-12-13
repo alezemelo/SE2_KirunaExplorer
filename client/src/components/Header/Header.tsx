@@ -8,6 +8,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from '@mui/icons-material/Home';
 import { useNavigate } from "react-router-dom";
 import "./Header.css";
+import { useEffect } from "react";
 
 interface Header {
   onToggleDocumentList: () => void;
@@ -24,6 +25,10 @@ const Header: React.FC<Header> = (props) => {
   const handleLoginClick = () => {
     navigate("/login");
   };
+
+  useEffect(() => {
+    props.handleSearch();
+  },[props.searchQuery])
 
   return (
     <AppBar position="static" sx={{ backgroundColor: "#000" }}>

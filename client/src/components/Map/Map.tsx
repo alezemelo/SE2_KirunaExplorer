@@ -1,7 +1,7 @@
 // There was old commented code here. If you want to see it again, check commits before 2024/09/12
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
+import ReactMapGL, { Layer, Source, ViewStateChangeEvent, Popup } from "react-map-gl";
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
@@ -337,7 +337,7 @@ const Map: React.FC<MapProps> = (props) => {
         .addTo(mapInstance);
 
       centroidsRef.current.push(marker);
-
+        
 
       if(props.pin == doc.id){
         // Zoom to the polygon
@@ -380,6 +380,48 @@ const Map: React.FC<MapProps> = (props) => {
           },
         });
       });
+      marker.getElement()?.addEventListener("mouseover", () => {
+        console.log(`mouseover`);
+
+        const sourceId = `polygon-${doc.id}`;
+        if (mapInstance.getSource(sourceId)) {
+          return;
+        }
+
+        const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
+        .setText(doc.title);
+        marker.setPopup(popup);
+        popup.addTo(mapInstance);
+
+        // Add the polygon layer
+        mapInstance.addSource(sourceId, {
+          type: "geojson",
+          data: polygonFeature,
+        });
+
+        mapInstance.addLayer({
+          id: sourceId,
+          type: "fill",
+          source: sourceId,
+          paint: {
+            // fill light blue
+            "fill-color": "lightBlue" , // Highlight the polygon with a distinct color
+            "fill-opacity": 0.5,
+          },
+        });
+      });
+      marker.getElement()?.addEventListener("mouseleave", () => {
+        console.log(`mouseout`);
+        //popup.remove();
+    
+        const sourceId = `polygon-${doc.id}`;
+    
+        // Rimuovi layer e sorgente se esistono
+        if (mapInstance.getSource(sourceId)) {
+            mapInstance.removeLayer(sourceId);
+            mapInstance.removeSource(sourceId);
+        }
+    });
     });
   };
 
