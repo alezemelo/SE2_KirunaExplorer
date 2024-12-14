@@ -197,29 +197,6 @@ export class CoordinatesAsPoint {
     static isPoint(input: string): boolean {
         return CoordinatesAsPoint.isWKBPoint(input) || CoordinatesAsPoint.isWKTPoint(input);
     }
-
-    /*static async wkbToWktPoint(wkb: string, db: Knex): Promise<string> {
-        const result = await db.raw(`SELECT ST_AsText('${wkb}') AS wkt`);
-        return `SRID=4326;${result.rows[0].wkt}`;
-    }*/
-    
-    /* 
-    * Use this when extracting the coordinates from the database (should be used by Document.fromJSON method)
-    */
-    /*static async fromWKBstring(wkb: string, db: Knex): Promise<CoordinatesAsPoint> {
-        const wkt = await CoordinatesAsPoint.wkbToWktPoint(wkb, db);
-        // extract the fields using  /^SRID=4326;POINT\(-?\d+(\.\d+)? -?\d+(\.\d+)?\)$/;
-        const regex =                /^SRID=4326;POINT\((?<lat>-?\d+(\.\d+)?) (?<lng>-?\d+(\.\d+)?)\)$/;
-        const match = wkt.match(regex);
-
-        if (match && match.groups) {
-            const lat = parseFloat(match.groups.lat);
-            const lng = parseFloat(match.groups.lng);
-            return new CoordinatesAsPoint(lat, lng);
-        } else {
-            throw new Error('Invalid WKT format');
-        }
-    }*/
 }
 
 export class CoordinatesAsPolygon {

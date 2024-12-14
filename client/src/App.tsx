@@ -328,8 +328,8 @@ const App: React.FC<any> = () => {
                   />
           <TimeDiagram 
                   documents={documents}
-                  loggedIn={loggedIn}
                   user={user}
+                  loggedIn={loggedIn}
                   fetchDocuments={fetchDocuments}
                   pin={pin}
                   setNewPin={setNewPinWithScroll}
@@ -339,9 +339,6 @@ const App: React.FC<any> = () => {
                   setUpdating={setUpdating}
                   newDocument={newDocument}
                   setNewDocument={setNewDocument}
-                  
-                      
-                        
           />
           </Box>}
         />
