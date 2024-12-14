@@ -73,6 +73,7 @@ interface DocumentListProps {
   setDrawing: any;
   polygon:any;
   setPolygon:any;
+  setPin:any;
 }
 
 /*interface DocumentLocal {
@@ -548,6 +549,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         }
       }
     } else {
+      // skip
     }
 
 
@@ -578,6 +580,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
     setErrors(newErrors);
+    props.setPin(0) // This is needed to fix the bug of the random big pin which has now gotten worse
 
     // Procede solo se non ci sono errori
     if (newErrors.length === 0) {

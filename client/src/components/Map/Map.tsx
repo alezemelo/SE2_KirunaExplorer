@@ -205,8 +205,6 @@ const Map: React.FC<MapProps> = (props) => {
     // Handle zoom-based visibility
     const handleZoom = () => {
       const zoomLevel = mapInstance.getZoom();
-      console.error("Zoom level:", zoomLevel);
-      console.error("Cluster zoom threshold:", clusterZoomThreshold);
   
       if (zoomLevel > clusterZoomThreshold) {
         // Show markers and polygon markers, hide clusters
@@ -390,10 +388,6 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
 
-
-
-
-
   /* list all sources for debugging */
   const listActiveSources = (mapInstance: mapboxgl.Map) => {
     const sources = mapInstance.getStyle()?.sources;
@@ -405,7 +399,7 @@ const Map: React.FC<MapProps> = (props) => {
     if (!map) return;
   
     if (props.isMunicipalityChecked === true) {
-      // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
+      console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
       listActiveSources(map);
 
       const sources = map.getStyle()?.sources;
@@ -700,6 +694,7 @@ const Map: React.FC<MapProps> = (props) => {
       console.error("Invalid documents data.");
       return;
     }
+    // console.error("props.pin is ", props.pin);
   
     const convertedDocuments = props.documents.map((doc) =>
       Document.fromJSONfront(doc as DocumentJSON)

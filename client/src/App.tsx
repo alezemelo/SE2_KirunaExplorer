@@ -199,9 +199,10 @@ function App() {
                       isMunicipalityChecked={isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
                       drawing={drawing}
-                    setDrawing={setDrawing}
-                    polygon={polygon}
-                    setPolygon={setPolygon}
+                      setDrawing={setDrawing}
+                      polygon={polygon}
+                      setPolygon={setPolygon}
+                      setPin={setPin}
                     />
                   </Grid>
                 )}
