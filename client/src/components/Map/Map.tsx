@@ -20,6 +20,8 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import { Coordinates as CoordinatesLocal } from "../../type";
 import { polygon, booleanValid } from '@turf/turf';
 import { Checkbox } from "@mui/material";
+import cluster from "cluster";
+import './Map.css';
 
 
 
@@ -75,7 +77,7 @@ const Map: React.FC<MapProps> = (props) => {
   const [error,setError] = useState('');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedPolygon, setSelectedPolygon] = useState<number | null>(null);
-
+  const [clusterZoomThreshold, setClusterZoomThreshold] = useState<number>(12); // Default cluster zoom level
 
   const mapRef = useRef<any>(null);
 
@@ -203,8 +205,10 @@ const Map: React.FC<MapProps> = (props) => {
     // Handle zoom-based visibility
     const handleZoom = () => {
       const zoomLevel = mapInstance.getZoom();
+      console.error("Zoom level:", zoomLevel);
+      console.error("Cluster zoom threshold:", clusterZoomThreshold);
   
-      if (zoomLevel > 12) {
+      if (zoomLevel > clusterZoomThreshold) {
         // Show markers and polygon markers, hide clusters
         mapInstance.setLayoutProperty("clusters", "visibility", "none");
         mapInstance.setLayoutProperty("cluster-count", "visibility", "none");
@@ -225,8 +229,8 @@ const Map: React.FC<MapProps> = (props) => {
         mapInstance.setLayoutProperty("unclustered-points", "visibility", "visible");
 
         // Clear manual markers
-    markersRef.current.forEach(({ marker }) => marker.remove());
-    markersRef.current = [];
+        markersRef.current.forEach(({ marker }) => marker.remove());
+        markersRef.current = [];
   
         // Hide polygon markers explicitly
         if (centroidsRef.current.length > 0) {
@@ -285,7 +289,7 @@ const Map: React.FC<MapProps> = (props) => {
     if (!map) return;
   
     addClusteringLayers(map);
-  }, [map]);
+  }, [map, clusterZoomThreshold]);
 
   useEffect(() => {
     if (!map) return;
@@ -845,6 +849,21 @@ const Map: React.FC<MapProps> = (props) => {
   
         {/* Legend */}
         <Legend documents={props.documents} />
+        {/* Slider to adjust cluster zoom level */}
+        <div className="slider-container">
+          <label htmlFor="clusterZoomSlider" className="slider-label" style={{ textAlign: 'center' }}>
+            Cluster Zoom Level: {clusterZoomThreshold <= 12.6 ? 'Far' : clusterZoomThreshold <= 13 ? 'Medium' : 'Close'}
+          </label>
+          <input
+            id="clusterZoomSlider"
+            type="range"
+            min={12}
+            max={13.3}
+            step={0.65}
+            value={clusterZoomThreshold}
+            onChange={(e) => setClusterZoomThreshold(parseFloat(e.target.value))}
+          />
+        </div>
       </ReactMapGL>
   
       {/* Confirmation Modal */}
