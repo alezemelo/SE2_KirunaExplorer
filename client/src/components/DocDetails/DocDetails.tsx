@@ -109,7 +109,6 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
 
   const getLinks = async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>, i: number, doc: Document) => {
     e.stopPropagation();
-    console.log("link navigation");
     const links = await API.getLinks(props.document.id);
     const l = links[i]
     if (l) {

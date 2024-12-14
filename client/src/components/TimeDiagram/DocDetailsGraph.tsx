@@ -9,6 +9,7 @@ import {
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import DownloadIcon from '@mui/icons-material/Download';
+import CloseIcon from '@mui/icons-material/Close';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
@@ -20,10 +21,14 @@ import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/c
 import FilePreview from "../DocDetails/FilePreview";
 import { Document } from "../../models/document";
 import { DocumentType } from "../../type";
+import DocDetailsGraphStyle from "./DocDetailsGraphStyle";
 
 
-interface DocGraphProps {
-  document: any;
+interface DocDetailsGraphProps {
+  document: Document;
+  setPopup: React.Dispatch<React.SetStateAction<Document | undefined>>;
+  handleNavigation: (id: number) => void;
+  /*
   onLink: (document:Document) => void;
   fetchDocuments: () => Promise<void>;
   pin: number;
@@ -35,24 +40,16 @@ interface DocGraphProps {
   handleSearchLinking: () => Promise<void>;
   newDocument: DocumentType;
   setNewDocument: React.Dispatch<React.SetStateAction<DocumentType>>;
+  */
 }
 
-const DocGraph: React.FC<DocGraphProps> = (props) => {
-  
-  const [lat, setLat] = useState<string>('');
-  const [lng, setLng] = useState<string>('');
-  const [expand, setExpand] = useState(false);
-  const [files, setFiles] = useState<{ id: number; name: string }[]>([]);  //the ones i fatch 
+const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
+
+  const [files, setFiles] = useState<{ id: number; name: string }[]>([]);  //the ones i fetch 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);//the one i upload
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [expand, setExpand] = useState(false);
 
-
-
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
 
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click event from propagating to parent
@@ -82,20 +79,6 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
     }
   }, [props.document.id, selectedFile]);
 
-  useEffect(() => {
-    if (props.document.coordinates.type == CoordinatesType.POINT) {
-      const s = props.document.coordinates.coords;
-      if (s) {
-        setLat(s.lat);
-        setLng(s.lng);
-      }
-    }
-    if (props.document.coordinates.type == CoordinatesType.MUNICIPALITY) {
-        setLat('');
-        setLng('');
-    }
-  }, [props.document.coordinates]);
-
   const formatIssuanceDate = (date: string) => {
     if (!date) return "N/A";
 
@@ -112,11 +95,7 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
     e.stopPropagation();
     console.log("link navigation");
     const links = await API.getLinks(props.document.id);
-    const l = links[i]
-    if (l) {
-      if (l.docId1 != doc.id) { props.setNewPin(l.docId1) }
-      else if (l.docId2 != doc.id) { props.setNewPin(l.docId2) }
-    }
+    // based on the link i should change popup
   }
 
   const connections = props.document.connection || [];
@@ -130,12 +109,18 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
       <Box display="flex" flexDirection="column" marginTop={1}>
         {connections.length > 0 ? (
           displayedConnections.map((conn: string, index: number) => (
-            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e) => {
-              getLinks(e, index, props.document)
+            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+              e.stopPropagation();
+              const links = await API.getLinks(props.document.id);
+              const l = links[index]
+              if (l) {
+                if (l.docId1 != props.document.id) { props.handleNavigation(l.docId1) }
+                else if (l.docId2 != props.document.id) { props.handleNavigation(l.docId2) }
+              }
             }}>
-             
+
               - <u>{conn}</u>
-                
+
             </Typography>
           ))
         ) : (
@@ -153,36 +138,23 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
     </Box>
   );
 
-  
-  const setPin = (id: number) => {
-    if (id == props.pin) {
-      props.setNewPin(0);
-    }
-    else {
-      console.log("click" + id)
-      props.setNewPin(id);
-    }
-  }
 
-  useEffect(() => {
-    console.log(props.pin)
-  }, [props.pin]);
-
-  
-
+  /*
   const toggleDescription = (e: React.MouseEvent) => {
     //setShowDescription(!showDescription);
     e.stopPropagation();
     //if (props.document && props.document.coordinates.type!="POLYGON") {
     if (props.document) {
-      
+
       props.setNewDocument(props.document);
       props.setUpdating(true);
     }
   }
- 
+    */
 
 
+
+  /*
   const handleFileUpload = async () => {
     if (!selectedFile) {
       alert("No file selected for upload.");
@@ -214,6 +186,7 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
       alert("An error occurred while uploading the file.");
     }
   };
+  
 
 
 
@@ -226,21 +199,21 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
   const handleRemoveFile = () => {
     setSelectedFile(null);
   };
+  */
 
 
   return (
-    <Card elevation={6} onClick={() => setPin(props.document.id)} style={{ margin: "5px", padding: "5px", backgroundColor: "#2A2A2A", color: "#FFFFFF" }}>
+    <Card elevation={6} sx={DocDetailsGraphStyle}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{props.document.title}
         </Typography>
 
-        {props.pin == props.document.id ? <Box display="flex" flexDirection="column" gap={1}>
-          <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders.join(", ")}</Typography>
+        <Box display="flex" flexDirection="column" gap={1}>
+          <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders ? props.document.stakeholders : '-'}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
-          {/* <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography> */}
-          <Typography  variant="body2">
-          <strong>Issuance date:</strong> {formatIssuanceDate(props.document.issuanceDate)}
+          <Typography variant="body2">
+            <strong>Issuance date:</strong> {props.document.issuanceDate ? formatIssuanceDate(props.document.issuanceDate) : '-'}
           </Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
 
@@ -249,60 +222,58 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
           <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
           <Typography variant="body2"><strong>Pages:</strong> {props.document.pages ? props.document.pages : '-'}</Typography>
 
-          {/* Editable Latitude */}
           <Box display="flex" alignItems="center" gap={2}>
+            {/* Latitude 
+            {props.document.coordinates &&
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
-              
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                >
-                  {/*lat || "Enter latitude"*/lat ? parseFloat(lat).toFixed(4) : ''}
-                </Typography>
-              
+              <Typography
+                variant="body2"
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+              >
+                {props.document.coordinates?.getLatLng()?.lat}
+                ciao 1
+              </Typography>
             </Box>
+            }
+            */}
 
-            {/* Editable Longitude */}
+            {/* Longitude
+            {props.document.coordinates && props.document.coordinates.getType() === CoordinatesType.POINT &&
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
-              
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                /*onClick={() => setEditLng(true)}*/
-                >
-                  {/*lng || "Enter longitude"*/lng ? parseFloat(lng).toFixed(5)  : ''}
-                </Typography>
-              
-            </Box>
+              <Typography
+                variant="body2"
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+              >
+                {props.document.coordinates}
+              </Typography>
+            </Box> }
+            */}
           </Box>
-        </Box> : <></>}
 
-        {props.pin == props.document.id ? <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
+        </Box>
+
+        <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
           <strong>Description:</strong> {props.document.description}
-        </Typography> : <></>}
+        </Typography>
 
-        {/* Files Download */}
-        {props.pin == props.document.id ? (
-          <Box marginTop={1} display="flex" alignItems="center">
-            <Typography variant="body2">
-              <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
-            </Typography>
-            {props.document.fileIds && files.length > 0 && (
-              <IconButton onClick={handleOpenDialog} style={{ marginLeft: '8px' }}>
-                <ArrowRightIcon sx={{ fontSize: 16, color: 'white' }} />
-              </IconButton>
-            )}
-          </Box>
-        ) : (
-          <></>
-        )}
+        {/* Files Download 
+        <Box marginTop={1} display="flex" alignItems="center">
+          <Typography variant="body2">
+            <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
+          </Typography>
+          {props.document.fileIds && files.length > 0 && (
+            <IconButton onClick={handleOpenDialog} style={{ marginLeft: '8px' }}>
+              <ArrowRightIcon sx={{ fontSize: 16, color: 'white' }} />
+            </IconButton>
+          )}
+        </Box>
+        */}
 
-        
 
-        {/* Upload Files || Files Upload */}
-        {props.pin === props.document.id && props.loggedIn && props.user?.type === "urban_planner" && (
+        {/* Upload Files 
+        {props.loggedIn && props.user?.type === "urban_planner" && (
           <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
             <input
               type="file"
@@ -345,19 +316,21 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
             )}
           </Box>
         )}
+        */}
 
 
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
-          {props.pin == props.document.id && props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription &&*/ (
-            <>
-              <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e) => {
-                e.stopPropagation();
-                toggleDescription(e)
-              }}>
-                {/*showDescription ? "Hide Description" : "Show Description"*/}
-                Edit
-              </Button>
+          {/*props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription && ( */}
+          <>
+            <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e) => {
+              e.stopPropagation();
+              //toggleDescription(e)
+            }}>
+              {/*showDescription ? "Hide Description" : "Show Description"*/}
+              This button does nothing
+            </Button>
+            {/*
               <Button startIcon={<LinkIcon />} variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e) => {
                 e.stopPropagation();
                 props.handleSearchLinking();
@@ -365,14 +338,18 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
               }}>
                 New Connection
               </Button>
-            </>
-          )}
-
-          
+              */}
+            <Button startIcon={<CloseIcon />} variant="contained" color="error" style={{ width: "48%" }} onClick={(e) => {
+              e.stopPropagation();
+              props.setPopup(undefined);
+            }}>
+              Close
+            </Button>
+          </>
         </Box>
 
         {/* Dialog for File List */}
-        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <Dialog open={dialogOpen} onClose={handleCloseDialog} >
           <DialogTitle>Original Files</DialogTitle>
           <DialogContent>
             <List>
@@ -402,16 +379,9 @@ const DocGraph: React.FC<DocGraphProps> = (props) => {
           </DialogActions>
         </Dialog>
 
-        {/* Snackbar for Error Messages */}
-        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-          <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
       </CardContent>
     </Card>
   );
 };
 
-export default DocGraph;
-
+export default DocDetailsGraph;
