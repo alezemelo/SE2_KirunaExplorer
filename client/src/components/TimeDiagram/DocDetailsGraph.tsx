@@ -27,6 +27,7 @@ import DocDetailsGraphStyle from "./DocDetailsGraphStyle";
 interface DocDetailsGraphProps {
   document: Document;
   setPopup: React.Dispatch<React.SetStateAction<Document | undefined>>;
+  handleNavigation: (id: number) => void;
   /*
   onLink: (document:Document) => void;
   fetchDocuments: () => Promise<void>;
@@ -108,8 +109,14 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
       <Box display="flex" flexDirection="column" marginTop={1}>
         {connections.length > 0 ? (
           displayedConnections.map((conn: string, index: number) => (
-            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e) => {
-              getLinks(e, index, props.document)
+            <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+              e.stopPropagation();
+              const links = await API.getLinks(props.document.id);
+              const l = links[index]
+              if (l) {
+                if (l.docId1 != props.document.id) { props.handleNavigation(l.docId1) }
+                else if (l.docId2 != props.document.id) { props.handleNavigation(l.docId2) }
+              }
             }}>
 
               - <u>{conn}</u>
@@ -244,7 +251,7 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
             </Box> }
             */}
           </Box>
-            
+
         </Box>
 
         <Typography variant="body2" style={{ marginTop: "5px", whiteSpace: "pre-line", wordWrap: "break-word" }}>
@@ -315,15 +322,15 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
         <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
           {/* Toggle Description Button */}
           {/*props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription && ( */}
-            <>
-              <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e) => {
-                e.stopPropagation();
-                //toggleDescription(e)
-              }}>
-                {/*showDescription ? "Hide Description" : "Show Description"*/}
-                This button does nothing
-              </Button>
-              {/*
+          <>
+            <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e) => {
+              e.stopPropagation();
+              //toggleDescription(e)
+            }}>
+              {/*showDescription ? "Hide Description" : "Show Description"*/}
+              This button does nothing
+            </Button>
+            {/*
               <Button startIcon={<LinkIcon />} variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e) => {
                 e.stopPropagation();
                 props.handleSearchLinking();
@@ -332,13 +339,13 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
                 New Connection
               </Button>
               */}
-              <Button startIcon={<CloseIcon />} variant="contained" color="error" style={{ width: "48%" }} onClick={(e) => {
-                e.stopPropagation();
-                props.setPopup(undefined);
-              }}>
-                Close
-              </Button>
-            </>
+            <Button startIcon={<CloseIcon />} variant="contained" color="error" style={{ width: "48%" }} onClick={(e) => {
+              e.stopPropagation();
+              props.setPopup(undefined);
+            }}>
+              Close
+            </Button>
+          </>
         </Box>
 
         {/* Dialog for File List */}

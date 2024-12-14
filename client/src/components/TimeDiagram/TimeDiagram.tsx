@@ -38,6 +38,11 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
     setPopUp(document);
   };
 
+  const handleNavigation = (id: number) => {
+    const targetDocument = props.documents.find(doc => doc.id == id);
+    setPopUp(targetDocument);
+  }
+
   useEffect(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current);
@@ -128,6 +133,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       {popUp && 
       <DocDetailsGraph 
       document={popUp}
+      handleNavigation={handleNavigation}
       setPopup={setPopUp}
       /*
       loggedIn={props.loggedIn}
