@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // There was old commented code here. If you want to see it again, check commits before 2024/09/12
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -127,7 +128,6 @@ const Map: React.FC<MapProps> = (props) => {
       return [];
     }),
   });
-  
 
   const addClusteringLayers = (mapInstance: mapboxgl.Map) => {
     // Remove existing layers and sources if present
@@ -167,10 +167,8 @@ const Map: React.FC<MapProps> = (props) => {
           "step",
           ["get", "point_count"],
           40, // Small clusters
-          10,
-          40, // Medium clusters
-          50,
-          40, // Large clusters
+          10, 40, // Medium clusters
+          50, 40, // Large clusters
         ],
       },
     });
@@ -805,15 +803,11 @@ const Map: React.FC<MapProps> = (props) => {
                 "#f28cb1", // Large clusters
               ],
               "circle-radius": [
-                "interpolate",
-                
                 "step",
                 ["get", "point_count"],
                 15, // Small clusters
-                10,
-                20, // Medium clusters
-                50,
-                25, // Large clusters
+                10, 20, // Medium clusters
+                50, 25, // Large clusters
               ],
             }}
           />
