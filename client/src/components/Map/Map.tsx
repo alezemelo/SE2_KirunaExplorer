@@ -657,16 +657,7 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
   
-  
-  
-  /* TODO: Couldn't this be a problem? Aren't these use effects basically the same? */
-  useEffect(() => {
-    if (!map) return;
-
-    addMarkersToMap(map);
-    addPolygonsToMap(map);
-  }, [map,selectedPolygon, props.documents]);
-  
+   
   const debounce = (func: (...args: any[]) => void, delay: number): DebounceFunction => {
     let timeoutId: NodeJS.Timeout;
     return (...args: any[]) => {
@@ -679,9 +670,10 @@ const Map: React.FC<MapProps> = (props) => {
   
   useEffect(() => {
     if (map) {
+      addMarkersToMap(map);
       debouncedAddPolygonsToMap(map);
     }
-  }, [map, props.documents]);
+  }, [map, selectedPolygon, props.documents]);
     
 
   
@@ -850,7 +842,8 @@ const Map: React.FC<MapProps> = (props) => {
         {/* Legend */}
         <Legend documents={props.documents} />
         {/* Slider to adjust cluster zoom level */}
-        <div className="slider-container">
+        {/* TODO: reenable this after we discuss whether the bug can be acceptable */}
+        {/* <div className="slider-container">
           <label htmlFor="clusterZoomSlider" className="slider-label" style={{ textAlign: 'center' }}>
             Cluster Zoom Level: {clusterZoomThreshold <= 12.6 ? 'Far' : clusterZoomThreshold <= 13 ? 'Medium' : 'Close'}
           </label>
@@ -863,7 +856,7 @@ const Map: React.FC<MapProps> = (props) => {
             value={clusterZoomThreshold}
             onChange={(e) => setClusterZoomThreshold(parseFloat(e.target.value))}
           />
-        </div>
+        </div> */}
       </ReactMapGL>
   
       {/* Confirmation Modal */}
