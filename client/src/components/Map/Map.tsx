@@ -225,6 +225,7 @@ const Map: React.FC<MapProps> = (props) => {
         mapInstance.setLayoutProperty("clusters", "visibility", "visible");
         mapInstance.setLayoutProperty("cluster-count", "visibility", "visible");
         mapInstance.setLayoutProperty("unclustered-points", "visibility", "visible");
+        removeAllPolygons(mapInstance); // Remove polygons when zooming up
 
         // Clear manual markers
         markersRef.current.forEach(({ marker }) => marker.remove());
@@ -388,32 +389,33 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
 
-  /* list all sources for debugging */
-  const listActiveSources = (mapInstance: mapboxgl.Map) => {
+  const removeAllPolygons = (mapInstance: mapboxgl.Map) => {
     const sources = mapInstance.getStyle()?.sources;
-    console.log("Active sources:", sources);
+    if (sources) {
+      Object.keys(sources).forEach((sourceId) => {
+        if (sourceId.startsWith('polygon-')) {
+          const polygons_doc_id = parseInt(sourceId.split('-')[1]);
+          const layerId = `polygon-layer-${polygons_doc_id}`;
+
+          // console.log(`Removing polygon source ${sourceId}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
+          if (mapInstance.getLayer(layerId)) {
+            mapInstance.removeLayer(layerId);
+            mapInstance.removeSource(sourceId);
+          }
+        }
+      });
+    }
+    // props.setNewPin(0); // Pins don't really work rn as intended so leave commented
   };
+
 
   /* Use Effect for removing the polygons when the checkbox is checked */
   useEffect(() => {
     if (!map) return;
   
     if (props.isMunicipalityChecked === true) {
-      console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
-      listActiveSources(map);
-
-      const sources = map.getStyle()?.sources;
-      if (sources) {
-        Object.keys(sources).forEach((sourceId) => {
-          if (sourceId.startsWith('polygon-')) {
-            // console.log(`Removing polygon source ${sourceId}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
-            if (map.getSource(sourceId)) {
-              map.removeLayer(sourceId);
-              map.removeSource(sourceId);
-            }
-          }
-        });
-      }
+      // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
+      removeAllPolygons(map);
     }
   }, [props.isMunicipalityChecked, map]);
 
@@ -473,6 +475,7 @@ const Map: React.FC<MapProps> = (props) => {
       adjustedPositions.push([adjustedLng, adjustedLat]);
   
       // Highlight selected marker with scale
+      console.error("props.pin is ", props.pin);
       const isSelected = props.pin === doc.id;
       const markerColor = isSelected ? "red" : stringToColor(doc.type);
       const markerScale = isSelected ? 1.5 : 1;
@@ -493,6 +496,7 @@ const Map: React.FC<MapProps> = (props) => {
       marker.getElement().addEventListener("click", (event) => {
         event.stopPropagation(); // Prevent click from propagating
         props.setNewPin(isSelected ? 0 : doc.id); // Toggle selection
+        // console.error("props.pin set to ", props.pin);
       });
   
       // Add dragend listener to update coordinates
@@ -630,6 +634,7 @@ const Map: React.FC<MapProps> = (props) => {
 
           // update the list with the selected polygon
           props.setNewPin(doc.id);
+          // console.error("props.pin set to ", props.pin);
         } else {
 
           
@@ -654,7 +659,7 @@ const Map: React.FC<MapProps> = (props) => {
   
   
   
-
+  /* TODO: Couldn't this be a problem? Aren't these use effects basically the same? */
   useEffect(() => {
     if (!map) return;
 
