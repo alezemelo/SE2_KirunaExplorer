@@ -1,11 +1,9 @@
 import dayjs from 'dayjs';
-import React, { useRef, useEffect, useState } from 'react';
-import { User } from "../../type";
-import { Document } from "../../models/document";
-import {  DocumentType as DocumentLocal } from "../../type";
-
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as d3 from 'd3';
-import { NumberValue } from 'd3';
+import { User } from '../../type';
+import { Document } from '../../models/document';
+import { DocumentType as DocumentLocal } from '../../type';
 import DocDetailsGraph from './DocDetailsGraph';
 
 interface TimeDiagramProps {
@@ -14,7 +12,7 @@ interface TimeDiagramProps {
   fetchDocuments: () => Promise<void>;
   pin: number;
   setNewPin: any;
-  updating: boolean,
+  updating: boolean;
   setUpdating: any;
   loggedIn: boolean;
   user: User | undefined;
@@ -29,128 +27,212 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const [popUp, setPopUp] = useState<Document | undefined>(undefined);
 
   const types = Array.from(new Set(props.documents.map(d => d.type || 'Unknown')));
-  
-  const colorScale = d3.scaleOrdinal<string>()
-      .domain(types)
-      .range(d3.schemeCategory10); // Or any other color palette
+  const colorScale = d3.scaleOrdinal<string>().domain(types).range(d3.schemeCategory10);
 
   const onDocumentClick = (document: Document) => {
     setPopUp(document);
   };
 
   const handleNavigation = (id: number) => {
-    const targetDocument = props.documents.find(doc => doc.id == id);
+    const targetDocument = props.documents.find(doc => doc.id === id);
     setPopUp(targetDocument);
-  }
+  };
 
-  useEffect(() => {
+  const redrawChart = useCallback(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current);
-      const margin = { top: 20, right: 50, bottom: 50, left: 100 };
+      const margin = { top: 20, right: 0, bottom: 50, left: 120 };
       const width = svg.node()!.getBoundingClientRect().width - margin.left - margin.right;
       const height = svg.node()!.getBoundingClientRect().height - margin.top - margin.bottom;
-      
-
+  
       // Clear the previous SVG contents
       svg.selectAll('*').remove();
-
-      // Extract unique scales
-      const scales = Array.from(
-        new Set(props.documents.map(d => d.scale || 'Undefined'))
-      );
-
-      // Define X-Scale (time-based)
+  
+      // Add zoomable group
+      const zoomGroup = svg.append('g').attr('class', 'zoom-group');
+  
+      // Validate dates and filter invalid ones
+      const validDates = props.documents
+        .map(d => dayjs(d.issuanceDate).toDate())
+        .filter(date => !isNaN(date.getTime()));
+  
+      if (validDates.length === 0) {
+        console.error("No valid dates found in documents.");
+        return;
+      }
+  
+      const timeDomain = d3.extent(validDates) as [Date, Date];
+  
+      // Add padding to the time domain
+      let [minDate, maxDate] = timeDomain;
+      if (minDate.getTime() === maxDate.getTime()) {
+        minDate = d3.timeDay.offset(minDate, -1);
+        maxDate = d3.timeDay.offset(maxDate, 1);
+      }
+  
+      const paddedDomain: [Date, Date] = [
+        d3.timeDay.offset(minDate, -1),
+        d3.timeDay.offset(maxDate, 1),
+      ];
+  
       const xScale = d3.scaleTime()
-        .domain(d3.extent(props.documents, d => dayjs(d.issuanceDate).toDate()) as [Date, Date])
-        .range([50, width - 50]);
-
-      // Define Y-Scale (categorical)
+        .domain(paddedDomain)
+        .range([margin.left, width - margin.right]);
+  
       const yScale = d3.scaleBand()
-      .domain(scales)
-      .range([margin.top, height])
-      .padding(0.2);
-    
-
-      // Add circles for each document
-      svg.selectAll('circle')
-        .data(props.documents)
-        .enter()
-        .append('circle')
-        .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
-        .attr('cy', d => yScale(d.scale || 'Undefined')! + yScale.bandwidth() / 2)
-        .attr('r', 8)
-        .attr('fill', d => colorScale(d.type || 'Unknown'))
-        .attr('cursor', 'pointer')
-        .on('click', (_, d) => onDocumentClick(d))
-        .on('mouseover', (event, d) => {
-          setTooltip({
-            x: event.pageX,
-            y: event.pageY,
-            content: d.title,
-          });
-        })
-        .on('mouseout', () => setTooltip(null));
-
-      // Add X-axis
-      svg.append('g')
-      .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat((domainValue: Date | NumberValue) => {
+        .domain(Array.from(new Set(props.documents.map(d => d.scale || 'Undefined'))))
+        .range([margin.top, height - margin.bottom])
+        .paddingInner(0.2)
+        .padding(0.6);
+  
+      const initialXScale = xScale.copy();
+      const initialYScale = yScale.copy();
+  
+      const xAxis: d3.Axis<Date | d3.NumberValue> = d3.axisBottom(xScale).tickFormat((domainValue: Date | d3.NumberValue) => {
         const date = domainValue instanceof Date ? domainValue : new Date(domainValue.valueOf());
         return d3.timeFormat('%b %Y')(date);
-      }));
-
-
-      // Add Y-axis
-      svg.append('g')
-      .attr('transform', `translate(${margin.left},0)`)
-      .call(d3.axisLeft(yScale));
-
-      // Optional: Add a legend
-    const legend = svg.append('g')
-    .attr('transform', `translate(${width - 100},${margin.top})`);
-
+      });
+  
+      const yAxis: d3.Axis<string> = d3.axisLeft(yScale);
+  
+      const xAxisSelection = svg.append('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0,${height - margin.bottom})`);
+      xAxisSelection.call(xAxis);
+  
+      const yAxisSelection = svg.append('g')
+        .attr('class', 'y-axis')
+        .attr('transform', `translate(${margin.left},0)`);
+      yAxisSelection.call(yAxis);
+  
+      // Draw grid lines
+      const gridGroup = svg.append('g').attr('class', 'grid-group');
+      const drawGridLines = (xScale: d3.ScaleTime<number, number>, yScale: d3.ScaleBand<string>) => {
+        gridGroup.selectAll('.x-grid-line').remove();
+        gridGroup.selectAll('.y-grid-line').remove();
+  
+        // X Grid Lines
+        const yearTicks = d3.timeYear.range(xScale.domain()[0], xScale.domain()[1]);
+        gridGroup.selectAll('.x-grid-line')
+          .data(yearTicks)
+          .enter()
+          .append('line')
+          .attr('class', 'x-grid-line')
+          .attr('x1', d => xScale(d))
+          .attr('x2', d => xScale(d))
+          .attr('y1', margin.top)
+          .attr('y2', height - margin.bottom)
+          .attr('stroke', '#ccc')
+          .attr('stroke-dasharray', '2,2');
+  
+        // Y Grid Lines
+        gridGroup.selectAll('.y-grid-line')
+          .data(yScale.domain())
+          .enter()
+          .append('line')
+          .attr('class', 'y-grid-line')
+          .attr('x1', margin.left)
+          .attr('x2', width - margin.right)
+          .attr('y1', d => (yScale(d) ?? margin.top) + yScale.bandwidth() / 2)
+          .attr('y2', d => (yScale(d) ?? margin.top) + yScale.bandwidth() / 2)
+          .attr('stroke', '#ccc')
+          .attr('stroke-dasharray', '2,2');
+      };
+  
+      drawGridLines(xScale, yScale);
+  
+      const drawCircles = () => {
+        zoomGroup.selectAll('circle')
+          .data(props.documents)
+          .join('circle')
+          .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
+          .attr('cy', d => (yScale(d.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2)
+          .attr('r', 8)
+          .attr('fill', d => colorScale(d.type || 'Unknown'))
+          .on('click', (_, d) => onDocumentClick(d))
+          .on('mouseover', (event, d) => {
+            setTooltip({ x: event.pageX, y: event.pageY, content: d.title });
+          })
+          .on('mouseout', () => setTooltip(null));
+      };
+  
+      drawCircles();
+  
+      const zoom = d3.zoom<SVGSVGElement, unknown>()
+        .scaleExtent([0.9, 20])
+        .on('zoom', (event) => {
+          const transform = event.transform;
+          const newXScale = transform.rescaleX(initialXScale);
+          const newYScale = yScale.copy().range(yScale.range().map(d => transform.applyY(d)));
+  
+          zoomGroup.selectAll('circle')
+            .attr('cx', (d: any) => newXScale(dayjs(d.issuanceDate).toDate()))
+            .attr('cy', (d: any) => (newYScale(d.scale || 'Undefined') ?? margin.top) + newYScale.bandwidth() / 2);
+  
+          xAxisSelection.call(xAxis.scale(newXScale));
+          yAxisSelection.call(yAxis.scale(newYScale));
+  
+          drawGridLines(newXScale, newYScale);
+        });
+  
+      svg.call(zoom);
+  
+      // Add legend
+      const legend = svg.append('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${width - 150},${margin.top})`);
+  
+      legend.append('rect')
+        .attr('width', 130)
+        .attr('height', types.length * 20 + 10)
+        .attr('fill', 'white')
+        .attr('stroke', 'black')
+        .attr('rx', 5)
+        .attr('ry', 5);
+  
       types.forEach((type, i) => {
         legend.append('circle')
-          .attr('cx', 0)
-          .attr('cy', i * 20)
+          .attr('cx', 10)
+          .attr('cy', i * 20 + 15)
           .attr('r', 6)
           .attr('fill', colorScale(type));
-        
+  
         legend.append('text')
-          .attr('x', 15)
-          .attr('y', i * 20 + 5)
+          .attr('x', 30)
+          .attr('y', i * 20 + 19)
           .text(type)
           .attr('font-size', '12px')
           .attr('alignment-baseline', 'middle')
-          .attr('fill', 'white'); // Adjust for dark background
+          .attr('fill', 'black');
       });
     }
-
   }, [props.documents]);
+  
+  
+  useEffect(() => {
+    redrawChart();
+
+    const handleResize = () => {
+      redrawChart();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [redrawChart]);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', overflow: 'hidden' }}>
       {popUp && 
-      <DocDetailsGraph 
-      document={popUp}
-      handleNavigation={handleNavigation}
-      setPopup={setPopUp}
-      /*
-      loggedIn={props.loggedIn}
-      user={props.user}
-      fetchDocuments={props.fetchDocuments}
-      pin={props.pin}
-      setNewPin={props.setNewPin}
-      onLink={props.onLink}
-      handleSearchLinking={props.handleSearchLinking}
-      updating={props.updating}
-      setUpdating={props.setUpdating} 
-      newDocument={props.newDocument}
-      setNewDocument={props.setNewDocument}
-      */
-      />
+        <DocDetailsGraph 
+          document={popUp}
+          handleNavigation={handleNavigation}
+          setPopup={setPopUp}
+        />
       }
-      <svg ref={svgRef} style={{ width: '100%', height: '500px', border: '1px solid black' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: '100vh', border: '1px solid black'}} />
       {tooltip && (
         <div
           style={{
