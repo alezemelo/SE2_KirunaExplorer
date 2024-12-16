@@ -242,12 +242,12 @@ const Map: React.FC<MapProps> = (props) => {
 
     //following code to refresh layers when zooming or updating the map:
 
-    mapInstance.on("move",()=>{
-      const source = mapInstance.getSource("documents-cluster-source");
-      if (source) {
-        (source as mapboxgl.GeoJSONSource).setData(generateGeoJSON());
-      }
-    });
+    // mapInstance.on("move",()=>{
+    //   const source = mapInstance.getSource("documents-cluster-source");
+    //   if (source) {
+    //     (source as mapboxgl.GeoJSONSource).setData(generateGeoJSON());
+    //   }
+    // });
 
     
 
