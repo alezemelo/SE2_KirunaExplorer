@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { User } from "../../type";
 import { Document } from "../../models/document";
 import {  DocumentType as DocumentLocal } from "../../type";
+import { useLocation } from 'react-router-dom';
 
 import * as d3 from 'd3';
 import { NumberValue } from 'd3';
@@ -27,6 +28,8 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
   const [popUp, setPopUp] = useState<Document | undefined>(undefined);
+  const location = useLocation();
+
 
   const types = Array.from(new Set(props.documents.map(d => d.type || 'Unknown')));
   
@@ -127,6 +130,12 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
     }
 
   }, [props.documents]);
+
+  useEffect(() => {
+    if (location.state?.popup) {
+      setPopUp(location.state.popup); // Update popup state from navigation
+    }
+  }, [location.state]);
 
   return (
     <div style={{ position: 'relative' }}>

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */ // Remember to remove this line for future maintenance
+import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from "react";
 import {
   Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent,
@@ -9,6 +10,7 @@ import {
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import DownloadIcon from '@mui/icons-material/Download';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
@@ -39,7 +41,7 @@ interface DocDetailsProps {
 }
 
 const DocDetails: React.FC<DocDetailsProps> = (props) => {
-  
+
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
@@ -48,6 +50,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const navigate = useNavigate();
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -90,8 +94,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       }
     }
     if (props.document.coordinates.type == CoordinatesType.MUNICIPALITY) {
-        setLat('');
-        setLng('');
+      setLat('');
+      setLng('');
     }
   }, [props.document.coordinates]);
 
@@ -131,9 +135,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e) => {
               getLinks(e, index, props.document)
             }}>
-             
+
               - <u>{conn}</u>
-                
+
             </Typography>
           ))
         ) : (
@@ -251,7 +255,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       //props.setNewDocument(props.document);
     }
   }
- 
+
 
 
   const handleFileUpload = async () => {
@@ -310,8 +314,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders.join(", ")}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
           {/* <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography> */}
-          <Typography  variant="body2">
-          <strong>Issuance date:</strong> {formatIssuanceDate(props.document.issuanceDate)}
+          <Typography variant="body2">
+            <strong>Issuance date:</strong> {formatIssuanceDate(props.document.issuanceDate)}
           </Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
 
@@ -324,28 +328,28 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <Box display="flex" alignItems="center" gap={2}>
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
-              
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                >
-                  {/*lat || "Enter latitude"*/lat ? parseFloat(lat).toFixed(4) : ''}
-                </Typography>
-              
+
+              <Typography
+                variant="body2"
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+              >
+                {/*lat || "Enter latitude"*/lat ? parseFloat(lat).toFixed(4) : ''}
+              </Typography>
+
             </Box>
 
             {/* Editable Longitude */}
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
-              
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                /*onClick={() => setEditLng(true)}*/
-                >
-                  {/*lng || "Enter longitude"*/lng ? parseFloat(lng).toFixed(5)  : ''}
-                </Typography>
-              
+
+              <Typography
+                variant="body2"
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+              /*onClick={() => setEditLng(true)}*/
+              >
+                {/*lng || "Enter longitude"*/lng ? parseFloat(lng).toFixed(5) : ''}
+              </Typography>
+
             </Box>
           </Box>
         </Box> : <></>}
@@ -469,6 +473,18 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
               </Button>
             </>
           )}
+
+          <Button
+            startIcon={<AccountTreeIcon />}
+            variant="contained"
+            color="primary"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent propagation
+              navigate('/time-diagram', { state: { popup: props.document } }); // Use navigate to go to the route with state
+            }}
+          >
+            Show on Diagram
+          </Button>
 
           {/* New Connection or Edit Description Button */}
           {/*pin==document.id && (!showDescription && !editDescription ? (
