@@ -41,7 +41,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const redrawChart = useCallback(() => {
     if (svgRef.current) {
       const svg = d3.select(svgRef.current);
-      const margin = { top: 20, right: 0, bottom: 50, left: 120 };
+      const margin = { top: 20, right: 0, bottom: 50, left: 150 };
       const width = svg.node()!.getBoundingClientRect().width - margin.left - margin.right;
       const height = svg.node()!.getBoundingClientRect().height - margin.top - margin.bottom;
   
@@ -98,12 +98,16 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       const xAxisSelection = svg.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(0,${height - margin.bottom})`);
-      xAxisSelection.call(xAxis);
+      xAxisSelection.call(xAxis)
+        .selectAll('text') // Select x-axis labels
+        .style('font-size', '16px'); // Increase font size for x-axis labels
   
       const yAxisSelection = svg.append('g')
         .attr('class', 'y-axis')
         .attr('transform', `translate(${margin.left},0)`);
-      yAxisSelection.call(yAxis);
+      yAxisSelection.call(yAxis)
+        .selectAll('text') // Select y-axis labels
+        .style('font-size', '16px'); // Increase font size for y-axis labels
   
       // Draw grid lines
       const gridGroup = svg.append('g').attr('class', 'grid-group');
@@ -171,7 +175,8 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   
           xAxisSelection.call(xAxis.scale(newXScale));
           yAxisSelection.call(yAxis.scale(newYScale));
-  
+          xAxisSelection.selectAll('text')
+          .style('font-size', (event.transform.k > 2) ? '14px' : '16px');  // Smaller font when zoomed in
           drawGridLines(newXScale, newYScale);
         });
   
