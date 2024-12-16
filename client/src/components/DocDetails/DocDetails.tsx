@@ -13,7 +13,6 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
 
-import dayjs from "dayjs";
 import { User } from "../../type";
 import API from "../../API";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
