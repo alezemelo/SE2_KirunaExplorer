@@ -546,6 +546,7 @@ const Map: React.FC<MapProps> = (props) => {
       selectedMarker.marker.getElement().style.transform = 'scale(2)';
     }*/
    if(!map) return;
+   console.log("pin: "+props.pin)
     addMarkersToMap(map);
     addPolygonsToMap(map);
   }, [props.pin]);
@@ -559,8 +560,6 @@ const Map: React.FC<MapProps> = (props) => {
     }
     setConfirmChanges(false)
   }
-
-  
      
      
   
@@ -592,15 +591,56 @@ const Map: React.FC<MapProps> = (props) => {
       const centroidCoords = centroid.geometry.coordinates;
   
       // Add a marker at the centroid
-      const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
-      const markerColor = isSelected ? "red" : "blue";
+      //const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
+      //const markerColor = isSelected ? "red" : "blue";
   
-      const marker = new mapboxgl.Marker({ color: markerColor, draggable: false })
+      const marker = new mapboxgl.Marker({ color: /*markerColor*/ 'blue', draggable: false })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
   
       // Store the marker for cleanup later
       centroidsRef.current.push(marker);
+
+      /*if(props.pin == 0){// Create or update the polygon source and layer
+      const sourceId = `polygon-${doc.id}`;
+      const layerId = `polygon-layer-${doc.id}`;
+
+      // Remove existing layer if already added
+      if (mapInstance.getLayer(layerId)) {
+        mapInstance.removeLayer(layerId);
+        mapInstance.removeSource(sourceId);
+      }}*/
+
+      if(props.pin == doc.id){// Create or update the polygon source and layer
+      const sourceId = `polygon-${doc.id}`;
+      const layerId = `polygon-layer-${doc.id}`;
+
+      // Remove existing layer if already added
+      if (mapInstance.getLayer(layerId)) {
+        mapInstance.removeLayer(layerId);
+        mapInstance.removeSource(sourceId);
+      }
+
+      // Add the polygon source and layer
+      mapInstance.addSource(sourceId, {
+        type: "geojson",
+        data: polygonFeature,
+      });
+
+      mapInstance.addLayer({
+        id: layerId,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": "#4287f5",
+          "fill-opacity": 0.5,
+        },
+      });
+
+      // Zoom to the polygon bounds
+      const bounds = new mapboxgl.LngLatBounds();
+      polygonCoords[0].forEach((coord) => bounds.extend(coord as mapboxgl.LngLatLike));
+      mapInstance.fitBounds(bounds, { padding: 20, duration: 1000 });}
   
       // Add click event to the marker to show the polygon area
       marker.getElement()?.addEventListener("click", () => {
@@ -619,7 +659,25 @@ const Map: React.FC<MapProps> = (props) => {
           drawRef.current = null;
           return;
         }
-        if (selectedPolygon !== doc.id) {
+        // Create or update the polygon source and layer
+        const sourceId = `polygon-${doc.id}`;
+        const layerId = `polygon-layer-${doc.id}`;
+
+        // Remove existing layer if already added
+        if (mapInstance.getLayer(layerId)) {
+          mapInstance.removeLayer(layerId);
+          mapInstance.removeSource(sourceId);
+          if(props.pin == doc.id){
+            props.setNewPin(0)
+          }
+        }else{
+          // Add the polygon source and layer
+          if(props.pin != doc.id){
+            props.setNewPin(doc.id)
+          }
+        }
+
+        /*if (selectedPolygon !== doc.id) {
           setSelectedPolygon(doc.id);
   
           // Create or update the polygon source and layer
@@ -673,7 +731,7 @@ const Map: React.FC<MapProps> = (props) => {
 
           // reset the list with the selected polygon
           props.setNewPin(0);
-        }
+        }*/
       });
       const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
         .setHTML(`<div style="color: black; font-weight: bold;">${doc.title}</div>`);
