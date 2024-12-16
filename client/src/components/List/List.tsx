@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { point, booleanPointInPolygon, Coord } from '@turf/turf';
+import { point, booleanPointInPolygon, Coord, polygon } from '@turf/turf';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(customParseFormat);
@@ -69,6 +69,11 @@ interface DocumentListProps {
   isMunicipalityChecked: boolean;
   setIsMunicipalityChecked: any;
   geojson: any;
+  drawing: boolean;
+  setDrawing: any;
+  polygon:any;
+  setPolygon:any;
+  setPin:any;
 }
 
 /*interface DocumentLocal {
@@ -383,12 +388,17 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const handleClose = () => {
     setOpen(false);
     props.setUpdating(false);
-    props.setAdding(false)
+    props.setAdding(false);
+    props.setDrawing(false);
     setNewDocument(reset());
     setDoctypeMessage("");
     setStakeholderMessage("");
     setScaleMessage("");
     setErrors([]);
+    setYear("");
+    setMonth("");
+    setDay("");
+    setDateOption("fullDate");
   }
 
   const openLinkingDialog = (document: Document) => {
@@ -523,8 +533,23 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         } else {
           newErrors.push("Latitude and Longitude must be defined.");
         }
+      } else if (coordinates_type == CoordinatesType.POLYGON){
+        let validated = true;
+        if(props.polygon){
+          for(let i=0;i<props.polygon.length;i++){
+            if(!booleanPointInPolygon(point([props.polygon[i].lng,props.polygon[i].lat]),props.geojson.features[0])){
+              validated = false;
+            }
+          }
+          if(!validated){
+            newErrors.push("coordinates out of the municipality area")
+          }else{
+            coordinates1 = new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(props.polygon))
+          }
+        }
       }
     } else {
+      // skip
     }
 
 
@@ -555,6 +580,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
     setErrors(newErrors);
+    props.setPin(0) // This is needed to fix the bug of the random big pin which has now gotten worse
 
     // Procede solo se non ci sono errori
     if (newErrors.length === 0) {
@@ -660,7 +686,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         }
         //if adding:
         else {
-          await API.addDocument(finalDocument)
+          await API.addDocument(finalDocument);
         }
         await props.fetchDocuments();
 
@@ -1167,7 +1193,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating ? true : false} onChange={handleChange} />
           <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={() => setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates" /><Button color="primary" >All municipality</Button></label>
           <Button color="primary" onClick={() => setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
-          <Button color="primary" >Draw a polygon</Button>
+          <Button color="primary" onClick={()=>{
+            setCoordinatesType(CoordinatesType.POLYGON)
+            props.setDrawing(true);
+            setOpen(false);
+            props
+          }} >Draw a polygon</Button>
           {coordinates_type == CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={newDocument.coordinates?.coords?.lat/* || ""*/} onChange={handleChange} />
             <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={newDocument.coordinates?.coords?.lng /*|| ""*/} onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
@@ -1256,12 +1287,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             )
           }
 
-          <select onChange={handleSelectChange} value={targetLinkType}>
-            <option value="direct" selected>direct</option>
-            <option value="collateral">collateral</option>
-            <option value="projection">projection</option>
-            <option value="update">update</option>
-          </select>
+          
           {linkErrors.length > 0 && (
             <div className="error-messages">
               {linkErrors.map((error, index) => (
@@ -1269,6 +1295,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               ))}
             </div>)}
         </DialogContent>
+        <select onChange={handleSelectChange} value={targetLinkType} style={{width: '100px'}}>
+            <option value="direct" selected>direct</option>
+            <option value="collateral">collateral</option>
+            <option value="projection">projection</option>
+            <option value="update">update</option>
+          </select>
         <DialogActions>
           <Button onClick={linkDocument} color="primary">Create</Button>
           <Button onClick={closeLinkingDialog} color="secondary">Cancel</Button>

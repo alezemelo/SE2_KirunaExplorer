@@ -217,6 +217,19 @@ class DocumentRoutes {
                         ) {
                             throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
                         }
+                    } else if (coordinates.type === 'POLYGON') {
+                        if (coordinates.coords.coordinates.length < 4) {
+                            throw new Error('Invalid POLYGON coordinates: must have at least 4 coordinates');
+                        }
+                        coordinates.coords.coordinates.every((coord: any) => {
+                            if (
+                                !coord ||
+                                typeof coord.lat !== 'number' ||
+                                typeof coord.lng !== 'number'
+                            ) {
+                                throw new Error('Invalid POLYGON coordinates: lat and lng must be numbers');
+                            }
+                        })
                     } else if (coordinates.type !== 'MUNICIPALITY') {
                         throw new Error('Invalid coordinates type');
                     }
@@ -269,25 +282,34 @@ class DocumentRoutes {
             param('id').isInt().toInt(),
             body('type').isIn([CoordinatesType.POINT, CoordinatesType.POLYGON, CoordinatesType.MUNICIPALITY]).withMessage('Invalid coordinates type'),
             body('coords').custom((value, { req }) => {
-                if (req.body.type !== CoordinatesType.MUNICIPALITY) {
-                    if (!value || typeof value.lat !== 'number' || typeof value.lng !== 'number') {
-                        throw new Error('Invalid coordinates');
+                if (req.body.type === 'POINT') {
+                    if (
+                        !value ||
+                        typeof value.lat !== 'number' ||
+                        typeof value.lng !== 'number'
+                    ) {
+                        throw new Error('Invalid POINT coordinates: lat and lng must be numbers');
                     }
+                } else if (req.body.type === 'POLYGON') {
+                    if (value.coordinates.length < 4) {
+                        throw new Error('Invalid POLYGON coordinates: must have at least 4 coordinates');
+                    }
+                    value.coordinates.every((coord: any) => {
+                        if (
+                            !coord ||
+                            typeof coord.lat !== 'number' ||
+                            typeof coord.lng !== 'number'
+                        ) {
+                            throw new Error('Invalid POLYGON coordinates: lat and lng must be numbers');
+                        }
+                    })
                 }
                 return true;
             }),
             this.errorHandler.validateRequest,
             async (req: any, res: any, next: any) => {
-                //TODO: call controller
-                let {type, coords} = req.body;
-                if (type === CoordinatesType.MUNICIPALITY) {
-                    coords = null;
-                } else if (type === CoordinatesType.POINT) {
-                    coords = new CoordinatesAsPoint(coords.lat, coords.lng);
-                } else if (type === CoordinatesType.POLYGON) {
-                    coords = new CoordinatesAsPolygon(coords);
-                }
-                this.controller.updateCoordinates(req.params.id, new Coordinates(type,coords))
+                const coordinates = Coordinates.fromJSON(req.body);
+                this.controller.updateCoordinates(req.params.id, coordinates)
                 .then(() => res.status(200).end())
                 .catch((err: any) => {
                     next(err)
