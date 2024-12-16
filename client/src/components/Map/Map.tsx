@@ -211,6 +211,7 @@ const Map: React.FC<MapProps> = (props) => {
         mapInstance.setLayoutProperty("unclustered-points", "visibility", "none");
 
         addMarkersToMap(mapInstance);
+        if(props.pin!=0)props.setNewPin(0)
   
         // Show polygon markers explicitly
         if (centroidsRef.current.length > 0) {
