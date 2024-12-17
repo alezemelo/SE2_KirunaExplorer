@@ -474,17 +474,13 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </>
           )}
 
-          <Button
-            startIcon={<AccountTreeIcon />}
-            variant="contained"
-            color="primary"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent propagation
-              navigate('/time-diagram', { state: { highlighted: props.document.id} }); // Use navigate to go to the route with state
-            }}
-          >
-            Show on Diagram
-          </Button>
+         
+          {/* Save Coordinates Button */}
+          {/*props.pin == props.document.id && (
+            <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={handleSaveCoordinates}>
+              Save Coordinates
+            </Button>
+          )*/}
 
           {/* New Connection or Edit Description Button */}
           {/*pin==document.id && (!showDescription && !editDescription ? (
@@ -497,7 +493,21 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
           ) : null)*/}
         </Box>
-
+        <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
+        {props.pin == props.document.id && 
+            <Button
+              startIcon={<AccountTreeIcon />}
+              variant="contained"
+              color="warning"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent propagation
+                navigate('/time-diagram', { state: { highlighted: props.document.id} }); // Use navigate to go to the route with state
+              }}
+            >
+              Show on Diagram
+            </Button>
+          }
+        </Box>
         {/* Dialog for File List */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
           <DialogTitle>Original Files</DialogTitle>
