@@ -61,9 +61,6 @@ const Map: React.FC<MapProps> = (props) => {
     (...args: any[]): void;
   }
 
-
-  
-
   const [mapStyle, setMapStyle] = useState(
     "mapbox://styles/mapbox/satellite-streets-v11"
   );
@@ -80,6 +77,7 @@ const Map: React.FC<MapProps> = (props) => {
   const [clusterZoomThreshold, setClusterZoomThreshold] = useState<number>(12); // Default cluster zoom level
 
   const mapRef = useRef<any>(null);
+  const drawRef = useRef<MapboxDraw | null>(null);
 
   
   const generateGeoJSON = (): GeoJSON.FeatureCollection<GeoJSON.Geometry> => ({
@@ -326,20 +324,20 @@ const Map: React.FC<MapProps> = (props) => {
   useEffect(() => {
 
     if (!map) return;
-
+    const draw = new MapboxDraw({
+      displayControlsDefault: false, 
+      controls: {
+        polygon: true, 
+        trash: true, 
+      },
+      defaultMode: "draw_polygon", 
+    });
+    drawRef.current = draw;
     if(props.drawing){
-      const draw = new MapboxDraw({
-        displayControlsDefault: false, 
-        controls: {
-          polygon: true, 
-          trash: true, 
-        },
-        defaultMode: "draw_polygon", 
-      });
-
-      if (map.getSource("mapbox-gl-draw-cold")) {
+      
+      /*if (map.getSource("mapbox-gl-draw-cold")) {
         map.removeControl(draw); 
-      }
+      }*/
   
       map.on("draw.create", (e: any) => {
         const features = e.features;
@@ -352,7 +350,7 @@ const Map: React.FC<MapProps> = (props) => {
         console.log(coord)
         props.setPolygon(data);
         props.setDrawing(false);
-        map.removeControl(draw);
+        map.removeControl(draw); 
       });
   
       /*map.on("draw.update", (e: any) => {
@@ -368,7 +366,6 @@ const Map: React.FC<MapProps> = (props) => {
       map?.addControl(draw)
 
     }
-
 
   }, [props.drawing]);
   
@@ -475,7 +472,7 @@ const Map: React.FC<MapProps> = (props) => {
       adjustedPositions.push([adjustedLng, adjustedLat]);
   
       // Highlight selected marker with scale
-      console.error("props.pin is ", props.pin);
+      //console.error("props.pin is ", props.pin);
       const isSelected = props.pin === doc.id;
       const markerColor = isSelected ? "red" : stringToColor(doc.type);
       const markerScale = isSelected ? 1.5 : 1;
@@ -491,7 +488,16 @@ const Map: React.FC<MapProps> = (props) => {
   
       // Add to reference array
       markersRef.current.push({ id: doc.id, marker });
-  
+
+      const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
+        .setHTML(`<div style="color: black; font-weight: bold;">${doc.title}</div>`);
+      marker.getElement()?.addEventListener("mouseover", () => {
+        marker.setPopup(popup);
+        popup.addTo(mapInstance);
+      })
+      marker.getElement()?.addEventListener("mouseleave", () => {
+        popup.remove();
+      })
       // Add marker click listener to update the selected pin
       marker.getElement().addEventListener("click", (event) => {
         event.stopPropagation(); // Prevent click from propagating
@@ -540,6 +546,7 @@ const Map: React.FC<MapProps> = (props) => {
       selectedMarker.marker.getElement().style.transform = 'scale(2)';
     }*/
    if(!map) return;
+   console.log("pin: "+props.pin)
     addMarkersToMap(map);
     addPolygonsToMap(map);
   }, [props.pin]);
@@ -553,8 +560,6 @@ const Map: React.FC<MapProps> = (props) => {
     }
     setConfirmChanges(false)
   }
-
-  
      
      
   
@@ -586,19 +591,93 @@ const Map: React.FC<MapProps> = (props) => {
       const centroidCoords = centroid.geometry.coordinates;
   
       // Add a marker at the centroid
-      const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
-      const markerColor = isSelected ? "red" : "blue";
+      //const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
+      //const markerColor = isSelected ? "red" : "blue";
   
-      const marker = new mapboxgl.Marker({ color: markerColor, draggable: false })
+      const marker = new mapboxgl.Marker({ color: /*markerColor*/ 'blue', draggable: false })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
   
       // Store the marker for cleanup later
       centroidsRef.current.push(marker);
+
+      /*if(props.pin == 0){// Create or update the polygon source and layer
+      const sourceId = `polygon-${doc.id}`;
+      const layerId = `polygon-layer-${doc.id}`;
+
+      // Remove existing layer if already added
+      if (mapInstance.getLayer(layerId)) {
+        mapInstance.removeLayer(layerId);
+        mapInstance.removeSource(sourceId);
+      }}*/
+
+      if(props.pin == doc.id){// Create or update the polygon source and layer
+      const sourceId = `polygon-${doc.id}`;
+      const layerId = `polygon-layer-${doc.id}`;
+
+      // Remove existing layer if already added
+      if (mapInstance.getLayer(layerId)) {
+        mapInstance.removeLayer(layerId);
+        mapInstance.removeSource(sourceId);
+      }
+
+      // Add the polygon source and layer
+      mapInstance.addSource(sourceId, {
+        type: "geojson",
+        data: polygonFeature,
+      });
+
+      mapInstance.addLayer({
+        id: layerId,
+        type: "fill",
+        source: sourceId,
+        paint: {
+          "fill-color": "#4287f5",
+          "fill-opacity": 0.5,
+        },
+      });
+
+      // Zoom to the polygon bounds
+      const bounds = new mapboxgl.LngLatBounds();
+      polygonCoords[0].forEach((coord) => bounds.extend(coord as mapboxgl.LngLatLike));
+      mapInstance.fitBounds(bounds, { padding: 20, duration: 1000 });}
   
       // Add click event to the marker to show the polygon area
       marker.getElement()?.addEventListener("click", () => {
-        if (selectedPolygon !== doc.id) {
+        if(props.drawing){
+          console.log(polygonCoords);
+          const data:CoordinatesAsPoint[] = []
+          for(let i=0;i<polygonCoords[0].length;i++){
+            console.log(polygonCoords[0][i][1])
+            data.push(new CoordinatesAsPoint(Number(polygonCoords[0][i][1]), Number(polygonCoords[0][i][0])));
+          }
+          const coord = new CoordinatesAsPolygon(data);
+          console.log(coord)
+          props.setPolygon(data);
+          props.setDrawing(false);
+          if(map && drawRef.current)map.removeControl(drawRef.current);
+          drawRef.current = null;
+          return;
+        }
+        // Create or update the polygon source and layer
+        const sourceId = `polygon-${doc.id}`;
+        const layerId = `polygon-layer-${doc.id}`;
+
+        // Remove existing layer if already added
+        if (mapInstance.getLayer(layerId)) {
+          mapInstance.removeLayer(layerId);
+          mapInstance.removeSource(sourceId);
+          if(props.pin == doc.id){
+            props.setNewPin(0)
+          }
+        }else{
+          // Add the polygon source and layer
+          if(props.pin != doc.id){
+            props.setNewPin(doc.id)
+          }
+        }
+
+        /*if (selectedPolygon !== doc.id) {
           setSelectedPolygon(doc.id);
   
           // Create or update the polygon source and layer
@@ -652,8 +731,55 @@ const Map: React.FC<MapProps> = (props) => {
 
           // reset the list with the selected polygon
           props.setNewPin(0);
-        }
+        }*/
       });
+      const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
+        .setHTML(`<div style="color: black; font-weight: bold;">${doc.title}</div>`);
+      marker.getElement()?.addEventListener("mouseover", () => {
+        console.log(`mouseover`);
+        marker.setPopup(popup);
+        popup.addTo(mapInstance);
+        if (!props.drawing) {
+          return; 
+        }
+
+        const sourceId = `polygon-${doc.id}`;
+        if (mapInstance.getSource(sourceId)) {
+          return;
+        }
+
+        // Add the polygon layer
+        mapInstance.addSource(sourceId, {
+          type: "geojson",
+          data: polygonFeature,
+        });
+
+        mapInstance.addLayer({
+          id: sourceId,
+          type: "fill",
+          source: sourceId,
+          paint: {
+            // fill light blue
+            "fill-color": "lightBlue" , // Highlight the polygon with a distinct color
+            "fill-opacity": 0.5,
+          },
+        });
+      });
+      marker.getElement()?.addEventListener("mouseleave", () => {
+        console.log(`mouseout`);
+        popup.remove();
+        if (!props.drawing) {
+          return; 
+        }
+    
+        const sourceId = `polygon-${doc.id}`;
+    
+        // Rimuovi layer e sorgente se esistono
+        if (mapInstance.getSource(sourceId)) {
+            mapInstance.removeLayer(sourceId);
+            mapInstance.removeSource(sourceId);
+        }
+    });
     });
   };
   
@@ -667,6 +793,16 @@ const Map: React.FC<MapProps> = (props) => {
   };
   
   const debouncedAddPolygonsToMap = debounce(addPolygonsToMap, 300);
+  
+  useEffect(() => {
+    if (map) {
+      addMarkersToMap(map);
+      debouncedAddPolygonsToMap(map);
+    }
+  },[props.drawing])
+  
+   
+
   
   useEffect(() => {
     if (map) {
@@ -913,3 +1049,4 @@ const Map: React.FC<MapProps> = (props) => {
 };
 
 export default Map;
+

@@ -83,7 +83,8 @@ function App() {
 
   const handleSearch = async () => {
     try {
-      if (searchQuery.trim()) {
+      if (searchQuery) {
+        console.log(searchQuery)
         const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery, true) : await API.searchDocumentsByTitle(searchQuery);
         setDocuments(matchingDocs);
       } else {

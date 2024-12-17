@@ -143,7 +143,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const [doctypeMessage, setDoctypeMessage] = useState<string>("");
   const [scaleMessage, setScaleMessage] = useState<string>("");
   const [oldForm, setOldForm] = useState<DocumentLocal | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchLinkQuery, setSearchLinkQuery] = useState<string>("");
   const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
   const [linkErrors, setLinkErrors] = useState<string[]>([]);
   const [coordinates_type, setCoordinatesType] = useState<CoordinatesType>(CoordinatesType.MUNICIPALITY);
@@ -411,7 +411,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     setTargetDocumentId(0);
     setTargetLinkType("direct");
     setLinkDocuments([]);
-    setSearchQuery('');
+    setSearchLinkQuery('');
     setLinkErrors([])
 
   };
@@ -724,16 +724,16 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const handleSearchLinking = async () => {
     try {
       let matchingDocs = [];
-      if (searchQuery.trim()) {
+      if (searchLinkQuery.trim()) {
         // Fetch matching documents based on the search query
-        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+        matchingDocs = await API.searchDocumentsByTitle(searchLinkQuery);
+        console.log(matchingDocs)
       } else {
         // Default to all documents if no query
-
-        matchingDocs = props.documents;
+        
+        matchingDocs = await API.getDocuments();
 
       }
-
       // Exclude the current document
       const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin);
       setLinkDocuments(filteredDocs);
@@ -781,6 +781,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       setCoordinatesType(newDocument.coordinates.type);
     }
   }, [props.updating])
+
+  useEffect(() => {
+    handleSearchLinking();
+  },[searchLinkQuery])
 
 
   return (
@@ -1245,8 +1249,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           <div className="search">
             <InputBase
               placeholder="Search by title…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchLinkQuery}
+              onChange={(e) => setSearchLinkQuery(e.target.value)}
               sx={{
                 color: 'white',
                 '& ::placeholder': { color: 'white' },
