@@ -222,34 +222,34 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
           <Typography variant="body2"><strong>Language:</strong> {props.document.language}</Typography>
           <Typography variant="body2"><strong>Pages:</strong> {props.document.pages ? props.document.pages : '-'}</Typography>
 
-          <Box display="flex" alignItems="center" gap={2}>
-            {/* Latitude 
-            {props.document.coordinates &&
-            <Box display="flex" alignItems="center">
-              <Typography variant="body2"><strong>Latitude:</strong></Typography>
-              <Typography
-                variant="body2"
-                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-              >
-                {props.document.coordinates?.getLatLng()?.lat}
-                ciao 1
-              </Typography>
-            </Box>
-            }
-            */}
 
-            {/* Longitude
-            {props.document.coordinates && props.document.coordinates.getType() === CoordinatesType.POINT &&
+          <Box display="flex" alignItems="center" gap={2}>
+            {/* Latitude */}
+            {props.document.coordinates?.coords &&
+              <Box display="flex" alignItems="center">
+                <Typography variant="body2"><strong>Latitude:</strong></Typography>
+                <Typography
+                  variant="body2"
+                  style={{ marginLeft: '8px', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+                >
+                  {props.document.coordinates.coords.lat ? parseFloat(props.document.coordinates.coords.lat).toFixed(5) : '-'}
+                </Typography>
+              </Box>
+            }
+
+
+            {/* Longitude */}
+            {props.document.coordinates.coords && /*props.document.coordinates.getType() === CoordinatesType.POINT &&*/
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
               <Typography
                 variant="body2"
                 style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
               >
-                {props.document.coordinates}
+                {props.document.coordinates.coords.lng ? parseFloat(props.document.coordinates.coords.lng).toFixed(5) : '-'}
               </Typography>
             </Box> }
-            */}
+            
           </Box>
 
         </Box>

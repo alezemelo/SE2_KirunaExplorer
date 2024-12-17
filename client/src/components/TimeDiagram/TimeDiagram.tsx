@@ -1,5 +1,11 @@
 import dayjs from 'dayjs';
+
+import { User } from "../../type";
+import { Document } from "../../models/document";
+import {  DocumentType as DocumentLocal } from "../../type";
+import { useLocation } from 'react-router-dom';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+
 import * as d3 from 'd3';
 import { User } from '../../type';
 import { Document } from '../../models/document';
@@ -25,6 +31,8 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
   const [popUp, setPopUp] = useState<Document | undefined>(undefined);
+  const location = useLocation();
+
 
   const types = Array.from(new Set(props.documents.map(d => d.type || 'Unknown')));
   const colorScale = d3.scaleOrdinal<string>().domain(types).range(d3.schemeCategory10);
@@ -232,6 +240,12 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       window.removeEventListener('resize', handleResize);
     };
   }, [redrawChart]);
+
+  useEffect(() => {
+    if (location.state?.popup) {
+      setPopUp(location.state.popup); // Update popup state from navigation
+    }
+  }, [location.state]);
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
