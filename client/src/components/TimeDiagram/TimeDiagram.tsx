@@ -1,11 +1,7 @@
 import dayjs from 'dayjs';
 
-import { User } from "../../type";
-import { Document } from "../../models/document";
-import {  DocumentType as DocumentLocal } from "../../type";
 import { useLocation } from 'react-router-dom';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-
 import * as d3 from 'd3';
 import { User } from '../../type';
 import { Document } from '../../models/document';
