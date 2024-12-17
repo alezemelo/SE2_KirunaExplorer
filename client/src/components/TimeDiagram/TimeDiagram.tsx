@@ -183,33 +183,38 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       svg.call(zoom);
   
       // Add legend
+      // Add legend
       const legend = svg.append('g')
-        .attr('class', 'legend')
-        .attr('transform', `translate(${width - 150},${margin.top})`);
-  
+      .attr('class', 'legend')
+      .attr('transform', `translate(${width - 200},${margin.top})`); // Adjusted for more space
+
+      const legendItemHeight = 30; // Increased spacing between items
+      const legendCircleRadius = 10; // Larger circles
+
       legend.append('rect')
-        .attr('width', 130)
-        .attr('height', types.length * 20 + 10)
-        .attr('fill', 'white')
-        .attr('stroke', 'black')
-        .attr('rx', 5)
-        .attr('ry', 5);
-  
+      .attr('width', 160) // Wider rectangle
+      .attr('height', types.length * legendItemHeight + 10) // Adjust height for new spacing
+      .attr('fill', 'white')
+      .attr('stroke', 'black')
+      .attr('rx', 5)
+      .attr('ry', 5);
+
       types.forEach((type, i) => {
-        legend.append('circle')
-          .attr('cx', 10)
-          .attr('cy', i * 20 + 15)
-          .attr('r', 6)
-          .attr('fill', colorScale(type));
-  
-        legend.append('text')
-          .attr('x', 30)
-          .attr('y', i * 20 + 19)
-          .text(type)
-          .attr('font-size', '12px')
-          .attr('alignment-baseline', 'middle')
-          .attr('fill', 'black');
+      legend.append('circle')
+        .attr('cx', 15) // Adjusted for larger radius
+        .attr('cy', i * legendItemHeight + 15) // Adjusted for larger spacing
+        .attr('r', legendCircleRadius)
+        .attr('fill', colorScale(type));
+
+      legend.append('text')
+        .attr('x', 40) // Adjusted for larger circle
+        .attr('y', i * legendItemHeight + 19) // Adjusted for spacing
+        .text(type)
+        .attr('font-size', '16px') // Increased font size
+        .attr('alignment-baseline', 'middle')
+        .attr('fill', 'black');
       });
+
     }
   }, [props.documents]);
   
