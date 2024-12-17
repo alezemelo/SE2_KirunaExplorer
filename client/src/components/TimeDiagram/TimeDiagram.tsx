@@ -7,6 +7,8 @@ import { User } from '../../type';
 import { Document } from '../../models/document';
 import { DocumentType as DocumentLocal } from '../../type';
 import DocDetailsGraph from './DocDetailsGraph';
+import API from '../../API';
+import { line } from 'd3';
 
 interface TimeDiagramProps {
   documents: Document[];
@@ -23,10 +25,18 @@ interface TimeDiagramProps {
   setNewDocument: React.Dispatch<React.SetStateAction<DocumentLocal>>;
 }
 
+interface Connection {
+  docId1: number,
+  docId2: number,
+  link_type: string,
+  createdAt: string,
+}
+
 const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
   const [popUp, setPopUp] = useState<Document | undefined>(undefined);
+  const [connections, setConnections] = useState<Connection[]>([]);
   const location = useLocation();
 
 
@@ -36,6 +46,21 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const onDocumentClick = (document: Document) => {
     setPopUp(document);
   };
+
+
+  const fetchConnections = async () => {
+    try {
+      const response = await API.getAllLinks();
+      setConnections(response);
+      console.log(connections)
+    } catch (error) {
+      console.error('Error fetching connections', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchConnections();
+  }, [props.documents]);
 
   const handleNavigation = (id: number) => {
     const targetDocument = props.documents.find(doc => doc.id === id);
@@ -48,77 +73,77 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       const margin = { top: 20, right: 0, bottom: 50, left: 150 };
       const width = svg.node()!.getBoundingClientRect().width - margin.left - margin.right;
       const height = svg.node()!.getBoundingClientRect().height - margin.top - margin.bottom;
-  
+
       // Clear the previous SVG contents
       svg.selectAll('*').remove();
-  
+
       // Add zoomable group
       const zoomGroup = svg.append('g').attr('class', 'zoom-group');
-  
+
       // Validate dates and filter invalid ones
       const validDates = props.documents
         .map(d => dayjs(d.issuanceDate).toDate())
         .filter(date => !isNaN(date.getTime()));
-  
+
       if (validDates.length === 0) {
         console.error("No valid dates found in documents.");
         return;
       }
-  
+
       const timeDomain = d3.extent(validDates) as [Date, Date];
-  
+
       // Add padding to the time domain
       let [minDate, maxDate] = timeDomain;
       if (minDate.getTime() === maxDate.getTime()) {
         minDate = d3.timeDay.offset(minDate, -1);
         maxDate = d3.timeDay.offset(maxDate, 1);
       }
-  
+
       const paddedDomain: [Date, Date] = [
         d3.timeDay.offset(minDate, -1),
         d3.timeDay.offset(maxDate, 1),
       ];
-  
+
       const xScale = d3.scaleTime()
         .domain(paddedDomain)
         .range([margin.left, width - margin.right]);
-  
+
       const yScale = d3.scaleBand()
         .domain(Array.from(new Set(props.documents.map(d => d.scale || 'Undefined'))))
         .range([margin.top, height - margin.bottom])
         .paddingInner(0.2)
         .padding(0.6);
-  
+
       const initialXScale = xScale.copy();
       const initialYScale = yScale.copy();
-  
+
       const xAxis: d3.Axis<Date | d3.NumberValue> = d3.axisBottom(xScale).tickFormat((domainValue: Date | d3.NumberValue) => {
         const date = domainValue instanceof Date ? domainValue : new Date(domainValue.valueOf());
         return d3.timeFormat('%b %Y')(date);
       });
-  
+
       const yAxis: d3.Axis<string> = d3.axisLeft(yScale);
-  
+
       const xAxisSelection = svg.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(0,${height - margin.bottom})`);
       xAxisSelection.call(xAxis)
         .selectAll('text') // Select x-axis labels
         .style('font-size', '16px'); // Increase font size for x-axis labels
-  
+
       const yAxisSelection = svg.append('g')
         .attr('class', 'y-axis')
         .attr('transform', `translate(${margin.left},0)`);
       yAxisSelection.call(yAxis)
         .selectAll('text') // Select y-axis labels
         .style('font-size', '16px'); // Increase font size for y-axis labels
-  
+
       // Draw grid lines
       const gridGroup = svg.append('g').attr('class', 'grid-group');
       const drawGridLines = (xScale: d3.ScaleTime<number, number>, yScale: d3.ScaleBand<string>) => {
         gridGroup.selectAll('.x-grid-line').remove();
         gridGroup.selectAll('.y-grid-line').remove();
-  
+
         // X Grid Lines
         const yearTicks = d3.timeYear.range(xScale.domain()[0], xScale.domain()[1]);
         gridGroup.selectAll('.x-grid-line')
@@ -132,7 +157,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           .attr('y2', height - margin.bottom)
           .attr('stroke', '#ccc')
           .attr('stroke-dasharray', '2,2');
-  
+
         // Y Grid Lines
         gridGroup.selectAll('.y-grid-line')
           .data(yScale.domain())
@@ -146,9 +171,58 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           .attr('stroke', '#ccc')
           .attr('stroke-dasharray', '2,2');
       };
-  
+
       drawGridLines(xScale, yScale);
-  
+
+      const drawConnections = () => {
+        // Select or create a group for the links
+        console.log('Connections:', connections);
+        console.log('Documents:', props.documents)
+        const linksGroup = d3.select('svg').select('g.links-group');
+        if (linksGroup.empty()) {
+          d3.select('svg').append('g').attr('class', 'links-group');
+        }
+      
+        // Bind connections data
+        const lines = d3.select('svg')
+          .select('g.links-group')
+          .selectAll('line')
+          .data(connections);
+      
+        // ENTER: Add new lines for new connections
+        lines.enter()
+          .append('line')
+          .attr('stroke', 'red') // Line color
+          .attr('stroke-width', 2)
+          /*
+          .attr('x1', d => {
+            const doc1 = props.documents.find(doc => doc.id === d.docId1);
+            return doc1 ? xScale(dayjs(doc1.issuanceDate).toDate()) : 0;
+          })
+          .attr('y1', d => {
+            const doc1 = props.documents.find(doc => doc.id === d.docId1);
+            return doc1 ? (yScale(doc1.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2 : 0;
+            //return doc1 ? yScale(doc1.scale ? doc1.scale : 'Undefined') + yScale.bandwidth() / 2 : 0;
+          })
+          .attr('x2', d => {
+            const doc2 = props.documents.find(doc => doc.id === d.docId2);
+            return doc2 ? xScale(dayjs(doc2.issuanceDate).toDate()) : 0;
+          })
+          .attr('y2', d => {
+            const doc2 = props.documents.find(doc => doc.id === d.docId2);
+            return doc2 ? (yScale(doc2.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2 : 0;
+          });
+          */
+          .attr('x1', 100)
+          .attr('y1', 100)
+          .attr('x2', 300)
+          .attr('y2', 300);
+
+      
+        // EXIT: Remove lines that are no longer needed
+        lines.exit().remove();
+      };
+
       const drawCircles = () => {
         zoomGroup.selectAll('circle')
           .data(props.documents)
@@ -163,66 +237,114 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           })
           .on('mouseout', () => setTooltip(null));
       };
-  
+
+      // drawing circles
       drawCircles();
-  
+
+      const drawConnections2 = () => {
+        console.log("drawing connections")
+        zoomGroup.selectAll('line')
+          .data(connections)
+          .join('line')
+          .attr('x1', d => {
+            const doc1 = props.documents.find(doc => doc.id === d.docId1);
+            return doc1 ? xScale(dayjs(doc1.issuanceDate).toDate()) : 0;
+          })
+          .attr('y1', d => {
+            const doc1 = props.documents.find(doc => doc.id === d.docId1);
+            return doc1 ? (yScale(doc1.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2 : 0;
+            //return doc1 ? yScale(doc1.scale ? doc1.scale : 'Undefined') + yScale.bandwidth() / 2 : 0;
+          })
+          .attr('x2', d => {
+            const doc2 = props.documents.find(doc => doc.id === d.docId2);
+            return doc2 ? xScale(dayjs(doc2.issuanceDate).toDate()) : 0;
+          })
+          .attr('y2', d => {
+            const doc2 = props.documents.find(doc => doc.id === d.docId2);
+            return doc2 ? (yScale(doc2.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2 : 0;
+          }); 
+      }
+
+      drawConnections();
+
       const zoom = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.9, 20])
         .on('zoom', (event) => {
           const transform = event.transform;
           const newXScale = transform.rescaleX(initialXScale);
           const newYScale = yScale.copy().range(yScale.range().map(d => transform.applyY(d)));
-  
+
           zoomGroup.selectAll('circle')
             .attr('cx', (d: any) => newXScale(dayjs(d.issuanceDate).toDate()))
             .attr('cy', (d: any) => (newYScale(d.scale || 'Undefined') ?? margin.top) + newYScale.bandwidth() / 2);
-  
+
           xAxisSelection.call(xAxis.scale(newXScale));
           yAxisSelection.call(yAxis.scale(newYScale));
           xAxisSelection.selectAll('text')
-          .style('font-size', (event.transform.k > 2) ? '14px' : '16px');  // Smaller font when zoomed in
+            .style('font-size', (event.transform.k > 2) ? '14px' : '16px');  // Smaller font when zoomed in
           drawGridLines(newXScale, newYScale);
+
+          
+          /*
+          zoomGroup.selectAll('line')
+            
+            .attr('x1', (c: any) => {
+              const doc1 = props.documents.find(doc => doc.id === c.docId1);
+              return doc1 ? xScale(dayjs(doc1.issuanceDate).toDate()) : 0;
+            })
+            .attr('y1', (c: any) => {
+              const doc1 = props.documents.find(doc => doc.id === c.docId1);
+              return doc1 ? (yScale(doc1.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2 : 0;
+            })
+            .attr('x2', (c: any) => {
+              const doc2 = props.documents.find(doc => doc.id === c.docId2);
+              return doc2 ? xScale(dayjs(doc2.issuanceDate).toDate()) : 0;
+            })
+            .attr('y2', (c: any) => {
+              const doc2 = props.documents.find(doc => doc.id === c.docId1);
+              return doc2 ? (yScale(doc2.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2 : 0;
+            })
+            */
         });
-  
+
       svg.call(zoom);
-  
-      // Add legend
+
       // Add legend
       const legend = svg.append('g')
-      .attr('class', 'legend')
-      .attr('transform', `translate(${width - 200},${margin.top})`); // Adjusted for more space
+        .attr('class', 'legend')
+        .attr('transform', `translate(${width - 200},${margin.top})`); // Adjusted for more space
 
       const legendItemHeight = 30; // Increased spacing between items
       const legendCircleRadius = 10; // Larger circles
 
       legend.append('rect')
-      .attr('width', 160) // Wider rectangle
-      .attr('height', types.length * legendItemHeight + 10) // Adjust height for new spacing
-      .attr('fill', 'white')
-      .attr('stroke', 'black')
-      .attr('rx', 5)
-      .attr('ry', 5);
+        .attr('width', 160) // Wider rectangle
+        .attr('height', types.length * legendItemHeight + 10) // Adjust height for new spacing
+        .attr('fill', 'white')
+        .attr('stroke', 'black')
+        .attr('rx', 5)
+        .attr('ry', 5);
 
       types.forEach((type, i) => {
-      legend.append('circle')
-        .attr('cx', 15) // Adjusted for larger radius
-        .attr('cy', i * legendItemHeight + 15) // Adjusted for larger spacing
-        .attr('r', legendCircleRadius)
-        .attr('fill', colorScale(type));
+        legend.append('circle')
+          .attr('cx', 15) // Adjusted for larger radius
+          .attr('cy', i * legendItemHeight + 15) // Adjusted for larger spacing
+          .attr('r', legendCircleRadius)
+          .attr('fill', colorScale(type));
 
-      legend.append('text')
-        .attr('x', 40) // Adjusted for larger circle
-        .attr('y', i * legendItemHeight + 19) // Adjusted for spacing
-        .text(type)
-        .attr('font-size', '16px') // Increased font size
-        .attr('alignment-baseline', 'middle')
-        .attr('fill', 'black');
+        legend.append('text')
+          .attr('x', 40) // Adjusted for larger circle
+          .attr('y', i * legendItemHeight + 19) // Adjusted for spacing
+          .text(type)
+          .attr('font-size', '16px') // Increased font size
+          .attr('alignment-baseline', 'middle')
+          .attr('fill', 'black');
       });
 
     }
-  }, [props.documents]);
-  
-  
+  }, [props.documents, connections]);
+
+
   useEffect(() => {
     redrawChart();
 
@@ -245,14 +367,14 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
 
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
-      {popUp && 
-        <DocDetailsGraph 
+      {popUp &&
+        <DocDetailsGraph
           document={popUp}
           handleNavigation={handleNavigation}
           setPopup={setPopUp}
         />
       }
-      <svg ref={svgRef} style={{ width: '100%', height: '100vh', border: '1px solid black'}} />
+      <svg ref={svgRef} style={{ width: '100%', height: '100vh', border: '1px solid black' }} />
       {tooltip && (
         <div
           style={{

@@ -28,6 +28,15 @@ class LinkRouter {
 
     private initRoutes() {
 
+        this.router.get('/',
+            this.errorHandler.validateRequest,
+            (req: any, res: any, next: any) => this.controller.getAllLinks()
+            .then((links: DocumentLink[]) => {
+                res.status(200).json(links);
+            })
+            .catch((err: any) => next(err))
+        )
+
         this.router.get('/:doc_id',
             param('doc_id').isInt().toInt(),
             this.errorHandler.validateRequest,
