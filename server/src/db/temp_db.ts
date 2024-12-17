@@ -3,7 +3,7 @@
 
 import pg from 'pg';
 
-class my_pgDB {
+class My_pgDB {
     client: pg.Client;
 
     constructor() {
@@ -37,7 +37,7 @@ class my_pgDB {
     }
 }
 
-const pgdb = new my_pgDB();
+const pgdb = new My_pgDB();
 pgdb.connect(); // Careful with open handles
 
 export default pgdb;

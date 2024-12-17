@@ -3,11 +3,11 @@ import db from '../db/db';
 
 import { afterAll, describe, expect, it } from '@jest/globals';
 
-describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
+//describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
     afterAll(async () => {
         await db.destroy();
     });
-    describe('CoordinatesAsPoint', () => {
+    //describe('CoordinatesAsPoint', () => {
         describe('CoordinatesAsPoint Constructor and to GeographyString', () => {
             it('should create an instance with the correct latitude and longitude', () => {
                 const lat = 20;
@@ -135,9 +135,9 @@ describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
                 expect(point.getLng()).toBe(20);
             });
         });
-    });
+    //});
 
-    describe('CoordinatesAsPolygon', () => {
+    //describe('CoordinatesAsPolygon', () => {
         describe('CoordinatesAsPolygon Constructor and to GeographyString', () => {
             it('should create an instance with the correct coordinates', () => {
                 const coordinates = [
@@ -337,9 +337,9 @@ describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
                 expect(coordinates[3].getLng()).toBe(30.456);
             });
         });
-    });
+    //});
 
-    describe('Coordinates', () => {
+    //describe('Coordinates', () => {
         describe('Constructor', () => {
             it('should create an instance with the correct Point coordinates', () => {
                 const lat = 20;
@@ -568,9 +568,9 @@ describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
                 expect(() => Coordinates.fromJSON(json)).toThrow(/Invalid POLYGON coordinates/);
             });
         });
-    });
+    //});
 
-    describe('CoordinatesAsPolygon', () => {
+    //describe('CoordinatesAsPolygon', () => {
         describe('Constructor and to GeographyString', () => {
             it('should create an instance with the correct coordinates', () => {
                 const coordinates = [
@@ -695,6 +695,6 @@ describe('Coordinates, CoordinatesAsPoint, CoordinatesAsPolygon', () => {
             });
         }
     );
-});
+//});
 
-});
+//});
