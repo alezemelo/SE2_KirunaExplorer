@@ -1,18 +1,23 @@
 const DocDetailsGraphStyle: React.CSSProperties = {
     position: 'fixed',
-    top: '50%',
+    top: 'calc(50% + 30px)', // Adjust for the header height (e.g., 60px / 2)
     left: '50%',
-    transform: 'translate(-50%, -50%)', // Centers the popup
-    width: '50vw', // Set width of the popup
+    transform: 'translate(-50%, -50%)',
+    width: '50vw',
+    maxWidth: '800px',
+    minWidth: '300px',
     height: '70vh',
-    padding: '20px', // Add padding for content inside the popup
-    backgroundColor: '#fff', // White background for the popup
-    borderRadius: '8px', // Rounded corners
-    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)', // Subtle shadow for depth
-    zIndex: 1000, // Ensures it's above other content
+    maxHeight: '90vh',
+    padding: '20px',
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.2)',
+    zIndex: 1000,
     display: 'flex',
-    flexDirection: 'column', // Align content vertically
-    alignItems: 'center', // Center align content horizontally
-}
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'auto',
+};
 
 export default DocDetailsGraphStyle;
