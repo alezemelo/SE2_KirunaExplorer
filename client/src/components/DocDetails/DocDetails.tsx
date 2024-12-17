@@ -480,7 +480,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             color="primary"
             onClick={(e) => {
               e.stopPropagation(); // Prevent propagation
-              navigate('/time-diagram', { state: { popup: props.document } }); // Use navigate to go to the route with state
+              navigate('/time-diagram', { state: { /*popup: props.document,*/ highlighted: props.document.id} }); // Use navigate to go to the route with state
             }}
           >
             Show on Diagram

@@ -280,7 +280,6 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
           <strong>Description:</strong> {props.document.description}
         </Typography>
 
-         Files Download 
         <Box marginTop={1} display="flex" alignItems="center">
           <Typography variant="body2">
             <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
