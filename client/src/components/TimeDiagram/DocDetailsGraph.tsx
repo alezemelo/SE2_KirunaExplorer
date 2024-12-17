@@ -17,7 +17,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import dayjs from "dayjs";
 import { User } from "../../type";
 import API from "../../API";
-import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
+import { Coordinates, CoordinatesAsPoint, CoordinatesType} from "../../models/coordinates";
 import FilePreview from "../DocDetails/FilePreview";
 import { Document } from "../../models/document";
 import { DocumentType } from "../../type";
@@ -49,7 +49,29 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);//the one i upload
   const [dialogOpen, setDialogOpen] = useState(false);
   const [expand, setExpand] = useState(false);
+  const [lati, setLat] = useState<string>('');
+  const [long, setLng] = useState<string>('');
 
+  function isCoordinatesPoint(s: any): s is { lat: number; lng: number } {
+    return s && typeof s.lat === "number" && typeof s.lng === "number";
+  }
+  
+  useEffect(() => {
+    if (props.document.coordinates.type === CoordinatesType.POINT) {
+      const s = props.document.coordinates.coords;
+      if (isCoordinatesPoint(s)) {
+        setLat(s.lat.toString());
+        setLng(s.lng.toString());
+      } else {
+        setLat('');
+        setLng('');
+      }
+    }
+    if (props.document.coordinates.type === CoordinatesType.MUNICIPALITY) {
+      setLat('');
+      setLng('');
+    }
+  }, [props.document.coordinates]);
 
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click event from propagating to parent
@@ -230,9 +252,9 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
                 <Typography variant="body2"><strong>Latitude:</strong></Typography>
                 <Typography
                   variant="body2"
-                  style={{ marginLeft: '8px', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+                  style={{ marginLeft: '8px', backgroundColor: "#FFFFFF", color: "#2A2A2A", padding: '4px', borderRadius: '8px' }}
                 >
-                  {props.document.coordinates.coords.lat ? parseFloat(props.document.coordinates.coords.lat).toFixed(5) : '-'}
+                {/*lat || "Enter latitude"*/lati ? parseFloat(lati).toFixed(4) : ''}
                 </Typography>
               </Box>
             }
@@ -244,9 +266,10 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
               <Typography
                 variant="body2"
-                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#FFFFFF", color: "#2A2A2A", padding: '4px', borderRadius: '8px' }}
               >
-                {props.document.coordinates.coords.lng ? parseFloat(props.document.coordinates.coords.lng).toFixed(5) : '-'}
+               {/*lng || "Enter longitude"*/long ? parseFloat(long).toFixed(5) : ''}
+
               </Typography>
             </Box> }
             
