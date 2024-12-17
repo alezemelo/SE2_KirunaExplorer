@@ -25,7 +25,7 @@ import DocDetailsGraphStyle from "./DocDetailsGraphStyle";
 
 
 interface DocDetailsGraphProps {
-  document: Document;
+  document: any;
   setPopup: React.Dispatch<React.SetStateAction<Document | undefined>>;
   handleNavigation: (id: number) => void;
   /*
@@ -176,7 +176,7 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
 
 
 
-  /*
+  
   const handleFileUpload = async () => {
     if (!selectedFile) {
       alert("No file selected for upload.");
@@ -189,8 +189,7 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
     // Check if a file with the same name already exists
     const existingFileNames = files.map(file => file.name);
     if (existingFileNames.includes(fileName)) {
-      setSnackbarMessage('A file with this name already exists for the current document.');
-      setSnackbarOpen(true);
+    
       return;
     }
 
@@ -221,7 +220,7 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
   const handleRemoveFile = () => {
     setSelectedFile(null);
   };
-  */
+  
 
 
   return (
@@ -281,18 +280,18 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
           <strong>Description:</strong> {props.document.description}
         </Typography>
 
-        {/* Files Download 
+         Files Download 
         <Box marginTop={1} display="flex" alignItems="center">
           <Typography variant="body2">
             <strong>File Attachments:</strong> {props.document.fileIds ? files.length : 'not available'}
           </Typography>
           {props.document.fileIds && files.length > 0 && (
             <IconButton onClick={handleOpenDialog} style={{ marginLeft: '8px' }}>
-              <ArrowRightIcon sx={{ fontSize: 16, color: 'white' }} />
+              <ArrowRightIcon sx={{ fontSize: 16, color: 'black' }} />
             </IconButton>
           )}
         </Box>
-        */}
+       
 
 
         {/* Upload Files 
