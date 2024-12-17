@@ -10,17 +10,10 @@ import {
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import DownloadIcon from '@mui/icons-material/Download';
 import CloseIcon from '@mui/icons-material/Close';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
-import EditIcon from '@mui/icons-material/Edit';
-import LinkIcon from '@mui/icons-material/Link';
 
-import dayjs from "dayjs";
-import { User } from "../../type";
 import API from "../../API";
-import { Coordinates, CoordinatesAsPoint, CoordinatesType} from "../../models/coordinates";
-import FilePreview from "../DocDetails/FilePreview";
+import {  CoordinatesType} from "../../models/coordinates";
 import { Document } from "../../models/document";
-import { DocumentType } from "../../type";
 import DocDetailsGraphStyle from "./DocDetailsGraphStyle";
 
 
@@ -28,19 +21,6 @@ interface DocDetailsGraphProps {
   document: any;
   setPopup: React.Dispatch<React.SetStateAction<Document | undefined>>;
   handleNavigation: (id: number) => void;
-  /*
-  onLink: (document:Document) => void;
-  fetchDocuments: () => Promise<void>;
-  pin: number;
-  setNewPin: any;
-  updating: boolean,
-  setUpdating: any;
-  loggedIn: boolean;
-  user: User | undefined;
-  handleSearchLinking: () => Promise<void>;
-  newDocument: DocumentType;
-  setNewDocument: React.Dispatch<React.SetStateAction<DocumentType>>;
-  */
 }
 
 const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
@@ -113,12 +93,7 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
     return date; // Full date
   };
 
-  const getLinks = async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>, i: number, doc: Document) => {
-    e.stopPropagation();
-    console.log("link navigation");
-    const links = await API.getLinks(props.document.id);
-    // based on the link i should change popup
-  }
+ 
 
   const connections = props.document.connection || [];
   const displayedConnections = expand ? connections : connections.slice(0, 3);
@@ -151,80 +126,21 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
           </Typography>
         )}
 
-        {/*connections.length > 3 && (
-          <IconButton onClick={handleToggleExpand} aria-label="expand">
-            {expand ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
-          </IconButton>
-        )*/}
       </Box>
     </Box>
   );
 
 
-  /*
-  const toggleDescription = (e: React.MouseEvent) => {
-    //setShowDescription(!showDescription);
-    e.stopPropagation();
-    //if (props.document && props.document.coordinates.type!="POLYGON") {
-    if (props.document) {
-
-      props.setNewDocument(props.document);
-      props.setUpdating(true);
-    }
-  }
-    */
-
-
-
-  
-  const handleFileUpload = async () => {
-    if (!selectedFile) {
-      alert("No file selected for upload.");
-      return;
-    }
-
-    const fileName = selectedFile.name; // Get the file name
-    const file = selectedFile; // Get the selected file
-
-    // Check if a file with the same name already exists
-    const existingFileNames = files.map(file => file.name);
-    if (existingFileNames.includes(fileName)) {
-    
-      return;
-    }
-
-    try {
-      const response = await API.uploadFile(props.document.id, fileName, file);
-      if (response && response.fileId) {
-        alert("File uploaded successfully!");
-        setSelectedFile(null); // Reset the selected file
-        fetchFiles(); // Refresh the file list
-      } else {
-        alert("File upload failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      alert("An error occurred while uploading the file.");
-    }
-  };
-  
-
-
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setSelectedFile(event.target.files[0]);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-  };
-  
-
-
   return (
     <Card elevation={6} sx={DocDetailsGraphStyle}>
+       {/* Close button in the top-right corner */}
+       <IconButton
+        aria-label="close"
+        sx={{ color: 'black', position: 'absolute', top: 8, right: 8 }}
+        onClick={() => props.setPopup(undefined)}
+      >
+        <CloseIcon />
+      </IconButton>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           <strong>Title: </strong>{props.document.title}
@@ -291,83 +207,6 @@ const DocDetailsGraph: React.FC<DocDetailsGraphProps> = (props) => {
           )}
         </Box>
        
-
-
-        {/* Upload Files 
-        {props.loggedIn && props.user?.type === "urban_planner" && (
-          <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
-            <input
-              type="file"
-              accept=".pdf,.txt,.png,.jpg"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-              id="file-upload"
-            />
-            {!selectedFile && (
-              <label htmlFor="file-upload" style={{ display: 'block', width: '100%' }}>
-                <Button
-                  variant="contained"
-                  component="span"
-                  color="success"
-                  startIcon={<FileUploadIcon />}
-                  fullWidth
-                >
-                  Upload files
-                </Button>
-              </label>
-            )}
-
-            {selectedFile && (
-              <Box mt={2}>
-                <FilePreview fileName={selectedFile.name} onRemove={handleRemoveFile} />
-              </Box>
-            )}
-
-            {selectedFile && (
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<FileUploadIcon />}
-                onClick={handleFileUpload}
-                disabled={!selectedFile}
-                style={{ marginTop: '10px' }}
-              >
-                Upload File
-              </Button>
-            )}
-          </Box>
-        )}
-        */}
-
-
-        <Box display="flex" justifyContent="space-between" style={{ marginTop: "10px", width: "100%" }}>
-          {/* Toggle Description Button */}
-          {/*props.loggedIn && props.user?.type === "urban_planner" && /*!editDescription && ( */}
-          <>
-            <Button startIcon={<EditIcon />} variant="contained" color="primary" style={{ width: "48%" }} onClick={(e) => {
-              e.stopPropagation();
-              //toggleDescription(e)
-            }}>
-              {/*showDescription ? "Hide Description" : "Show Description"*/}
-              This button does nothing
-            </Button>
-            {/*
-              <Button startIcon={<LinkIcon />} variant="contained" color="secondary" style={{ width: "48%" }} onClick={(e) => {
-                e.stopPropagation();
-                props.handleSearchLinking();
-                props.onLink(props.document);
-              }}>
-                New Connection
-              </Button>
-              */}
-            <Button startIcon={<CloseIcon />} variant="contained" color="error" style={{ width: "48%" }} onClick={(e) => {
-              e.stopPropagation();
-              props.setPopup(undefined);
-            }}>
-              Close
-            </Button>
-          </>
-        </Box>
 
         {/* Dialog for File List */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog} >
