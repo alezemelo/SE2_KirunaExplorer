@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Header from "./components/Header/Header";
@@ -5,13 +6,15 @@ import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import Login from "./components/Login/Login";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
-import { Coordinates } from "./models/coordinates";
+import { Coordinates, CoordinatesAsPolygon } from "./models/coordinates";
 import "./App.css";
 import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { User, Coordinates as CoordinatesLocal } from "./type";
 import { Document } from "./models/document";
+import LandingPage from "./components/LandingPage/LandingPage";
+import TimeDiagram from "./components/TimeDiagram/TimeDiagram";
 
 function App() {
   const [coordinates, setCoordinates] = useState<CoordinatesLocal>({
@@ -22,7 +25,7 @@ function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
   const [pin, setPin] = useState(0);
-  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined);
+  const [coordMap, setCoordMap] = useState<CoordinatesLocal | undefined>(undefined); //it is used only for points
   const [adding, setAdding] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -37,6 +40,8 @@ function App() {
   const [geojson, setGeojson] = useState(null);
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [polygon, setPolygon] = useState<CoordinatesAsPolygon>()  //it is only used for polygon 
 
   // Handle the location selected from the map
   const handleMapLocationSelected = (lat: number, lng: number) => {
@@ -78,7 +83,8 @@ function App() {
 
   const handleSearch = async () => {
     try {
-      if (searchQuery.trim()) {
+      if (searchQuery) {
+        console.log(searchQuery)
         const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery, true) : await API.searchDocumentsByTitle(searchQuery);
         setDocuments(matchingDocs);
       } else {
@@ -115,7 +121,7 @@ function App() {
         setLoggedIn(true);
         setUser(user || undefined);
         setMessage(null);
-        navigate("/");
+        navigate("/map");
       } else {
         setMessage({ msg: "Invalid credentials. Please try again.", type: "danger" });
       }
@@ -161,9 +167,9 @@ function App() {
     <>
       <CssBaseline />
       <Routes>
-        <Route
-          path="/"
-          element={
+      <Route path="/" element={<LandingPage />} />
+        <Route path="/map" element={
+          /* ====================== Map Component ====================== */
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
               <Header
                 onToggleDocumentList={toggleDocumentList}
@@ -193,6 +199,11 @@ function App() {
                       user={user}
                       isMunicipalityChecked={isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
+                      drawing={drawing}
+                      setDrawing={setDrawing}
+                      polygon={polygon}
+                      setPolygon={setPolygon}
+                      setPin={setPin}
                     />
                   </Grid>
                 )}
@@ -228,13 +239,19 @@ function App() {
                       isSelectingLocation={isSelectingLocation}
                       onLocationSelected={handleMapLocationSelected}
                       updating={updating}
+                    drawing={drawing}
+                    setDrawing={setDrawing}
+                    setPolygon={setPolygon}
+                      isMunicipalityChecked={isMunicipalityChecked}
                     />
                   </Box>
                 </Grid>
               </Grid>
             </Box>
           }
+          /* ====================== End Of Map Component ====================== */
         />
+        <Route path="/time-diagram" element={<TimeDiagram />} />
         <Route
           path="/login"
           element={

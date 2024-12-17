@@ -46,8 +46,85 @@
   .marker:hover .markerTitle {
     display: block;
   }
+  .custom-marker {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    z-index: 100;
+  }
   
+  .marker-circle {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #11b4da;
+    border-radius: 50%;
+    border: 1px solid white;
+  }
   
 
+  /* Container for the slider */
+.slider-container {
+  position: absolute;
+  bottom: 100px; /* Position it 20px from the bottom */
+  right: 10px; /* Position it 10px from the right */
+  width: 250px;
+  z-index: 1;
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
+/* Label for the slider */
+.slider-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+  text-align: center; /* Center the text */
+}
 
+/* Slider input */
+#clusterZoomSlider {
+  width: 100%;
+  appearance: none;
+  height: 8px;
+  border-radius: 5px;
+  background: #ddd;
+  outline: none;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+/* WebKit slider thumb */
+#clusterZoomSlider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #505a65;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#clusterZoomSlider::-webkit-slider-thumb:hover {
+  background: #0056b3;
+}
+
+/* Mozilla slider thumb */
+#clusterZoomSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#clusterZoomSlider::-moz-range-thumb:hover {
+  background: #0056b3;
+}
