@@ -14,10 +14,10 @@ describe('Edit Document Description Test', () => {
         // edit the document description as like as the add document test
 
         // first click on the document
-        cy.xpath('/html/body/div/div/div/div[1]/div/div[1]/div/div[1]/div/div').click();
+        cy.xpath('/html/body/div/div/div/div[1]/div/div/div[1]/div/div[1]/div/div').click();
         cy.wait(2000);
         // click on the edit button
-        cy.xpath('/html/body/div/div/div/div[1]/div/div[1]/div/div[1]/div/div/div[4]/button[1]').click();
+        cy.xpath('/html/body/div/div/div/div[1]/div/div/div[1]/div/div[1]/div/div/div[4]/button[1]').click();
         cy.wait(2000);
         // edit the description
         cy.get('textarea[name="description"]').clear();
