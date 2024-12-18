@@ -10,7 +10,6 @@ import { Document } from '../../models/document';
 import { DocumentType as DocumentLocal } from '../../type';
 import DocDetailsGraph from './DocDetailsGraph';
 import API from '../../API';
-import { line, link } from 'd3';
 
 interface TimeDiagramProps {
   documents: Document[];
@@ -37,7 +36,6 @@ interface Connection {
 const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
-  const [conntypesTooltip, setConntypesTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
   const [popUp, setPopUp] = useState<Document | undefined>(undefined);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connectionTypes, setConnectionTypes] = useState<string[]>([]);
@@ -200,7 +198,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
           .attr('cy', d => (yScale(d.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2)
           .attr('r', d => d.id === highlighted ? 12 : 8) // Increase radius for highlighted circle
-          .attr('fill', d => colorScale(d.type || 'Unknown'))
+          .attr('fill', d => colorScaleDocTypes(d.type || 'Unknown'))
           .attr('class', d => d.id === highlighted ? 'highlighted-circle' : 'default-circle')
           .style('stroke', d => d.id === highlighted ? 'red' : 'none')
           .style('stroke-width', d => d.id === highlighted ? '3px' : '0px')
@@ -274,11 +272,11 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           .on('mouseout', function() {
             d3.select(this).style('stroke-width', 5);
           })
-          .on('click', function(event, c) {
+          .on('click', function(event, c: any) {
             console.log(`Clicked on connection between ${c.docId1} and ${c.docId2}`);
           })
           .append('title')
-          .text(c => {
+          .text((c: any) => {
             if (c.total === 1) {
               return `Type: ${c.linkType}`;
             } else {
@@ -361,11 +359,12 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       const legendCircleRadius = 10; // Larger circles
       const legendPadding = 10; // Padding inside the legend box
       const legendWidth = 160 + legendPadding * 2; // Total width of the legend box
+      const extraslot = highlighted ? 1 : 0; // Add an extra slot for the clear highlight button
 
       // Box for legend
       legend.append('rect')
         .attr('width', legendWidth) // Wider rectangle to accommodate padding
-        .attr('height', (docTypes.length + connectionTypes.length + 1) * legendItemHeight + legendPadding * 2) // Adjust height for new spacing and padding
+        .attr('height', (docTypes.length + connectionTypes.length + 1 + extraslot) * legendItemHeight + legendPadding * 2) // Adjust height for new spacing and padding
         .attr('fill', 'white')
         .attr('stroke', 'black')
         .attr('rx', 5)
@@ -422,13 +421,12 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
         .attr('font-size', '16px') // Increased font size
         .attr('alignment-baseline', 'middle')
         .attr('fill', 'black');
-      });
 
-      // Add button under legend
+      // Add button under legend (for clearing doc/circle highlight)
       if (highlighted !== undefined) {
         legend.append('foreignObject')
-        .attr('x', 10)
-        .attr('y', types.length * legendItemHeight + 20) // Position button below the legend
+        .attr('x', 19)
+        .attr('y', (docTypes.length + connectionTypes.length + 0.7) * legendItemHeight + 20) // Position button below the legend
         .attr('width', 140)
         .attr('height', 40)
         .append('xhtml:div')
@@ -445,9 +443,9 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           ">Clear Highlight</button>
         `)
         .on('click', () => setHighlighted(undefined));
-      }
+      } 
       /* <=========================== Drawing Legend ===========================> */
-    }
+    } // endif svgRef.current
   }, [props.documents,  highlighted, connections, connectionTypes, colorScaleConnections]);
   
   useEffect(() => {
