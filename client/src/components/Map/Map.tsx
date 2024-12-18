@@ -587,18 +587,28 @@ const Map: React.FC<MapProps> = (props) => {
         console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
         return;
       }
+
+      function offsetCoordinates(coord: [number, number], index: number, offsetAmount = 0.001): [number, number] {
+        const [lng, lat] = coord;
+        const offsetLng = (index % 3 - 1) * offsetAmount; // Ciclo: -offsetAmount, 0, +offsetAmount
+        const offsetLat = Math.floor(index / 3) * offsetAmount; // Cambia ad ogni ciclo di 3 elementi
+        return [lng + offsetLng, lat + offsetLat];
+      }
   
       // Calculate the centroid of the polygon
       const polygonFeature = turf.polygon(polygonCoords);
       const centroid = turf.centroid(polygonFeature);
       const centroidCoords = centroid.geometry.coordinates;
+
+      const polygonIndex = documents.findIndex(p => p.id === doc.id);
+      const offsetCentroidCoords = offsetCoordinates(centroidCoords as [number, number], polygonIndex);
   
       // Add a marker at the centroid
       //const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
       //const markerColor = isSelected ? "red" : "blue";
   
       const marker = new mapboxgl.Marker({ color: /*markerColor*/ stringToColor(doc.type), draggable: false })
-        .setLngLat(centroidCoords as [number, number])
+        .setLngLat(offsetCentroidCoords)
         .addTo(mapInstance);
   
       // Store the marker for cleanup later
