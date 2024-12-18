@@ -34,7 +34,7 @@ describe('Add Document Test', () => {
         // choose the doctype from the dropdown menu
 
         cy.xpath('/html/body/div[2]/div[3]/div/div[1]/div[4]/div[1]/div/div').click(); 
-        cy.xpath('//li[contains(text(), "design_doc")]').click(); 
+        cy.xpath('/html/body/div[3]/div[3]/ul/li[3]').click(); 
         cy.wait(2000);
 
         // choose the sclae from the dropdown menu
