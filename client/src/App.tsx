@@ -218,6 +218,10 @@ const App: React.FC<any> = () => {
     }
   };
 
+  useEffect(() => {
+    setIsDocumentListOpen(true);
+  },[pin])
+
   return (
     <>
       <CssBaseline />
