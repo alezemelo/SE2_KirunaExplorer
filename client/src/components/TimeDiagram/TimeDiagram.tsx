@@ -495,7 +495,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       } 
       /* <=========================== Drawing Legend ===========================> */
     } // endif svgRef.current
-  }, [props.documents,  highlighted, connections, connectionTypes, colorScaleConnections]);
+  }, [props.documents,  highlighted, connections, connectionTypes]);
   
   useEffect(() => {
     redrawChart();
