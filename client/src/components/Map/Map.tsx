@@ -588,7 +588,7 @@ const Map: React.FC<MapProps> = (props) => {
         return;
       }
 
-      function offsetCoordinates(coord: [number, number], index: number, offsetAmount = 0.001): [number, number] {
+      function offsetCoordinates(coord: [number, number], index: number, offsetAmount = 0.0005): [number, number] {
         const [lng, lat] = coord;
         const offsetLng = (index % 3 - 1) * offsetAmount; // Ciclo: -offsetAmount, 0, +offsetAmount
         const offsetLat = Math.floor(index / 3) * offsetAmount; // Cambia ad ogni ciclo di 3 elementi
