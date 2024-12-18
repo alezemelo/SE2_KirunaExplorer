@@ -210,6 +210,28 @@ Fetches a `Document` object.
   - Returns a 404 `DocumentNotFoundError` Error if the specified id is not present in the database.
   - May return errors specified in the head of this file or any other generic error.
 
+#### GET `/kiruna_explorer/linkDocuments`
+
+get every connection between docs in the db
+
+- Request Parameters: None
+- Request Body Content: None
+- Response Body Content: 
+```
+[
+    {
+        "linkId": 505,
+        "docId1": 15,
+        "docId2": 18,
+        "linkType": "update",
+        "createdAt": "2024-11-03T23:39:18.321Z"
+    },
+    ...
+]
+```
+- Access Constraints: None
+- Additional Constraints:
+
 #### GET `/kiruna_explorer/linkDocuments/:doc_id`
 
 get the links of the document specified by the doc_id

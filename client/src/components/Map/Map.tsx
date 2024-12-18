@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
+import {Button, Typography } from "@mui/material";
+
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
@@ -36,6 +38,7 @@ interface MapProps {
   documents: Document[];
   isDocumentListOpen: boolean; // Add this prop to track sidebar state
   pin: number;
+  loggedIn: boolean;
   setNewPin: (id: number) => void;
   isSelectingLocation: boolean; // If we are in "Choose on Map" mode
   onLocationSelected: (lat: number, lng: number) => void; // Callback for location selection
@@ -386,6 +389,7 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
 
+  
   const removeAllPolygons = (mapInstance: mapboxgl.Map) => {
     const sources = mapInstance.getStyle()?.sources;
     if (sources) {
@@ -854,7 +858,8 @@ const Map: React.FC<MapProps> = (props) => {
 
 
   const modalStyle: React.CSSProperties = {
-    backgroundColor: 'white',
+    backgroundColor: 'black',
+    color:'white',
     padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
