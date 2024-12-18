@@ -168,10 +168,19 @@ export async function dbPopulateActualData() {
         }
 
         // Insert SAMPLE document links
-        const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
-        const doclink2 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
-        await knex('document_links').insert(doclink1);
-        await knex('document_links').insert(doclink2);
+        const direct_15_to_18 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
+        const collateral_18_to_41 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
+        const projection_41_to_47 = new DocumentLink(1, 41, 47, LinkType.projection, dayjs()).toObjectWithoutId();
+        const update_47_to_64 = new DocumentLink(1, 47, 64, LinkType.update, dayjs()).toObjectWithoutId();
+        await knex('document_links').insert(direct_15_to_18);
+        await knex('document_links').insert(collateral_18_to_41);
+        await knex('document_links').insert(projection_41_to_47);
+        await knex('document_links').insert(update_47_to_64);
+        // also add some double connections
+        const direct_15_to_50 = new DocumentLink(1, 15, 50, LinkType.direct, dayjs()).toObjectWithoutId();
+        const collateral_15_to_50 = new DocumentLink(1, 15, 50, LinkType.collateral, dayjs()).toObjectWithoutId();
+        await knex('document_links').insert(direct_15_to_50);
+        await knex('document_links').insert(collateral_15_to_50);
         // console.log("Sample document links inserted.");
 
         // Insert SAMPLE files
