@@ -597,7 +597,7 @@ const Map: React.FC<MapProps> = (props) => {
       //const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
       //const markerColor = isSelected ? "red" : "blue";
   
-      const marker = new mapboxgl.Marker({ color: /*markerColor*/ 'blue', draggable: false })
+      const marker = new mapboxgl.Marker({ color: /*markerColor*/ stringToColor(doc.type), draggable: false })
         .setLngLat(centroidCoords as [number, number])
         .addTo(mapInstance);
   

@@ -61,7 +61,7 @@ interface DocumentListProps {
   setCurrentDocument: React.Dispatch<React.SetStateAction<Document | null>>;
   OpenLinkingDialog: (document:Document) => void;
   currentDocument: Document | null;
-  handleSearchLinking: () => Promise<void>;
+  //handleSearchLinking: () => Promise<void>;
   linkDocuments: Document[];
   openLinkDialog: boolean;
   documents: Document[];
@@ -687,10 +687,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const handleSearchLinking = async () => {
     try {
       let matchingDocs = [];
-      if (searchLinkQuery.trim()) {
+      console.log(searchLinkQuery)
+      if (searchLinkQuery) {
         // Fetch matching documents based on the search query
         matchingDocs = await API.searchDocumentsByTitle(searchLinkQuery);
-        console.log(matchingDocs)
       } else {
         // Default to all documents if no query
         
@@ -699,6 +699,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       }
       // Exclude the current document
       const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin);
+      console.log(filteredDocs)
       setLinkDocuments(filteredDocs);
 
     } catch (error) {
@@ -746,6 +747,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   }, [props.updating])
 
   useEffect(() => {
+    console.log(searchLinkQuery)
     handleSearchLinking();
   },[searchLinkQuery])
 
@@ -768,7 +770,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                   pin={props.pin}
                   setNewPin={props.setNewPin}
                   onLink={() => openLinkingDialog(document)}
-                  handleSearchLinking={props.handleSearchLinking}
+                  handleSearchLinking={handleSearchLinking}
                   updating={props.updating}
                   setUpdating={props.setUpdating}
                   newDocument={props.newDocument}
@@ -1222,7 +1224,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               className="inputRoot"
             />
             <Button
-              onClick={props.handleSearchLinking}
+              onClick={handleSearchLinking}
               color="primary"
               variant="contained"
               style={{ marginLeft: '8px' }}
@@ -1237,13 +1239,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
           {/* Search Results */}
           {
-            props.linkDocuments.length === 0 ? (
+            linkDocuments.length === 0 ? (
               <Typography variant="body1" color="textSecondary">
                 No matched Document to be linked
               </Typography>
             ) : (
               <List>
-                {props.linkDocuments.map((doc) => (
+                {linkDocuments.map((doc) => (
                   <ListItemButton
                     key={doc.id}
                     onClick={() => setTargetDocumentId(doc.id)}
