@@ -51,6 +51,7 @@ interface MapProps {
   setDrawing: any;
   setPolygon: any;
   isMunicipalityChecked: boolean;
+  removePolygon: boolean;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -414,11 +415,9 @@ const Map: React.FC<MapProps> = (props) => {
   useEffect(() => {
     if (!map) return;
   
-    if (props.isMunicipalityChecked === true) {
-      // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
-      removeAllPolygons(map);
-    }
-  }, [props.isMunicipalityChecked, map]);
+    // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
+    removeAllPolygons(map);
+  }, [props.isMunicipalityChecked, map, props.removePolygon]);
 
   
 
@@ -849,7 +848,7 @@ const Map: React.FC<MapProps> = (props) => {
   
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
-    console.log(props.drawing)
+    // console.log(props.drawing)
   if((props.adding || props.updating) && !props.drawing) {
       const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
       props.setCoordMap(c);

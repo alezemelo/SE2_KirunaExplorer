@@ -61,6 +61,7 @@ const App: React.FC<any> = () => {
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
+  const [removePolygon, setRemovePolygon] = useState(false);
 
 
 
@@ -271,6 +272,8 @@ const App: React.FC<any> = () => {
                       setPolygon={setPolygon}
                       setPin={setPin}
                       setSearchQuery={setSearchQuery}
+                      removePolygon={removePolygon}
+                      setRemovePolygon={setRemovePolygon}
                     />
                   </Grid>
                 )}
@@ -307,10 +310,11 @@ const App: React.FC<any> = () => {
                       onLocationSelected={handleMapLocationSelected}
                       updating={updating}
                       loggedIn={loggedIn}
-                    drawing={drawing}
-                    setDrawing={setDrawing}
-                    setPolygon={setPolygon}
+                      drawing={drawing}
+                      setDrawing={setDrawing}
+                      setPolygon={setPolygon}
                       isMunicipalityChecked={isMunicipalityChecked}
+                      removePolygon={removePolygon}
                     />
                   </Box>
                 </Grid>

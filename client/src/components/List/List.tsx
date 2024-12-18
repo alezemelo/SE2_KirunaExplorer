@@ -86,6 +86,8 @@ interface DocumentListProps {
   setPolygon:any;
   setPin:any;
   setSearchQuery:any;
+  removePolygon:any;
+  setRemovePolygon:any;
 }
 
 /*interface DocumentLocal {
@@ -651,6 +653,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
         handleClose();
         props.setNewDocument(props.reset());
+        props.setRemovePolygon(true);
+        console.log("removePolygon is: ", props.removePolygon)
 
       } catch (error) {
         console.error("Error:", error);
