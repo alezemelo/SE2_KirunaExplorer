@@ -246,7 +246,7 @@ const App: React.FC<any> = () => {
                       setOpenLinkDialog={setOpenLinkDialog}
                       currentDocument={currentDocument}
                       setCurrentDocument={setCurrentDocument}
-                      handleSearchLinking={handleSearchLinking}
+                      //handleSearchLinking={handleSearchLinking}
                       linkDocuments={linkDocuments}
                       openLinkDialog={openLinkDialog}
                       geojson={geojson}
@@ -336,7 +336,7 @@ const App: React.FC<any> = () => {
                   pin={pin}
                   setNewPin={setNewPinWithScroll}
                   onLink={openLinkingDialog}
-                  handleSearchLinking={handleSearchLinking}
+                  handleSearchLinking={handleSearch}
                   updating={updating}
                   setUpdating={setUpdating}
                   newDocument={newDocument}
