@@ -37,6 +37,7 @@ interface DocDetailsProps {
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
+  setSearchQuery: any;
 }
 
 const DocDetails: React.FC<DocDetailsProps> = (props) => {
@@ -500,7 +501,10 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
               color="warning"
               onClick={(e) => {
                 e.stopPropagation(); // Prevent propagation
-                navigate('/time-diagram', { state: { highlighted: props.document.id} }); // Use navigate to go to the route with state
+                props.setSearchQuery(''); // Clear search query
+                setTimeout(() => {
+                  navigate('/time-diagram', { state: { highlighted: props.document.id } }); // Use navigate to go to the route with state
+                }, 1000); 
               }}
             >
               Show on Diagram

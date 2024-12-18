@@ -85,6 +85,7 @@ interface DocumentListProps {
   polygon:any;
   setPolygon:any;
   setPin:any;
+  setSearchQuery:any;
 }
 
 /*interface DocumentLocal {
@@ -768,6 +769,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                   setUpdating={props.setUpdating}
                   newDocument={props.newDocument}
                   setNewDocument={props.setNewDocument}
+                  setSearchQuery={props.setSearchQuery}
                 />
               </Grid>
             ))}
