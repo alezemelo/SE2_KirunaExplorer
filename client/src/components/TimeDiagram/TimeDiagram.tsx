@@ -41,6 +41,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   const [popUp, setPopUp] = useState<Document | undefined>(undefined);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connectionTypes, setConnectionTypes] = useState<string[]>([]);
+  const [highlighted, setHighlighted] = useState<number | undefined>(undefined);
   const location = useLocation();
 
   const docTypes = Array.from(new Set(props.documents.map(d => d.type || 'Unknown')));
@@ -198,8 +199,12 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           .join('circle')
           .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
           .attr('cy', d => (yScale(d.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2)
-          .attr('r', 8)
-          .attr('fill', d => colorScaleDocTypes(d.type || 'Unknown'))
+          .attr('r', d => d.id === highlighted ? 12 : 8) // Increase radius for highlighted circle
+          .attr('fill', d => colorScale(d.type || 'Unknown'))
+          .attr('class', d => d.id === highlighted ? 'highlighted-circle' : 'default-circle')
+          .style('stroke', d => d.id === highlighted ? 'red' : 'none')
+          .style('stroke-width', d => d.id === highlighted ? '3px' : '0px')
+          .style('opacity', d => d.id === highlighted ? 1 : 0.7)
           .on('click', (_, d) => onDocumentClick(d))
           .on('mouseover', (event, d) => {
             setTooltip({ x: event.pageX, y: event.pageY, content: d.title });
@@ -207,7 +212,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           .on('mouseout', () => setTooltip(null));
       };
 
-      drawCircles();
+      drawCircles(); 
 
       // Group connections by document pair (order docs consistently)
       const connectionsByPair = d3.group(connections, c => {
@@ -326,6 +331,25 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
 
       svg.call(zoom);
       /* <=========================== Handling Zoom ===========================> */
+      
+      
+      // Highlight and center the circle if highlightedId is set
+      if (highlighted) {
+        console.log('highlighted', highlighted);
+        const targetDocument = props.documents.find(d => d.id === highlighted);
+        if (targetDocument) {
+          const targetX = xScale(dayjs(targetDocument.issuanceDate).toDate());
+          console.log('targetX', dayjs(targetDocument.issuanceDate).toDate());
+          const targetY = yScale(targetDocument.scale || 'Undefined') ?? 0;
+          console.log('targetY', targetDocument.scale );
+
+          // Center the view on the highlighted circle
+          svg.transition().duration(750).call(
+            zoom.transform,
+            d3.zoomIdentity.translate(width / 4 - targetX, height / 4 - targetY).scale(1.5)
+          );
+        }
+      }
 
 
       /* ===========================> Drawing Legend <=========================== */
@@ -398,11 +422,34 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
         .attr('font-size', '16px') // Increased font size
         .attr('alignment-baseline', 'middle')
         .attr('fill', 'black');
+      });
+
+      // Add button under legend
+      if (highlighted !== undefined) {
+        legend.append('foreignObject')
+        .attr('x', 10)
+        .attr('y', types.length * legendItemHeight + 20) // Position button below the legend
+        .attr('width', 140)
+        .attr('height', 40)
+        .append('xhtml:div')
+        .html(`
+          <button style="
+            width: 100%;
+            padding: 5px;
+            font-size: 14px;
+            background-color: red;
+            color: white;
+            border: 1px solid black;
+            border-radius: 5px;
+            cursor: pointer;
+          ">Clear Highlight</button>
+        `)
+        .on('click', () => setHighlighted(undefined));
+      }
       /* <=========================== Drawing Legend ===========================> */
     }
-  }, [props.documents, connections, connectionTypes, colorScaleConnections]);
-
-
+  }, [props.documents,  highlighted, connections, connectionTypes, colorScaleConnections]);
+  
   useEffect(() => {
     redrawChart();
 
@@ -423,6 +470,14 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
     }
   }, [location.state]);
 
+  // Set the highlighted document from navigation state
+  useEffect(() => {
+    if (location.state?.highlighted) {
+      setHighlighted(location.state.highlighted);
+    }
+  }, [location.state]);
+
+
   return (
     <div style={{ position: 'relative', overflow: 'hidden' }}>
       {popUp &&
@@ -432,6 +487,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
           setPopup={setPopUp}
         />
       }
+      {/* SVG container */}
       <svg ref={svgRef} style={{ width: '100%', height: '100vh', border: '1px solid black' }} />
       {tooltip && (
         <div
@@ -451,6 +507,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       )}
     </div>
   );
+  
 };
 
 export default TimeDiagram;
