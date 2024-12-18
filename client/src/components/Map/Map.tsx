@@ -560,7 +560,7 @@ const Map: React.FC<MapProps> = (props) => {
      
   
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("Adding polygons to map as points:", props.documents);
+    //console.log("Adding polygons to map as points:", props.documents);
   
     // Remove existing centroid markers
     centroidsRef.current.forEach((centroid) => centroid?.remove());
@@ -742,7 +742,6 @@ const Map: React.FC<MapProps> = (props) => {
       const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
         .setHTML(`<div style="color: black; font-weight: bold;">${doc.title}</div>`);
       marker.getElement()?.addEventListener("mouseover", () => {
-        console.log(`mouseover`);
         marker.setPopup(popup);
         popup.addTo(mapInstance);
         if (!props.drawing) {
@@ -772,7 +771,6 @@ const Map: React.FC<MapProps> = (props) => {
         });
       });
       marker.getElement()?.addEventListener("mouseleave", () => {
-        console.log(`mouseout`);
         popup.remove();
         if (!props.drawing) {
           return; 
