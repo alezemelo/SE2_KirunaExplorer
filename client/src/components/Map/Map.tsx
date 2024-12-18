@@ -560,7 +560,7 @@ const Map: React.FC<MapProps> = (props) => {
      
   
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("Adding polygons to map as points:", props.documents);
+    //console.log("Adding polygons to map as points:", props.documents);
   
     // Remove existing centroid markers
     centroidsRef.current.forEach((centroid) => centroid?.remove());
