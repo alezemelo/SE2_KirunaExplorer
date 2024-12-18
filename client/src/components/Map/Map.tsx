@@ -326,52 +326,46 @@ const Map: React.FC<MapProps> = (props) => {
   }, [props.isDocumentListOpen]);
 
   useEffect(() => {
-
     if (!map) return;
-    const draw = new MapboxDraw({
-      displayControlsDefault: false, 
-      controls: {
-        polygon: true, 
-        trash: true, 
-      },
-      defaultMode: "draw_polygon", 
-    });
-    drawRef.current = draw;
-    if(props.drawing){
-      
-      /*if (map.getSource("mapbox-gl-draw-cold")) {
-        map.removeControl(draw); 
-      }*/
   
-      map.on("draw.create", (e: any) => {
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true,
+      },
+      defaultMode: "draw_polygon",
+    });
+  
+    drawRef.current = draw;
+  
+    if (props.drawing) {
+      map.addControl(draw);
+  
+      const handleDrawCreate = (e: any) => {
         const features = e.features;
-        const geojsondata =  features[0].geometry.coordinates[0];
-        const data:CoordinatesAsPoint[] = []
-        for(let i=0;i<geojsondata.length;i++){
+        const geojsondata = features[0].geometry.coordinates[0];
+        const data: CoordinatesAsPoint[] = [];
+        for (let i = 0; i < geojsondata.length; i++) {
           data.push(new CoordinatesAsPoint(geojsondata[i][1], geojsondata[i][0]));
         }
         const coord = new CoordinatesAsPolygon(data);
-        console.log(coord)
+        console.log(coord);
         props.setPolygon(data);
         props.setDrawing(false);
-        map.removeControl(draw); 
-      });
+      };
   
-      /*map.on("draw.update", (e: any) => {
-        const features = e.features;
-        console.log("Poligono aggiornato:", features);
-      });
+      map.on("draw.create", handleDrawCreate);
   
-      map.on("draw.delete", (e: any) => {
-        const features = e.features;
-        console.log("Poligono eliminato:", features);
-      });
-  */
-      map?.addControl(draw)
-
+      return () => {
+        map.off("draw.create", handleDrawCreate);
+        if (map.hasControl(draw)) {
+          map.removeControl(draw);
+        }
+      };
     }
-
-  }, [props.drawing]);
+  }, [map, props.drawing]);
+  
   
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
