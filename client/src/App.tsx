@@ -270,6 +270,7 @@ const App: React.FC<any> = () => {
                       polygon={polygon}
                       setPolygon={setPolygon}
                       setPin={setPin}
+                      setSearchQuery={setSearchQuery}
                     />
                   </Grid>
                 )}
