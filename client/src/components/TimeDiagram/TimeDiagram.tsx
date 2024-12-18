@@ -190,28 +190,7 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       /* <==================================== Drawing Axes and Grid ====================================> */
 
 
-      /* ===========================> Drawing Circles (Documents) and Links (Connections) <=========================== */
-      const drawCircles = () => {
-        zoomGroup.selectAll('circle')
-          .data(props.documents)
-          .join('circle')
-          .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
-          .attr('cy', d => (yScale(d.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2)
-          .attr('r', d => d.id === highlighted ? 12 : 8) // Increase radius for highlighted circle
-          .attr('fill', d => colorScaleDocTypes(d.type || 'Unknown'))
-          .attr('class', d => d.id === highlighted ? 'highlighted-circle' : 'default-circle')
-          .style('stroke', d => d.id === highlighted ? 'red' : 'none')
-          .style('stroke-width', d => d.id === highlighted ? '3px' : '0px')
-          .style('opacity', d => d.id === highlighted ? 1 : 0.7)
-          .on('click', (_, d) => onDocumentClick(d))
-          .on('mouseover', (event, d) => {
-            setTooltip({ x: event.pageX, y: event.pageY, content: d.title });
-          })
-          .on('mouseout', () => setTooltip(null));
-      };
-
-      drawCircles(); 
-
+      /* ===========================> Drawing Links (Connections) <=========================== */
       // Group connections by document pair (order docs consistently)
       const connectionsByPair = d3.group(connections, c => {
         const key1 = Math.min(c.docId1, c.docId2);
@@ -227,12 +206,12 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
         });
       });
 
-      console.log('connectionsWithIndex: ', connectionsWithIndex);
+      // console.log('connectionsWithIndex: ', connectionsWithIndex);
 
       const linkGenerator = d3.linkHorizontal<Connection, { x: number, y: number }>()
       .x(d => d.x)
       .y(d => d.y);
-  
+
       const drawConnections = (xScale: d3.ScaleTime<number, number>, yScale: d3.ScaleBand<string>) => {
         zoomGroup.selectAll('.connection')
           .data(connectionsWithIndex)
@@ -286,7 +265,31 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       };
 
       drawConnections(xScale, yScale);
-      /* <=========================== Drawing Circles (Documents) and Links (Connections)  ===========================> */
+      /* <=========================== Drawing Links (Connections)  ===========================> */
+
+
+      /* ===========================> Drawing Circles (Documents) <=========================== */
+      const drawCircles = () => {
+        zoomGroup.selectAll('circle')
+          .data(props.documents)
+          .join('circle')
+          .attr('cx', d => xScale(dayjs(d.issuanceDate).toDate()))
+          .attr('cy', d => (yScale(d.scale || 'Undefined') ?? margin.top) + yScale.bandwidth() / 2)
+          .attr('r', d => d.id === highlighted ? 12 : 8) // Increase radius for highlighted circle
+          .attr('fill', d => colorScaleDocTypes(d.type || 'Unknown'))
+          .attr('class', d => d.id === highlighted ? 'highlighted-circle' : 'default-circle')
+          .style('stroke', d => d.id === highlighted ? 'red' : 'none')
+          .style('stroke-width', d => d.id === highlighted ? '3px' : '0px')
+          .style('opacity', d => d.id === highlighted ? 1 : 0.7)
+          .on('click', (_, d) => onDocumentClick(d))
+          .append('title')
+          .text((d: any) => {
+            return `${d.title}`;
+          });
+      };
+
+      drawCircles(); 
+      /* <=========================== Drawing Circles (Documents)  ===========================> */
 
 
       /* ===========================> Handling Zoom <=========================== */
@@ -337,9 +340,9 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
         const targetDocument = props.documents.find(d => d.id === highlighted);
         if (targetDocument) {
           const targetX = xScale(dayjs(targetDocument.issuanceDate).toDate());
-          console.log('targetX', dayjs(targetDocument.issuanceDate).toDate());
+          // console.log('targetX', dayjs(targetDocument.issuanceDate).toDate());
           const targetY = yScale(targetDocument.scale || 'Undefined') ?? 0;
-          console.log('targetY', targetDocument.scale );
+          // console.log('targetY', targetDocument.scale );
 
           // Center the view on the highlighted circle
           svg.transition().duration(750).call(
