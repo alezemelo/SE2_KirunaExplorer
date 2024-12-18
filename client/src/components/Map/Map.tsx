@@ -470,8 +470,8 @@ const Map: React.FC<MapProps> = (props) => {
       // Highlight selected marker with scale
       //console.error("props.pin is ", props.pin);
       const isSelected = props.pin === doc.id;
-      const markerColor = isSelected ? "red" : stringToColor(doc.type);
-      const markerScale = isSelected ? 1.5 : 1;
+      const markerColor = stringToColor(doc.type);
+      const markerScale = 1;
   
       // Add marker to the map
       const marker = new mapboxgl.Marker({
