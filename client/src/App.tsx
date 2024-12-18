@@ -62,6 +62,8 @@ const App: React.FC<any> = () => {
   const [openLinkDialog, setOpenLinkDialog] = useState(false);
   const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
   const [removePolygon, setRemovePolygon] = useState(false);
+  const [connectedDocs, setConnectedDocs] = useState<Document[]>([]); // Tracks connected documents
+
 
 
 
@@ -71,6 +73,7 @@ const App: React.FC<any> = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [polygon, setPolygon] = useState<CoordinatesAsPolygon>()  //it is only used for polygon 
+
 
   const openLinkingDialog = (document: Document) => {
     setCurrentDocument(document);
@@ -209,17 +212,57 @@ const App: React.FC<any> = () => {
   }, []);
 
   // Modified setNewPin function
-  const setNewPinWithScroll = (docId: any) => {
-    setPin(docId);
-    if (docId !== 0) {
-      const element = document.getElementById(`doc-${docId}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // const setNewPinWithScroll = (docId: any) => {
+  //   setPin(docId);
+  //   if (docId !== 0) {
+  //     const element = document.getElementById(`doc-${docId}`);
+  //     if (element) {
+  //       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  //     }
+  //   }
+  // };
+  const setNewPinWithScroll = async (docId: number) => {
+    try {
+      setPin(docId);
+  
+      if (docId !== 0) {
+        // Fetch all connections in parallel
+        const connections = await API.getLinks(docId);
+  
+        const connectedDocumentPromises = connections.map((link:any) => {
+          const connectedDocId = link.docId1 === docId ? link.docId2 : link.docId1;
+          return API.getDocument(connectedDocId).catch((error) => {
+            console.error(`Failed to fetch document ${connectedDocId}:`, error);
+            return null; // Return null on failure
+          });
+        });
+  
+        // Resolve all promises and filter out failed fetches
+        const connectedDocuments = (await Promise.all(connectedDocumentPromises)).filter(
+          (doc) => doc !== null
+        );
+  
+        console.log("Connected Documents:", connectedDocuments); // Debug log
+        setConnectedDocs(connectedDocuments);
+      } else {
+        setConnectedDocs([]); // Clear connections when no document is selected
       }
+    } catch (error) {
+      console.error("Error fetching connected documents:", error);
+      setConnectedDocs([]); // Reset connections on error
     }
   };
+  
+  
+  
+  
 
   useEffect(() => {
+    if (pin !== 0) {
+      setNewPinWithScroll(pin);
+    } else {
+      setConnectedDocs([]);
+    }
     setIsDocumentListOpen(true);
   },[pin])
 
@@ -319,6 +362,8 @@ const App: React.FC<any> = () => {
                       setPolygon={setPolygon}
                       isMunicipalityChecked={isMunicipalityChecked}
                       removePolygon={removePolygon}
+                      connectedDocs={connectedDocs}
+                      setConnectedDocs={setConnectedDocs}
                     />
                   </Box>
                 </Grid>

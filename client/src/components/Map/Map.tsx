@@ -52,6 +52,8 @@ interface MapProps {
   setPolygon: any;
   isMunicipalityChecked: boolean;
   removePolygon: boolean;
+  connectedDocs: Document[];
+  setConnectedDocs: any;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -242,14 +244,7 @@ const Map: React.FC<MapProps> = (props) => {
       }
     };
 
-    //following code to refresh layers when zooming or updating the map:
-
-    // mapInstance.on("move",()=>{
-    //   const source = mapInstance.getSource("documents-cluster-source");
-    //   if (source) {
-    //     (source as mapboxgl.GeoJSONSource).setData(generateGeoJSON());
-    //   }
-    // });
+  
 
     
 
@@ -290,7 +285,7 @@ const Map: React.FC<MapProps> = (props) => {
     if (!map) return;
   
     addClusteringLayers(map);
-  }, [map, clusterZoomThreshold]);
+  }, [map, clusterZoomThreshold,props.connectedDocs]);
 
   useEffect(() => {
     if (!map) return;
@@ -384,37 +379,33 @@ const Map: React.FC<MapProps> = (props) => {
   };
 
   
+  
   const removeAllPolygons = (mapInstance: mapboxgl.Map) => {
     const sources = mapInstance.getStyle()?.sources;
+  
     if (sources) {
       Object.keys(sources).forEach((sourceId) => {
         if (sourceId.startsWith('polygon-')) {
-          const polygons_doc_id = parseInt(sourceId.split('-')[1]);
-          const layerId = `polygon-layer-${polygons_doc_id}`;
-
-          // console.log(`Removing polygon source ${sourceId}. isMunicipalityChecked is ${props.isMunicipalityChecked}`);
+          const layerId = `polygon-layer-${sourceId.split('-')[1]}`;
           if (mapInstance.getLayer(layerId)) {
             mapInstance.removeLayer(layerId);
+          }
+          if (mapInstance.getSource(sourceId)) {
             mapInstance.removeSource(sourceId);
           }
         }
       });
     }
-    // props.setNewPin(0); // Pins don't really work rn as intended so leave commented
+    // console.log("All polygons removed.");
   };
-
-
-  /* Use Effect for removing the polygons when the checkbox is checked */
-  useEffect(() => {
-    if (!map) return;
   
-    // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
-    removeAllPolygons(map);
-  }, [props.isMunicipalityChecked, map, props.removePolygon]);
+
+
 
   
 
   const addMarkersToMap = (mapInstance: mapboxgl.Map) => {
+    
     // Remove existing markers
     markersRef.current.forEach(({ marker }) => marker.remove());
     markersRef.current = [];
@@ -470,8 +461,19 @@ const Map: React.FC<MapProps> = (props) => {
       // Highlight selected marker with scale
       //console.error("props.pin is ", props.pin);
       const isSelected = props.pin === doc.id;
-      const markerColor = isSelected ? "red" : stringToColor(doc.type);
-      const markerScale = isSelected ? 1.5 : 1;
+      const isConnected =
+      props.pin !== 0 &&
+      props.connectedDocs?.length > 0 &&
+      props.connectedDocs.some((connectedDoc) => connectedDoc.id === doc.id);
+
+
+
+      const markerColor = isSelected
+      ? "red"
+      : isConnected
+        ? "yellow" // Highlight connected documents in yellow
+        : stringToColor(doc.type);
+      const markerScale = isSelected ? 1.5 : isConnected ? 1.2 : 1;
   
       // Add marker to the map
       const marker = new mapboxgl.Marker({
@@ -495,9 +497,28 @@ const Map: React.FC<MapProps> = (props) => {
         popup.remove();
       })
       // Add marker click listener to update the selected pin
-      marker.getElement().addEventListener("click", (event) => {
+      marker.getElement().addEventListener("click", async (event) => {
         event.stopPropagation(); // Prevent click from propagating
-        props.setNewPin(isSelected ? 0 : doc.id); // Toggle selection
+        // props.setNewPin(isSelected ? 0 : doc.id); // Toggle selection
+        const newPin = isSelected ? 0 : doc.id; // Toggle selection
+        props.setNewPin(newPin);
+        if (newPin !== 0) {
+          try {
+            const connections = await API.getLinks(newPin); // Fetch links
+            const connectedDocuments = [];
+            for (let link of connections) {
+              const connectedDocId = link.docId1 === newPin ? link.docId2 : link.docId1;
+              const connectedDoc = await API.getDocument(connectedDocId);
+              connectedDocuments.push(connectedDoc);
+            }
+            props.setConnectedDocs([...connectedDocuments]); // Update connectedDocs state
+          } catch (error) {
+            console.error("Error fetching connected documents:", error);
+            props.setConnectedDocs([]);
+          }
+        } else {
+          props.setConnectedDocs([]); // Clear connections
+        }
         // console.error("props.pin set to ", props.pin);
       });
   
@@ -518,34 +539,35 @@ const Map: React.FC<MapProps> = (props) => {
       });
   
       // Automatically zoom to the selected marker
-      if (isSelected) {
-        const markerLngLat = marker.getLngLat();
-        mapInstance.flyTo({
-          center: [markerLngLat.lng, markerLngLat.lat],
-          zoom: 14,
-          speed: 1.5,
-        });
-      }
+      // if (isSelected) {
+      //   const markerLngLat = marker.getLngLat();
+      //   mapInstance.flyTo({
+      //     center: [markerLngLat.lng, markerLngLat.lat],
+      //     zoom: 14,
+      //     speed: 1.5,
+      //   });
+      // }
     });
   };
   
   
+
   useEffect(() => {
-    /*if (!markersRef.current) return;
-    const selectedMarker = markersRef.current.find((item) => item.id === props.pin);
-    if (selectedMarker?.marker.getElement()) {
-      markersRef.current.forEach((item) => {
-        if (item.marker.getElement()) {
-          item.marker.getElement().style.transform = 'scale(1)';
-        }
-      });
-      selectedMarker.marker.getElement().style.transform = 'scale(2)';
-    }*/
-   if(!map) return;
-   console.log("pin: "+props.pin)
+    if (!map) return;
+  
+    // console.log("Re-rendering markers and polygons. pin:", props.pin, "connectedDocs:", props.connectedDocs);
+    
+    // Clear markers and polygons
+    markersRef.current.forEach(({ marker }) => marker.remove());
+    markersRef.current = [];
+    removeAllPolygons(map);
+  
+    // Re-render markers and polygons
     addMarkersToMap(map);
     addPolygonsToMap(map);
-  }, [props.pin]);
+  }, [props.pin, props.documents, props.connectedDocs, map]);
+  
+  
   
 
   const handleDrag = async (id:number,coordinates:Coordinates) => {
@@ -555,7 +577,8 @@ const Map: React.FC<MapProps> = (props) => {
       
     }
     setConfirmChanges(false)
-  }
+  };
+  
      
      
   
@@ -574,6 +597,16 @@ const Map: React.FC<MapProps> = (props) => {
       if (doc.getCoordinates()?.getType() !== "POLYGON") {
         return;
       }
+      const isSelected = props.pin === doc.id;
+      const isConnected = 
+      // props.pin !== 0 && props.connectedDocs?.some((connectedDoc) => connectedDoc.id === doc.id);
+      props.pin !== 0 &&
+      props.connectedDocs?.length > 0 &&
+      props.connectedDocs.some((connectedDoc) => connectedDoc.id === doc.id);
+      const markerColor = isSelected ? "red" : isConnected ? "yellow" : stringToColor(doc.type);
+
+
+
   
       const polygonCoords = doc.getCoordinates()?.getAsPositionArray() as Position[][];
       if (!polygonCoords || polygonCoords.length === 0) {
@@ -600,7 +633,7 @@ const Map: React.FC<MapProps> = (props) => {
       //const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
       //const markerColor = isSelected ? "red" : "blue";
   
-      const marker = new mapboxgl.Marker({ color: /*markerColor*/ stringToColor(doc.type), draggable: false })
+      const marker = new mapboxgl.Marker({ color: markerColor, draggable: false })
         .setLngLat(offsetCentroidCoords)
         .addTo(mapInstance);
   
@@ -638,7 +671,11 @@ const Map: React.FC<MapProps> = (props) => {
         type: "fill",
         source: sourceId,
         paint: {
-          "fill-color": "#4287f5",
+          "fill-color": isSelected
+            ? "lightBlue" // Highlight the polygon with a distinct color
+            : isConnected
+              ? "yellow" // Highlight connected polygons in yellow
+              : "#4287f5",
           "fill-opacity": 0.5,
         },
       });
@@ -649,7 +686,7 @@ const Map: React.FC<MapProps> = (props) => {
       mapInstance.fitBounds(bounds, { padding: 20, duration: 1000 });}
   
       // Add click event to the marker to show the polygon area
-      marker.getElement()?.addEventListener("click", () => {
+      marker.getElement()?.addEventListener("click", async () => {
         if(props.drawing){
           console.log(polygonCoords);
           const data:CoordinatesAsPoint[] = []
@@ -678,9 +715,30 @@ const Map: React.FC<MapProps> = (props) => {
           }
         }else{
           // Add the polygon source and layer
-          if(props.pin != doc.id){
-            props.setNewPin(doc.id)
+          // if(props.pin != doc.id){
+          //   props.setNewPin(doc.id)
+          // }
+          if (props.pin != doc.id) {
+            props.setNewPin(doc.id);
+          
+            try {
+              const connections = await API.getLinks(doc.id);
+              const connectedDocuments = [];
+              for (let link of connections) {
+                const connectedDocId = link.docId1 === doc.id ? link.docId2 : link.docId1;
+                const connectedDoc = await API.getDocument(connectedDocId);
+                connectedDocuments.push(connectedDoc);
+              }
+              props.connectedDocs = connectedDocuments; // Update connected documents
+            } catch (error) {
+              console.error("Error fetching connected documents:", error);
+              props.connectedDocs = [];
+            }
+          } else {
+            props.setNewPin(0);
+            props.connectedDocs = [];
           }
+          
         }
 
         /*if (selectedPolygon !== doc.id) {
@@ -802,8 +860,8 @@ const Map: React.FC<MapProps> = (props) => {
   
   useEffect(() => {
     if (map) {
-      addMarkersToMap(map);
-      debouncedAddPolygonsToMap(map);
+      // addMarkersToMap(map);
+      // debouncedAddPolygonsToMap(map);
     }
   },[props.drawing])
   
@@ -813,20 +871,14 @@ const Map: React.FC<MapProps> = (props) => {
   useEffect(() => {
     if (map) {
       addMarkersToMap(map);
-      debouncedAddPolygonsToMap(map);
+      // debouncedAddPolygonsToMap(map);
     }
   }, [map, selectedPolygon, props.documents]);
     
 
   
 
-  // useEffect(() => {
-  //   if (!map || !props.documents) return;
-
-  //   // Re-add markers and polygons whenever the map style changes
-  //   addMarkersToMap(map);
-  //   addPolygonsToMap(map);
-  // }, [map, mapStyle, props.documents]);
+  
 
   useEffect(() => {
     if (!props.documents || !Array.isArray(props.documents)) {
@@ -842,11 +894,7 @@ const Map: React.FC<MapProps> = (props) => {
     setDocuments(convertedDocuments); // Set the converted documents into state
   }, [props.documents]);
 
-  // useEffect(() => {
-  //   if (map) {
-  //     map.getSource("documents-cluster-source").setData(generateGeoJSON());
-  //   }
-  // }, [props.documents]);
+  
   
   
 
