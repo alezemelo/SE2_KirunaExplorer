@@ -2,6 +2,7 @@
 import dayjs from 'dayjs';
 
 import { useLocation } from 'react-router-dom';
+import {Button } from "@mui/material";
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { schemeSet3 } from 'd3-scale-chromatic';
@@ -10,6 +11,8 @@ import { Document } from '../../models/document';
 import { DocumentType as DocumentLocal } from '../../type';
 import DocDetailsGraph from './DocDetailsGraph';
 import API from '../../API';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+
 
 interface TimeDiagramProps {
   documents: Document[];
@@ -67,6 +70,49 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
       console.error('Error fetching connections', error)
     }
   }
+  const findRelatedDocuments = (currentDoc: Document | undefined) => {
+    if (!currentDoc) return [];
+
+    //console.log('currentDoc: ', currentDoc);
+
+    const filteredDocuments = props.documents.filter((doc) => {
+       // console.log('Checking document:', doc);
+        const isSameScale = doc.scale === currentDoc.scale;
+        const isSameIssuanceDate = dayjs(doc.issuanceDate).isSame(currentDoc.issuanceDate, 'day');
+        const isDifferentId = doc.id !== currentDoc.id;
+
+        /*console.log({
+            docId: doc.id,
+            isSameScale,
+            isSameIssuanceDate,
+            isDifferentId
+        });*/
+
+        return isSameScale && isSameIssuanceDate && isDifferentId;
+    });
+
+    console.log('Filtered Documents:', filteredDocuments);
+    return filteredDocuments;
+};
+
+
+
+  const handleNextRelatedDocument = () => {
+    console.log('popUp: ', popUp);
+    if (!popUp) return;
+    const relatedDocs = findRelatedDocuments(popUp);
+    console.log('relatedDocs: ', relatedDocs);
+    if (relatedDocs.length === 0) return;
+    console.log('relatedDocs: ', relatedDocs);
+    // Find the index of the current document in the related documents list
+    const currentIndex = relatedDocs.findIndex((doc) => doc.id === popUp.id);
+    // Select the next document, loop to the first if at the end
+    const nextIndex = (currentIndex + 1) % relatedDocs.length;
+    const nextDocument = relatedDocs[nextIndex];
+    setPopUp(nextDocument);
+  };
+  
+  
 
   useEffect(() => {
     fetchConnections();
@@ -479,36 +525,57 @@ const TimeDiagram: React.FC<TimeDiagramProps> = (props) => {
   }, [location.state]);
 
 
-  return (
-    <div style={{ position: 'relative', overflow: 'hidden' }}>
-      {popUp &&
-        <DocDetailsGraph
-          document={popUp}
-          handleNavigation={handleNavigation}
-          setPopup={setPopUp}
-        />
-      }
-      {/* SVG container */}
-      <svg ref={svgRef} style={{ width: '100%', height: '100vh', border: '1px solid black' }} />
-      {tooltip && (
-        <div
-          style={{
-            position: 'absolute',
-            left: tooltip.x,
-            top: tooltip.y,
-            background: 'white',
-            color: 'black',
-            border: '1px solid black',
-            padding: '5px',
-            pointerEvents: 'none',
-          }}
-        >
-          {tooltip.content}
+return (
+  <div style={{ position: 'relative', overflow: 'hidden' }}>
+    {popUp &&
+      <DocDetailsGraph
+        document={popUp}
+        handleNavigation={handleNavigation}
+        setPopup={setPopUp}
+      />
+    }
+
+    {/* Container for the Button and SVG */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {popUp && findRelatedDocuments(popUp).length > 0 && (
+        <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '10px' }}>
+          <Button
+            variant="contained"
+            component="span"
+            color="success"
+            endIcon={<ArrowForwardIcon />}
+            fullWidth
+            onClick={handleNextRelatedDocument}
+          >
+            View Next Related Document
+          </Button>
         </div>
       )}
+
+      {/* SVG container */}
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <svg ref={svgRef} style={{ width: '100%', height: '100%', border: '1px solid black' }} />
+      </div>
     </div>
-  );
-  
-};
+
+    {tooltip && (
+      <div
+        style={{
+          position: 'absolute',
+          left: tooltip.x,
+          top: tooltip.y,
+          background: 'white',
+          color: 'black',
+          border: '1px solid black',
+          padding: '5px',
+          pointerEvents: 'none',
+        }}
+      >
+        {tooltip.content}
+      </div>
+    )}
+  </div>
+);
+}
 
 export default TimeDiagram;
