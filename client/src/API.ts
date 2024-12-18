@@ -187,6 +187,15 @@ async function getLinks(id: number) {
   return await res.json();
 }
 
+/**
+ * Asks the backend for all the connections in the db
+ * @returns A list of json objects representing the links
+ */
+async function getAllLinks() {
+  const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments`);
+  return await res.json();
+}
+
 async function getDocument(id: number) {
   const temp = await fetch(`http://localhost:3000/kiruna_explorer/documents/${id}`);
   return await temp.json();
@@ -445,6 +454,7 @@ async function getAllDoctypes(): Promise<{ name: string }[]> {
 const API = {
   getDocuments,
   getLinks,
+  getAllLinks,
   getDocument,
   searchDocumentsByTitle,
   createLink,

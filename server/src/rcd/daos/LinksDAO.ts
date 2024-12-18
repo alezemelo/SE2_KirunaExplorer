@@ -16,6 +16,28 @@ class LinksDAO{
         }
     }*/
 
+    /**
+     * 
+     * Allows to get every link in the database
+     * @returns a promise that resolves to an array of every link in the database
+     */
+    async getAllLinks(): Promise<DocumentLink[]> {
+        try {
+            const sql = "SELECT * FROM document_links";
+            const result = await pgdb.client.query(sql);
+            const res = result.rows.map(row => new DocumentLink(
+                row.link_id,
+                row.doc_id1,
+                row.doc_id2,
+                row.link_type,
+                dayjs(row.created_at)
+            ));
+            return res;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async getLinks(id: number): Promise<DocumentLink[]>{
         try {
             const sql = "SELECT * FROM document_links WHERE doc_id1=$1 OR doc_id2=$1";

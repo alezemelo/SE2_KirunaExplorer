@@ -6,21 +6,41 @@ import DocumentList from "./components/List/List";
 import Map from "./components/Map/Map";
 import Login from "./components/Login/Login";
 import { Box, Button, CssBaseline, Grid } from "@mui/material";
-import { Coordinates, CoordinatesAsPolygon } from "./models/coordinates";
+import { Coordinates, CoordinatesAsPolygon, CoordinatesType } from "./models/coordinates";
 import "./App.css";
 import API from "./API";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { User, Coordinates as CoordinatesLocal } from "./type";
+import { User, Coordinates as CoordinatesLocal,  DocumentType as DocumentLocal } from "./type";
+
 import { Document } from "./models/document";
 import LandingPage from "./components/LandingPage/LandingPage";
 import TimeDiagram from "./components/TimeDiagram/TimeDiagram";
 
-function App() {
+const App: React.FC<any> = () => {
   const [coordinates, setCoordinates] = useState<CoordinatesLocal>({
     lat: 67.85572,
     lng: 20.22513,
   });
+
+  const reset = () => {
+    
+    return {
+      id: 0,
+      title: "",
+      stakeholders: "",
+      scale: "",
+      lastModifiedBy: "admin",
+      issuanceDate: "",
+      type: "informative_doc",
+      connection: [],
+      language: "English",
+      pages: 1,
+      description: "",
+      coordinates: new Coordinates(CoordinatesType.MUNICIPALITY, null)
+    }
+  } 
+
   const [bounds, setBounds] = useState<{ ne: Coordinates; sw: Coordinates } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isDocumentListOpen, setIsDocumentListOpen] = useState(true);
@@ -37,11 +57,25 @@ function App() {
   const [updating, setUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isMunicipalityChecked, setIsMunicipalityChecked] = useState(false);
+  const [linkDocuments, setLinkDocuments] = useState<Document[]>([]);
+  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
+  const [openLinkDialog, setOpenLinkDialog] = useState(false);
+  const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
+
+
+
+
   const [geojson, setGeojson] = useState(null);
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [polygon, setPolygon] = useState<CoordinatesAsPolygon>()  //it is only used for polygon 
+
+  const openLinkingDialog = (document: Document) => {
+    setCurrentDocument(document);
+    setOpenLinkDialog(true);
+
+  };
 
   // Handle the location selected from the map
   const handleMapLocationSelected = (lat: number, lng: number) => {
@@ -83,12 +117,34 @@ function App() {
 
   const handleSearch = async () => {
     try {
-      if (searchQuery.trim()) {
+      if (searchQuery) {
+        console.log(searchQuery)
         const matchingDocs = isMunicipalityChecked ? await API.searchDocumentsByTitle(searchQuery, true) : await API.searchDocumentsByTitle(searchQuery);
         setDocuments(matchingDocs);
       } else {
         fetchDocuments();
       }
+    } catch (error) {
+      console.error("Error searching documents:", error);
+    }
+  };
+  const handleSearchLinking = async () => {
+    try {
+      let matchingDocs = [];
+      if (searchQuery.trim()) {
+        // Fetch matching documents based on the search query
+        matchingDocs = await API.searchDocumentsByTitle(searchQuery);
+      } else {
+        // Default to all documents if no query
+
+        matchingDocs = documents;
+
+      }
+
+      // Exclude the current document
+      const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== pin);
+      setLinkDocuments(filteredDocs);
+
     } catch (error) {
       console.error("Error searching documents:", error);
     }
@@ -182,6 +238,17 @@ function App() {
                 {isDocumentListOpen && (
                   <Grid item xs={12} md={4} sx={{ overflow: 'auto' }}>
                     <DocumentList
+                    newDocument={newDocument}
+                    setNewDocument={setNewDocument}
+                    reset={reset}
+                    setLinkDocuments={setLinkDocuments}
+                      OpenLinkingDialog={openLinkingDialog}
+                      setOpenLinkDialog={setOpenLinkDialog}
+                      currentDocument={currentDocument}
+                      setCurrentDocument={setCurrentDocument}
+                      handleSearchLinking={handleSearchLinking}
+                      linkDocuments={linkDocuments}
+                      openLinkDialog={openLinkDialog}
                       geojson={geojson}
                       updating={updating}
                       setUpdating={setUpdating}
@@ -199,9 +266,10 @@ function App() {
                       isMunicipalityChecked={isMunicipalityChecked}
                       setIsMunicipalityChecked={setIsMunicipalityChecked}
                       drawing={drawing}
-                    setDrawing={setDrawing}
-                    polygon={polygon}
-                    setPolygon={setPolygon}
+                      setDrawing={setDrawing}
+                      polygon={polygon}
+                      setPolygon={setPolygon}
+                      setPin={setPin}
                     />
                   </Grid>
                 )}
@@ -237,6 +305,7 @@ function App() {
                       isSelectingLocation={isSelectingLocation}
                       onLocationSelected={handleMapLocationSelected}
                       updating={updating}
+                      loggedIn={loggedIn}
                     drawing={drawing}
                     setDrawing={setDrawing}
                     setPolygon={setPolygon}
@@ -249,7 +318,32 @@ function App() {
           }
           /* ====================== End Of Map Component ====================== */
         />
-        <Route path="/time-diagram" element={<TimeDiagram />} />
+        <Route path="/time-diagram" element={
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw' }}>
+            <Header
+                    onToggleDocumentList={toggleDocumentList}
+                    loggedIn={loggedIn}
+                    logOut={handleLogout}
+                    handleSearch={handleSearch}
+                    setSearchQuery={setSearchQuery}
+                    searchQuery={searchQuery}
+                  />
+          <TimeDiagram 
+                  documents={documents}
+                  user={user}
+                  loggedIn={loggedIn}
+                  fetchDocuments={fetchDocuments}
+                  pin={pin}
+                  setNewPin={setNewPinWithScroll}
+                  onLink={openLinkingDialog}
+                  handleSearchLinking={handleSearchLinking}
+                  updating={updating}
+                  setUpdating={setUpdating}
+                  newDocument={newDocument}
+                  setNewDocument={setNewDocument}
+          />
+          </Box>}
+        />
         <Route
           path="/login"
           element={
