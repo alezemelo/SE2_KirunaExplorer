@@ -1,3 +1,5 @@
+/// <reference types="cypress-xpath" />
+import 'cypress-xpath';
 describe('Login Test', () => {
     it('Logs into the application', () => {
       // Visit the login page
