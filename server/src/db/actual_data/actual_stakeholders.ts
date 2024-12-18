@@ -10,5 +10,8 @@ export const ACTUAL_STAKEHOLDERS = [
     },
     {
         name:"LKAB"
+    },
+    {
+        name:"Norrbotten Museum"
     }
 ];

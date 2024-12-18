@@ -12,7 +12,19 @@ export const ACTUAL_SCALES = [
         value: "1:12000"
     },
     {
+        value: "1:500"
+    },
+    {
+        value: "1:1500"
+    },
+    {
         value: "1:1000"
+    },
+    {
+        value: "1:2000"
+    },
+    {
+        value: "1:30000"
     },
     {
         value: "blueprints/effects"
