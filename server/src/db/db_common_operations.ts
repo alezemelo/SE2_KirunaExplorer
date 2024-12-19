@@ -9,8 +9,8 @@ import { files_dir_name } from "../rcd/routes/file_routes";
 import { ACTUAL_DOCTYPES } from "./actual_data/actual_doctypes";
 import { actualDocuments, docs_stakeholders } from "./actual_data/documents";
 import { ACTUAL_STAKEHOLDERS } from "./actual_data/actual_stakeholders";
-import { SAMPLE_DOC_FILES } from "./sample_data/sample_doc_files";
-import { SAMPLE_FILES } from "./sample_data/sample_files";
+import { ACTUAL_DOC_FILES } from "./actual_data/actual_doc_files";
+import { ACTUAL_FILES } from "./actual_data/actual_files";
 import { SAMPLE_USERS } from "./sample_data/sample_users";
 import db from "./db";
 import ACTUAL_SCALES from "./actual_data/actual_scales";
@@ -147,10 +147,12 @@ export async function dbPopulateActualData() {
             await knex('stakeholders').insert(stakeholder);
         }
 
+        // insert ACTUAL doctypes
         for (const doctype of ACTUAL_DOCTYPES) {
             await knex('doctypes').insert(doctype);
         }
 
+        // insert ACTUAL scales
         for (const scale of ACTUAL_SCALES) {
             await knex('scales').insert(scale);
         }
@@ -168,20 +170,29 @@ export async function dbPopulateActualData() {
         }
 
         // Insert SAMPLE document links
-        const doclink1 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
-        const doclink2 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
-        await knex('document_links').insert(doclink1);
-        await knex('document_links').insert(doclink2);
+        const direct_15_to_18 = new DocumentLink(1, 15, 18, LinkType.direct, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
+        const collateral_18_to_41 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
+        const projection_41_to_47 = new DocumentLink(1, 41, 47, LinkType.projection, dayjs()).toObjectWithoutId();
+        const update_47_to_64 = new DocumentLink(1, 47, 64, LinkType.update, dayjs()).toObjectWithoutId();
+        await knex('document_links').insert(direct_15_to_18);
+        await knex('document_links').insert(collateral_18_to_41);
+        await knex('document_links').insert(projection_41_to_47);
+        await knex('document_links').insert(update_47_to_64);
+        // also add some double connections
+        const direct_15_to_50 = new DocumentLink(1, 15, 50, LinkType.direct, dayjs()).toObjectWithoutId();
+        const collateral_15_to_50 = new DocumentLink(1, 15, 50, LinkType.collateral, dayjs()).toObjectWithoutId();
+        await knex('document_links').insert(direct_15_to_50);
+        await knex('document_links').insert(collateral_15_to_50);
         // console.log("Sample document links inserted.");
 
-        // Insert SAMPLE files
-        for (let file of SAMPLE_FILES) {
+        // Insert ACTUAL files
+        for (let file of ACTUAL_FILES) {
             await knex('files').insert(file);
         }
         // console.log("Sample files inserted.");
 
-        // Insert SAMPLE document files
-        for (let docFile of SAMPLE_DOC_FILES) {
+        // Insert ACTUAL document files
+        for (let docFile of ACTUAL_DOC_FILES) {
             await knex('document_files').insert(docFile);
         }
         // console.log("Sample document files inserted.");
@@ -199,8 +210,8 @@ export async function dbPopulateActualData() {
     * TODO use actualfiles when they're available
     */
 export async function removeUnwantedFilesFromStaticDirectory() {
-    // Get the list of file names from SAMPLE_FILES
-    const sampleFileNames = SAMPLE_FILES.map(file => file.file_name);
+    // Get the list of file names from ACTUAL_FILES
+    const fileNames = ACTUAL_FILES.map(file => file.file_name);
 
     // Read the list of files in the static directory
     fs.readdir(files_dir_name, (err, files) => {
@@ -210,7 +221,7 @@ export async function removeUnwantedFilesFromStaticDirectory() {
         }
 
         // Filter out the files that are not in SAMPLE_FILES
-        const unwantedFiles = files.filter(file => !sampleFileNames.includes(file));
+        const unwantedFiles = files.filter(file => !fileNames.includes(file));
 
         // Remove the unwanted files
         unwantedFiles.forEach(file => {

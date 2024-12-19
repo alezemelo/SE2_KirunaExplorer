@@ -9,8 +9,8 @@ export enum CoordinatesType {
 }
 
 export class Coordinates {
-    private type: CoordinatesType;
-    private coords: CoordinatesAsPoint | CoordinatesAsPolygon | null;
+    public type: CoordinatesType;
+    public coords: CoordinatesAsPoint | CoordinatesAsPolygon | null;
 
     /*
     * Wrapper class for CoordinatesAsPoint and CoordinatesAsPolygon. It will contain one of the two OR null (for municipality type).
@@ -91,47 +91,55 @@ export class Coordinates {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static fromJSON(json: any): Coordinates {
-        //console.error("The given json to Coordinates.fromJSON is: ", json)
+static fromJSON(json: any): Coordinates {
+    // console.error("The given json to Coordinates.fromJSON is: ", json)
 
-        // Check that the json is correctly formatted: type
-        if (!json.type || (json.type !== CoordinatesType.MUNICIPALITY && !json.coords) || (json.type === CoordinatesType.MUNICIPALITY && json.coords)) {
-            throw new Error("Invalid coordinates JSON");
-        }
-        // Check that the json is correctly formatted: coords
-        if (json.type === CoordinatesType.POINT && (!json.coords.lat || !json.coords.lng)) {
-            throw new Error("Invalid POINT coordinates: lat and lng are required");
-        }
-        if (json.type === CoordinatesType.POLYGON && (!json.coords || json.coords.length < 4)) {
-            throw new Error("Invalid POLYGON coordinates: at least 4 points are required");
-        }
-        if (json.type === CoordinatesType.POLYGON) {
-            // console.error("DEBUG: json.coords is ", json.coords);
-            for (const coord of json.coords.coordinates) {
-                if (!coord.lat || !coord.lng) {
-                    throw new Error("Invalid POLYGON coordinates: lat and lng are required");
-                }
-            }
-        }
-        // Don't check for compatibilty, also when fetching from db it already ignores it in case
-        // if (json.type === CoordinatesType.MUNICIPALITY && json.coords !== null) {
-        //     throw new Error("Invalid MUNICIPALITY coordinates: coords should be null");
-        // }
-        
+    const { type, coords } = json;
 
-        // Do the conversion based on type and use the correct fields
-        if (json.type === CoordinatesType.MUNICIPALITY) {
-            return new Coordinates(CoordinatesType.MUNICIPALITY, null);
-        } else if (json.type === CoordinatesType.POINT) {
-            return new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(json.coords.lat, json.coords.lng));
-        } else if (json.type === CoordinatesType.POLYGON) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const coords = json.coords.coordinates.map((coord: any) => new CoordinatesAsPoint(coord.lat, coord.lng));
-            return new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(coords));
-        } else {
-            throw new Error("Invalid coordinates type");
-        }
+    // Check that the json is correctly formatted: type
+    const isInvalidType = !type || (type !== CoordinatesType.MUNICIPALITY && !coords) || (type === CoordinatesType.MUNICIPALITY && coords);
+    if (isInvalidType) {
+        throw new Error("Invalid coordinates JSON");
     }
+
+    // Check that the json is correctly formatted: coords
+    if (type === CoordinatesType.POINT) {
+        return this.validatePoint(coords);
+    }
+
+    if (type === CoordinatesType.POLYGON) {
+        return this.validatePolygon(coords);
+    }
+
+    // Do the conversion based on type and use the correct fields
+    if (type === CoordinatesType.MUNICIPALITY) {
+        return new Coordinates(CoordinatesType.MUNICIPALITY, null);
+    }
+
+    throw new Error("Invalid coordinates type");
+}
+
+private static validatePoint(coords: any): Coordinates {
+    if (!coords?.lat || !coords?.lng) {
+        throw new Error("Invalid POINT coordinates: lat and lng are required");
+    }
+    return new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(coords.lat, coords.lng));
+}
+
+private static validatePolygon(coords: any): Coordinates {
+    if (!coords?.coordinates || coords.coordinates.length < 4) {
+        throw new Error("Invalid POLYGON coordinates: at least 4 points are required");
+    }
+    // console.error("DEBUG: json.coords is ", coords);
+    const polygonCoords = coords.coordinates.map((coord: any) => {
+        if (!coord.lat || !coord.lng) {
+            throw new Error("Invalid POLYGON coordinates: lat and lng are required");
+        }
+        return new CoordinatesAsPoint(coord.lat, coord.lng);
+    });
+    return new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon(polygonCoords));
+}
+
 }
 
 export class CoordinatesAsPoint {
@@ -197,29 +205,6 @@ export class CoordinatesAsPoint {
     static isPoint(input: string): boolean {
         return CoordinatesAsPoint.isWKBPoint(input) || CoordinatesAsPoint.isWKTPoint(input);
     }
-
-    /*static async wkbToWktPoint(wkb: string, db: Knex): Promise<string> {
-        const result = await db.raw(`SELECT ST_AsText('${wkb}') AS wkt`);
-        return `SRID=4326;${result.rows[0].wkt}`;
-    }*/
-    
-    /* 
-    * Use this when extracting the coordinates from the database (should be used by Document.fromJSON method)
-    */
-    /*static async fromWKBstring(wkb: string, db: Knex): Promise<CoordinatesAsPoint> {
-        const wkt = await CoordinatesAsPoint.wkbToWktPoint(wkb, db);
-        // extract the fields using  /^SRID=4326;POINT\(-?\d+(\.\d+)? -?\d+(\.\d+)?\)$/;
-        const regex =                /^SRID=4326;POINT\((?<lat>-?\d+(\.\d+)?) (?<lng>-?\d+(\.\d+)?)\)$/;
-        const match = wkt.match(regex);
-
-        if (match && match.groups) {
-            const lat = parseFloat(match.groups.lat);
-            const lng = parseFloat(match.groups.lng);
-            return new CoordinatesAsPoint(lat, lng);
-        } else {
-            throw new Error('Invalid WKT format');
-        }
-    }*/
 }
 
 export class CoordinatesAsPolygon {

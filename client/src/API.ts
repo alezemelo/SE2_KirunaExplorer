@@ -156,9 +156,9 @@ async function getDocuments() {
   return await response.json();
 }
 
-async function searchDocumentsByTitle(title: string,municipality_filter?:boolean) {
+async function searchDocumentsByTitle(search_query: string,municipality_filter?:boolean) {
   try {
-    let url = `http://localhost:3000/kiruna_explorer/documents/search?title=${encodeURIComponent(title)}`;
+    let url = `http://localhost:3000/kiruna_explorer/documents/search?search_query=${encodeURIComponent(search_query)}`;
 
     if (municipality_filter) {
       url += `&municipality_filter=${encodeURIComponent(municipality_filter)}`;
@@ -184,6 +184,15 @@ async function searchDocumentsByTitle(title: string,municipality_filter?:boolean
 
 async function getLinks(id: number) {
   const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments/${id}`);
+  return await res.json();
+}
+
+/**
+ * Asks the backend for all the connections in the db
+ * @returns A list of json objects representing the links
+ */
+async function getAllLinks() {
+  const res = await fetch(`http://localhost:3000/kiruna_explorer/linkDocuments`);
   return await res.json();
 }
 
@@ -367,7 +376,13 @@ async function addScale(data: { value: string }): Promise<Response> {
   });
 
   if (!response.ok) {
-    throw new Error(`Error adding scale: ${response.statusText}`);
+    if (response.status === 409) {
+      throw new Error("Scale already exists.");
+    } else if (response.status === 422) {
+      throw new Error("Invalid scale value.");
+    } else {
+      throw new Error(`Error adding scale: ${response.statusText}`);
+    }
   }
 
   return response;
@@ -439,6 +454,7 @@ async function getAllDoctypes(): Promise<{ name: string }[]> {
 const API = {
   getDocuments,
   getLinks,
+  getAllLinks,
   getDocument,
   searchDocumentsByTitle,
   createLink,

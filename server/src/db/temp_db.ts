@@ -3,7 +3,7 @@
 
 import pg from 'pg';
 
-class my_pgDB {
+class My_pgDB {
     client: pg.Client;
 
     constructor() {
@@ -18,15 +18,25 @@ class my_pgDB {
         });
     }
 
-    public async connect() {
-        try {
-            await this.client.connect();
-        } catch (error) {
-            console.error('Error connecting to the database:', error);
-            throw error;
+    public async connect(retries: number = 5, delay: number = 5000) {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                await this.client.connect();
+                console.log('Database connected successfully');
+                return;
+            } catch (error) {
+                console.error(`Error connecting to the database (Attempt ${attempt} of ${retries}):`, error);
+                if (attempt < retries) {
+                    console.log(`Retrying in ${delay / 1000} seconds...`);
+                    await new Promise(res => setTimeout(res, delay));
+                } else {
+                    console.error('Max retries reached. Could not connect to the database.');
+                    throw error;
+                }
+            }
         }
     }
-
+    
     public async disconnect() {
         try {
             await this.client.end();
@@ -37,7 +47,7 @@ class my_pgDB {
     }
 }
 
-const pgdb = new my_pgDB();
+const pgdb = new My_pgDB();
 pgdb.connect(); // Careful with open handles
 
 export default pgdb;

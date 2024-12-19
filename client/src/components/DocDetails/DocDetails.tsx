@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */ // Remember to remove this line for future maintenance
+import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from "react";
 import {
   Button, Box, Typography, Card, CardContent, TextField, Dialog, DialogTitle, DialogContent,
@@ -9,11 +10,11 @@ import {
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import DownloadIcon from '@mui/icons-material/Download';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
 
-import dayjs from "dayjs";
 import { User } from "../../type";
 import API from "../../API";
 import { Coordinates, CoordinatesAsPoint, CoordinatesType } from "../../models/coordinates";
@@ -36,14 +37,11 @@ interface DocDetailsProps {
   loggedIn: boolean;
   user: User | undefined;
   handleSearchLinking: () => Promise<void>;
+  setSearchQuery: any;
 }
 
 const DocDetails: React.FC<DocDetailsProps> = (props) => {
-  const [showDescription, setShowDescription] = useState(false);
-  const [editDescription, setEditDescription] = useState(false);
-  const [editLat, setEditLat] = useState(false);
-  const [editLng, setEditLng] = useState(false);
-  //const [description, setDescription] = useState(props.document.description);
+
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
   const [expand, setExpand] = useState(false);
@@ -52,6 +50,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const navigate = useNavigate();
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -94,8 +94,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       }
     }
     if (props.document.coordinates.type == CoordinatesType.MUNICIPALITY) {
-        setLat('');
-        setLng('');
+      setLat('');
+      setLng('');
     }
   }, [props.document.coordinates]);
 
@@ -113,7 +113,6 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
 
   const getLinks = async (e: React.MouseEvent<HTMLSpanElement, MouseEvent>, i: number, doc: Document) => {
     e.stopPropagation();
-    console.log("link navigation");
     const links = await API.getLinks(props.document.id);
     const l = links[i]
     if (l) {
@@ -136,9 +135,9 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             <Typography key={index} variant="body2" sx={{ cursor: "pointer" }} onClick={(e) => {
               getLinks(e, index, props.document)
             }}>
-             
+
               - <u>{conn}</u>
-                
+
             </Typography>
           ))
         ) : (
@@ -256,31 +255,7 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
       //props.setNewDocument(props.document);
     }
   }
-  const toggleEditDescription = () => setEditDescription(true);
-  /*const closeEditDescription = () => {
-    setEditDescription(false);
-    setDescription(props.document.description)
-  }*/
 
-  /*const saveDescription = async () => {
-    try {
-      const response = await fetch(`http://localhost:3000/kiruna_explorer/documents/${document.id}/description`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description }),
-      });
-
-      if (!response.ok) throw new Error("Error: " + response.statusText);
-      
-      setEditDescription(false);
-      await fetchDocuments();
-    } catch (error) {
-      console.error("Error:", error);
-    }
-   await API.updateDescription(document.id, description);
-   setEditDescription(false);
-    await fetchDocuments();
-  };*/
 
 
   const handleFileUpload = async () => {
@@ -339,8 +314,8 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <Typography variant="body2"><strong>Stakeholders:</strong> {props.document.stakeholders.join(", ")}</Typography>
           <Typography variant="body2"><strong>Scale:</strong> {props.document.scale}</Typography>
           {/* <Typography variant="body2"><strong>Issuance date:</strong> {props.document.issuanceDate ? dayjs(props.document.issuanceDate).format('YYYY-MM-DD') : ""}</Typography> */}
-          <Typography  variant="body2">
-          <strong>Issuance date:</strong> {formatIssuanceDate(props.document.issuanceDate)}
+          <Typography variant="body2">
+            <strong>Issuance date:</strong> {formatIssuanceDate(props.document.issuanceDate)}
           </Typography>
           <Typography variant="body2"><strong>Type:</strong> {props.document.type}</Typography>
 
@@ -353,55 +328,28 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
           <Box display="flex" alignItems="center" gap={2}>
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Latitude:</strong></Typography>
-              {editLat ? (
-                <TextField
-                  disabled={true}
-                  /*value={lat}
-                  onChange={handleLatChange}
-                  onBlur={() => { setEditLat(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lat")}*/
-                  autoFocus
-                  variant="outlined"
-                  size="small"
-                  placeholder="Enter latitude"
-                  style={{ marginLeft: '8px', width: '120px', backgroundColor: "#2A2A2A", color: "#FFFFFF" }}
-                />
-              ) : (
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                /*onClick={() => setEditLat(true)}*/
-                >
-                  {/*lat || "Enter latitude"*/lat ? lat : ''}
-                </Typography>
-              )}
+
+              <Typography
+                variant="body2"
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+              >
+                {/*lat || "Enter latitude"*/lat ? parseFloat(lat).toFixed(4) : ''}
+              </Typography>
+
             </Box>
 
             {/* Editable Longitude */}
             <Box display="flex" alignItems="center">
               <Typography variant="body2"><strong>Longitude:</strong></Typography>
-              {editLng ? (
-                <TextField
-                  disabled={true}
-                  /*value={lng}
-                  onChange={handleLngChange}
-                  onBlur={() => { setEditLng(false); handleSaveCoordinates(); }}
-                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyPress(e, "lng")}*/
-                  autoFocus
-                  variant="outlined"
-                  size="small"
-                  placeholder="Enter longitude"
-                  style={{ marginLeft: '8px', width: '120px', backgroundColor: "#2A2A2A", color: "#FFFFFF" }}
-                />
-              ) : (
-                <Typography
-                  variant="body2"
-                  style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
-                /*onClick={() => setEditLng(true)}*/
-                >
-                  {/*lng || "Enter longitude"*/lng ? lng : ''}
-                </Typography>
-              )}
+
+              <Typography
+                variant="body2"
+                style={{ marginLeft: '8px', cursor: 'pointer', backgroundColor: "#2A2A2A", color: "#FFFFFF", padding: '4px', borderRadius: '8px' }}
+              /*onClick={() => setEditLng(true)}*/
+              >
+                {/*lng || "Enter longitude"*/lng ? parseFloat(lng).toFixed(5) : ''}
+              </Typography>
+
             </Box>
           </Box>
         </Box> : <></>}
@@ -521,15 +469,23 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
                 props.handleSearchLinking();
                 props.onLink()
               }}>
-                Link Document
+                New Connection
               </Button>
             </>
           )}
 
-          {/* Link Document or Edit Description Button */}
+         
+          {/* Save Coordinates Button */}
+          {/*props.pin == props.document.id && (
+            <Button variant="contained" color="primary" style={{ width: "48%" }} onClick={handleSaveCoordinates}>
+              Save Coordinates
+            </Button>
+          )*/}
+
+          {/* New Connection or Edit Description Button */}
           {/*pin==document.id && (!showDescription && !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={onLink}>
-              Link Document
+              New Connection
             </Button>
           ) : !editDescription ? (
             <Button variant="contained" color="secondary" style={{ width: "48%" }} onClick={toggleEditDescription}>
@@ -537,7 +493,24 @@ const DocDetails: React.FC<DocDetailsProps> = (props) => {
             </Button>
           ) : null)*/}
         </Box>
-
+        <Box onClick={(e) => e.stopPropagation()} display="flex" flexDirection="column" gap={2} marginTop={2}>
+        {props.pin == props.document.id && 
+            <Button
+              startIcon={<AccountTreeIcon />}
+              variant="contained"
+              color="warning"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent propagation
+                props.setSearchQuery(''); // Clear search query
+                setTimeout(() => {
+                  navigate('/time-diagram', { state: { highlighted: props.document.id } }); // Use navigate to go to the route with state
+                }, 1000); 
+              }}
+            >
+              Show on Diagram
+            </Button>
+          }
+        </Box>
         {/* Dialog for File List */}
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
           <DialogTitle>Original Files</DialogTitle>

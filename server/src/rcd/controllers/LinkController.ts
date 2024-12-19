@@ -11,6 +11,15 @@ class LinkController {
         this.document_dao = new DocumentDAO();
     }
 
+    /**
+     * 
+     * Calls the Dao for getting all the links in the db
+     * @returns A list of objects representing the links
+     */
+    async getAllLinks(): Promise<DocumentLink[]> {
+        return this.dao.getAllLinks();
+    }
+
     async getLinks(id: number): Promise<DocumentLink[]>{
         if(await this.document_dao.getDocument(id) == null){
             throw new Error("one of the documents does not exist");
