@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import ReactMapGL, { Layer, Source, ViewStateChangeEvent } from "react-map-gl";
+import {Button, Typography } from "@mui/material";
+
 import mapboxgl, { MapMouseEvent } from "mapbox-gl";
 import { Document, DocumentJSON } from "../../models/document";
 import { Position } from "geojson";import * as turf from '@turf/turf';
@@ -36,6 +38,7 @@ interface MapProps {
   documents: Document[];
   isDocumentListOpen: boolean; // Add this prop to track sidebar state
   pin: number;
+  loggedIn: boolean;
   setNewPin: (id: number) => void;
   isSelectingLocation: boolean; // If we are in "Choose on Map" mode
   onLocationSelected: (lat: number, lng: number) => void; // Callback for location selection
@@ -48,6 +51,7 @@ interface MapProps {
   setDrawing: any;
   setPolygon: any;
   isMunicipalityChecked: boolean;
+  removePolygon: boolean;
 }
 
 const Map: React.FC<MapProps> = (props) => {
@@ -322,52 +326,45 @@ const Map: React.FC<MapProps> = (props) => {
   }, [props.isDocumentListOpen]);
 
   useEffect(() => {
-
     if (!map) return;
-    const draw = new MapboxDraw({
-      displayControlsDefault: false, 
-      controls: {
-        polygon: true, 
-        trash: true, 
-      },
-      defaultMode: "draw_polygon", 
-    });
-    drawRef.current = draw;
-    if(props.drawing){
-      
-      /*if (map.getSource("mapbox-gl-draw-cold")) {
-        map.removeControl(draw); 
-      }*/
   
-      map.on("draw.create", (e: any) => {
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true,
+      },
+      defaultMode: "draw_polygon",
+    });
+  
+    drawRef.current = draw;
+  
+    if (props.drawing) {
+      map.addControl(draw);
+  
+      const handleDrawCreate = (e: any) => {
         const features = e.features;
-        const geojsondata =  features[0].geometry.coordinates[0];
-        const data:CoordinatesAsPoint[] = []
-        for(let i=0;i<geojsondata.length;i++){
+        const geojsondata = features[0].geometry.coordinates[0];
+        const data: CoordinatesAsPoint[] = [];
+        for (let i = 0; i < geojsondata.length; i++) {
           data.push(new CoordinatesAsPoint(geojsondata[i][1], geojsondata[i][0]));
         }
         const coord = new CoordinatesAsPolygon(data);
-        console.log(coord)
+        console.log(coord);
         props.setPolygon(data);
         props.setDrawing(false);
-        map.removeControl(draw); 
-      });
+      };
   
-      /*map.on("draw.update", (e: any) => {
-        const features = e.features;
-        console.log("Poligono aggiornato:", features);
-      });
+      map.on("draw.create", handleDrawCreate);
   
-      map.on("draw.delete", (e: any) => {
-        const features = e.features;
-        console.log("Poligono eliminato:", features);
-      });
-  */
-      map?.addControl(draw)
-
+      return () => {
+        map.off("draw.create", handleDrawCreate);
+        if (map.hasControl(draw)) {
+          map.removeControl(draw);
+        }
+      };
     }
-
-  }, [props.drawing]);
+  }, [map, props.drawing]);
   
   const toggleMapStyle = () => {
     setMapStyle((prevStyle) => {
@@ -386,6 +383,7 @@ const Map: React.FC<MapProps> = (props) => {
     });
   };
 
+  
   const removeAllPolygons = (mapInstance: mapboxgl.Map) => {
     const sources = mapInstance.getStyle()?.sources;
     if (sources) {
@@ -410,11 +408,9 @@ const Map: React.FC<MapProps> = (props) => {
   useEffect(() => {
     if (!map) return;
   
-    if (props.isMunicipalityChecked === true) {
-      // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
-      removeAllPolygons(map);
-    }
-  }, [props.isMunicipalityChecked, map]);
+    // console.log("isMunicipalityChecked is true. Removing all polygons, which are: ");
+    removeAllPolygons(map);
+  }, [props.isMunicipalityChecked, map, props.removePolygon]);
 
   
 
@@ -474,8 +470,8 @@ const Map: React.FC<MapProps> = (props) => {
       // Highlight selected marker with scale
       //console.error("props.pin is ", props.pin);
       const isSelected = props.pin === doc.id;
-      const markerColor = isSelected ? "red" : stringToColor(doc.type);
-      const markerScale = isSelected ? 1.5 : 1;
+      const markerColor = stringToColor(doc.type);
+      const markerScale = 1;
   
       // Add marker to the map
       const marker = new mapboxgl.Marker({
@@ -564,7 +560,7 @@ const Map: React.FC<MapProps> = (props) => {
      
   
   const addPolygonsToMap = (mapInstance: mapboxgl.Map) => {
-    console.log("Adding polygons to map as points:", props.documents);
+    //console.log("Adding polygons to map as points:", props.documents);
   
     // Remove existing centroid markers
     centroidsRef.current.forEach((centroid) => centroid?.remove());
@@ -584,18 +580,28 @@ const Map: React.FC<MapProps> = (props) => {
         console.error(`Document ${doc.id} does not have valid POLYGON coordinates.`);
         return;
       }
+
+      function offsetCoordinates(coord: [number, number], index: number, offsetAmount = 0.0001): [number, number] {
+        const [lng, lat] = coord;
+        const offsetLng = (index % 3 - 1) * offsetAmount; // Ciclo: -offsetAmount, 0, +offsetAmount
+        const offsetLat = Math.floor(index / 3) * offsetAmount; // Cambia ad ogni ciclo di 3 elementi
+        return [lng + offsetLng, lat + offsetLat];
+      }
   
       // Calculate the centroid of the polygon
       const polygonFeature = turf.polygon(polygonCoords);
       const centroid = turf.centroid(polygonFeature);
       const centroidCoords = centroid.geometry.coordinates;
+
+      const polygonIndex = documents.findIndex(p => p.id === doc.id);
+      const offsetCentroidCoords = offsetCoordinates(centroidCoords as [number, number], polygonIndex);
   
       // Add a marker at the centroid
       //const isSelected = selectedPolygon === doc.id; // Check if this polygon is selected
       //const markerColor = isSelected ? "red" : "blue";
   
-      const marker = new mapboxgl.Marker({ color: /*markerColor*/ 'blue', draggable: false })
-        .setLngLat(centroidCoords as [number, number])
+      const marker = new mapboxgl.Marker({ color: /*markerColor*/ stringToColor(doc.type), draggable: false })
+        .setLngLat(offsetCentroidCoords)
         .addTo(mapInstance);
   
       // Store the marker for cleanup later
@@ -736,7 +742,6 @@ const Map: React.FC<MapProps> = (props) => {
       const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
         .setHTML(`<div style="color: black; font-weight: bold;">${doc.title}</div>`);
       marker.getElement()?.addEventListener("mouseover", () => {
-        console.log(`mouseover`);
         marker.setPopup(popup);
         popup.addTo(mapInstance);
         if (!props.drawing) {
@@ -766,7 +771,6 @@ const Map: React.FC<MapProps> = (props) => {
         });
       });
       marker.getElement()?.addEventListener("mouseleave", () => {
-        console.log(`mouseout`);
         popup.remove();
         if (!props.drawing) {
           return; 
@@ -845,7 +849,7 @@ const Map: React.FC<MapProps> = (props) => {
   
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
-    console.log(props.drawing)
+    // console.log(props.drawing)
   if((props.adding || props.updating) && !props.drawing) {
       const c = { lat: e.lngLat.lat, lng:  e.lngLat.lng};
       props.setCoordMap(c);
@@ -854,7 +858,8 @@ const Map: React.FC<MapProps> = (props) => {
 
 
   const modalStyle: React.CSSProperties = {
-    backgroundColor: 'white',
+    backgroundColor: 'black',
+    color:'white',
     padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',

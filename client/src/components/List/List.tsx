@@ -53,6 +53,17 @@ import { title } from "process";
 
 
 interface DocumentListProps {
+  newDocument: DocumentLocal;
+  setNewDocument: React.Dispatch<React.SetStateAction<DocumentLocal>>;
+  reset: () => DocumentLocal;
+  setLinkDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
+  setOpenLinkDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentDocument: React.Dispatch<React.SetStateAction<Document | null>>;
+  OpenLinkingDialog: (document:Document) => void;
+  currentDocument: Document | null;
+  //handleSearchLinking: () => Promise<void>;
+  linkDocuments: Document[];
+  openLinkDialog: boolean;
   documents: Document[];
   setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
   fetchDocuments: () => Promise<void>;
@@ -74,6 +85,9 @@ interface DocumentListProps {
   polygon:any;
   setPolygon:any;
   setPin:any;
+  setSearchQuery:any;
+  removePolygon:any;
+  setRemovePolygon:any;
 }
 
 /*interface DocumentLocal {
@@ -102,40 +116,9 @@ export const ACTUAL_STAKEHOLDERS = [
 
 
 const DocumentList: React.FC<DocumentListProps> = (props) => {
-  const reset = () => {
-    /*return new Document(
-      0,
-      "",
-      DocumentType.informative_doc,
-      "admin",
-      undefined,
-      "",
-      1,
-      "",
-      "",
-      "",
-      new Coordinates(CoordinatesType.MUNICIPALITY,null)
-    )*/
-    return {
-      id: 0,
-      title: "",
-      stakeholders: "",
-      scale: "",
-      lastModifiedBy: "admin",
-      issuanceDate: "",
-      type: "informative_doc",
-      connection: [],
-      language: "English",
-      pages: 1,
-      description: "",
-      coordinates: new Coordinates(CoordinatesType.MUNICIPALITY, null)
-    }
-  }
+  
   const [open, setOpen] = useState(false);
-  const [newDocument, setNewDocument] = useState<DocumentLocal>(reset());
 
-  const [openLinkDialog, setOpenLinkDialog] = useState(false);
-  const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
   const [targetDocumentId, setTargetDocumentId] = useState(0);
   const [targetLinkType, setTargetLinkType] = useState("direct");
   const [errors, setErrors] = useState<string[]>([]);
@@ -237,7 +220,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
     if (scaleOptions.includes(trimmedScale)) {
       // Set the document scale to the existing scale
-      setNewDocument((prev) => ({ ...prev, scale: trimmedScale }));
+      props.setNewDocument((prev) => ({ ...prev, scale: trimmedScale }));
       
       setNewScale("");
     
@@ -347,15 +330,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   useEffect(() => {
     if (props.updating) {
-      setOldForm(newDocument);
-      setCoordinatesType(newDocument.coordinates.type);
+      setOldForm(props.newDocument);
+      setCoordinatesType(props.newDocument.coordinates.type);
       setOpen(true);
     }
   }, [props.updating])
 
   useEffect(() => {
-    if (props.updating && newDocument.issuanceDate) {
-      const dateParts = newDocument.issuanceDate.split("-");
+    if (props.updating && props.newDocument.issuanceDate) {
+      const dateParts = props.newDocument.issuanceDate.split("-");
       setYear(dateParts[0] || "");
       setMonth(dateParts[1] || "");
       setDay(dateParts[2] || "");
@@ -367,7 +350,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             : "year"
       );
     }
-  }, [props.updating, newDocument.issuanceDate]);
+  }, [props.updating, props.newDocument.issuanceDate]);
 
 
 
@@ -375,7 +358,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     console.log(props.adding)
     console.log(props.updating)
     if (props.coordMap && (props.adding || props.updating)) {
-      newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(props.coordMap.lat, props.coordMap.lng)))
+      props.newDocument.coordinates = (new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(props.coordMap.lat, props.coordMap.lng)))
       setOpen(true);
     }
   }, [props.coordMap])
@@ -390,7 +373,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     props.setUpdating(false);
     props.setAdding(false);
     props.setDrawing(false);
-    setNewDocument(reset());
+    props.setNewDocument(props.reset());
     setDoctypeMessage("");
     setStakeholderMessage("");
     setScaleMessage("");
@@ -402,12 +385,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   }
 
   const openLinkingDialog = (document: Document) => {
-    setCurrentDocument(document);
-    setOpenLinkDialog(true);
+    props.setCurrentDocument(document);
+    props.setOpenLinkDialog(true);
 
   };
   const closeLinkingDialog = () => {
-    setOpenLinkDialog(false);
+    props.setOpenLinkDialog(false);
     setTargetDocumentId(0);
     setTargetLinkType("direct");
     setLinkDocuments([]);
@@ -418,31 +401,31 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name == "lat") {
-      setNewDocument({
-        ...newDocument,
+      props.setNewDocument({
+        ...props.newDocument,
         coordinates: {
-          ...newDocument.coordinates,
+          ...props.newDocument.coordinates,
           coords: {
-            ...newDocument.coordinates?.coords,
+            ...props.newDocument.coordinates?.coords,
             lat: e.target.value
           }
         }
       });
     }
     else if (e.target.name == "lng") {
-      setNewDocument({
-        ...newDocument,
+      props.setNewDocument({
+        ...props.newDocument,
         coordinates: {
-          ...newDocument.coordinates,
+          ...props.newDocument.coordinates,
           coords: {
-            ...newDocument.coordinates?.coords,
+            ...props.newDocument.coordinates?.coords,
             lng: e.target.value
           }
         }
       });
     }
     else {
-      setNewDocument({ ...newDocument, [e.target.name]: e.target.value });
+      props.setNewDocument({ ...props.newDocument, [e.target.name]: e.target.value });
     }
   }
 
@@ -457,53 +440,53 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     const newErrors = [];
 
     // Validazioni
-    if (!newDocument.title) {
+    if (!props.newDocument.title) {
       newErrors.push("Title is required.");
     }
-    if (!newDocument.stakeholders) {
+    if (!props.newDocument.stakeholders) {
       newErrors.push("Stakeholders are required.");
     }
-    if (!newDocument.description) {
+    if (!props.newDocument.description) {
       newErrors.push("Description is required.");
     }
-    if (!newDocument.language) {
+    if (!props.newDocument.language) {
       newErrors.push("Language is required.");
     }
-    if (!newDocument.scale) {
+    if (!props.newDocument.scale) {
       newErrors.push("Scale is required.");
     }
-    if (typeof newDocument.title !== 'string') {
+    if (typeof props.newDocument.title !== 'string') {
       newErrors.push("Title must be a string.");
     }
-    if (typeof newDocument.scale !== 'string') {
+    if (typeof props.newDocument.scale !== 'string') {
       newErrors.push("Scale must be a string.");
     }
-    if (typeof newDocument.type !== 'string') {
+    if (typeof props.newDocument.type !== 'string') {
       newErrors.push("Type must be a string.");
     }
-    if (typeof newDocument.language !== 'string') {
+    if (typeof props.newDocument.language !== 'string') {
       newErrors.push("Language must be a string.");
     }
-    if (newDocument.pages && Number(newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
+    if (props.newDocument.pages && Number(props.newDocument.pages) <= 0) { // Corretto: controlliamo pages, non language
       newErrors.push("Pages must be greater than 0");
     }
-    if (newDocument.description && typeof newDocument.description !== 'string') {
+    if (props.newDocument.description && typeof props.newDocument.description !== 'string') {
       newErrors.push("Description must be a string.");
     }
     let skipCoordsCheck = false;
     if (
-      (!newDocument.coordinates?.coords?.lat && newDocument.coordinates?.coords?.lng) ||
-      (newDocument.coordinates?.coords?.lat && !newDocument.coordinates?.coords?.lng)
+      (!props.newDocument.coordinates?.coords?.lat && props.newDocument.coordinates?.coords?.lng) ||
+      (props.newDocument.coordinates?.coords?.lat && !props.newDocument.coordinates?.coords?.lng)
     ) {
       newErrors.push("Latitude and Longitude must be defined.");
       skipCoordsCheck = true;
     }
-    if (newDocument.coordinates?.coords?.lat && isNaN(Number(newDocument.coordinates?.coords?.lat))) {
+    if (props.newDocument.coordinates?.coords?.lat && isNaN(Number(props.newDocument.coordinates?.coords?.lat))) {
       newErrors.push("Latitude must be a number.");
       console.error("lat was not a number")
       skipCoordsCheck = true;
     }
-    if (newDocument.coordinates?.coords?.lng && isNaN(Number(newDocument.coordinates?.coords?.lng))) {
+    if (props.newDocument.coordinates?.coords?.lng && isNaN(Number(props.newDocument.coordinates?.coords?.lng))) {
       newErrors.push("Longitude must be a number.");
       console.error("lng was not a number")
       skipCoordsCheck = true;
@@ -513,8 +496,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
     let coordinates1
     if (!skipCoordsCheck) {
       if (
-        (Number(newDocument.coordinates?.coords?.lat) < -90 || Number(newDocument.coordinates?.coords?.lat) > 90) ||
-        (Number(newDocument.coordinates?.coords?.lng) < -180 || Number(newDocument.coordinates?.coords?.lng) > 180)
+        (Number(props.newDocument.coordinates?.coords?.lat) < -90 || Number(props.newDocument.coordinates?.coords?.lat) > 90) ||
+        (Number(props.newDocument.coordinates?.coords?.lng) < -180 || Number(props.newDocument.coordinates?.coords?.lng) > 180)
       ) {
         newErrors.push("Latitude and Longitude must be between -90 and 90 and -180 and 180.");
       }
@@ -523,7 +506,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         coordinates1 = new Coordinates(CoordinatesType.MUNICIPALITY, null);
       }
       if (coordinates_type == CoordinatesType.POINT) {
-        const latLng1 = newDocument.coordinates?.coords;
+        const latLng1 = props.newDocument.coordinates?.coords;
         if (latLng1 && latLng1.lat !== null && latLng1.lng !== null) {
           if (!booleanPointInPolygon(point([latLng1.lng, latLng1.lat]), props.geojson.features[0])) {
             newErrors.push("coordinates out of the municipality area")
@@ -609,15 +592,15 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
         const finalDocument: Document = new Document(
           0,
-          newDocument.title,
-          newDocument.type,
+          props.newDocument.title,
+          props.newDocument.type,
           props.user?.username ? props.user?.username : '',
           formattedDate,
-          newDocument.language,
-          Number(newDocument.pages),
-          newDocument.stakeholders,
-          newDocument.scale,
-          newDocument.description,
+          props.newDocument.language,
+          Number(props.newDocument.pages),
+          props.newDocument.stakeholders,
+          props.newDocument.scale,
+          props.newDocument.description,
           coordinates1
         );
 
@@ -626,13 +609,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
         if (props.updating) {
 
 
-          if (newDocument.description != oldForm?.description) {
+          if (props.newDocument.description != oldForm?.description) {
             //console.log("nuovo")
             //console.log(newDocument.description)
             //console.log("vecchio")
             //console.log(oldForm?.description)
-            if (newDocument.description) {
-              await API.updateDescription(newDocument.id, newDocument.description);
+            if (props.newDocument.description) {
+              await API.updateDescription(props.newDocument.id, props.newDocument.description);
               await props.fetchDocuments();
             }
 
@@ -645,12 +628,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             );*/
           }
           await API.updateCoordinates(
-            newDocument.id,
+            props.newDocument.id,
             finalDocument.coordinates
           );
 
           await API.updateDocument(
-            newDocument.id,
+            props.newDocument.id,
             {
               title: finalDocument.title,
               doctype: finalDocument.type,
@@ -660,38 +643,18 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             }
           )
 
-          /*const latLng2 = newDocument.coordinates.coords;
-          if (
-              latLng2?.lat != null && 
-              latLng2?.lng != null
-          ) {
-            if(booleanPointInPolygon(point([latLng2.lng,latLng2.lat]),props.geojson.features[0])){
-              await API.updateCoordinates(
-                newDocument.id,
-                new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(Number(latLng2.lat), Number(latLng2.lng)))
-            );
-            }
-            else{
-              newErrors.push("coordinates out of the municipality area")
-              setErrors(newErrors);
-            }
-          }
-          else if(newDocument.coordinates.type==CoordinatesType.MUNICIPALITY){
-            await API.updateCoordinates(
-              newDocument.id,
-              new Coordinates(CoordinatesType.MUNICIPALITY, null)
-          );
-          }*/
+          
           props.setUpdating(false);
         }
-        //if adding:
         else {
           await API.addDocument(finalDocument);
         }
         await props.fetchDocuments();
 
         handleClose();
-        setNewDocument(reset());
+        props.setNewDocument(props.reset());
+        props.setRemovePolygon(true);
+        console.log("removePolygon is: ", props.removePolygon)
 
       } catch (error) {
         console.error("Error:", error);
@@ -702,9 +665,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
   const linkDocument = async () => {
-    if (currentDocument && targetDocumentId && targetLinkType) {
+    if (props.currentDocument && targetDocumentId && targetLinkType) {
       try {
-        await API.createLink(currentDocument?.id, targetDocumentId, targetLinkType);
+        await API.createLink(props.currentDocument?.id, targetDocumentId, targetLinkType);
         await props.fetchDocuments();
         closeLinkingDialog();
       }
@@ -724,10 +687,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
   const handleSearchLinking = async () => {
     try {
       let matchingDocs = [];
-      if (searchLinkQuery.trim()) {
+      console.log(searchLinkQuery)
+      if (searchLinkQuery) {
         // Fetch matching documents based on the search query
         matchingDocs = await API.searchDocumentsByTitle(searchLinkQuery);
-        console.log(matchingDocs)
       } else {
         // Default to all documents if no query
         
@@ -736,6 +699,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
       }
       // Exclude the current document
       const filteredDocs = matchingDocs.filter((doc: Document) => doc.id !== props.pin);
+      console.log(filteredDocs)
       setLinkDocuments(filteredDocs);
 
     } catch (error) {
@@ -778,11 +742,12 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
   useEffect(() => {
     if (props.updating) {
-      setCoordinatesType(newDocument.coordinates.type);
+      setCoordinatesType(props.newDocument.coordinates.type);
     }
   }, [props.updating])
 
   useEffect(() => {
+    console.log(searchLinkQuery)
     handleSearchLinking();
   },[searchLinkQuery])
 
@@ -808,8 +773,9 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
                   handleSearchLinking={handleSearchLinking}
                   updating={props.updating}
                   setUpdating={props.setUpdating}
-                  newDocument={newDocument}
-                  setNewDocument={setNewDocument}
+                  newDocument={props.newDocument}
+                  setNewDocument={props.setNewDocument}
+                  setSearchQuery={props.setSearchQuery}
                 />
               </Grid>
             ))}
@@ -862,7 +828,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             name="title"
             required
             fullWidth
-            value={newDocument.title}
+            value={props.newDocument.title}
             onChange={handleChange}
           />
 
@@ -873,10 +839,10 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               label="Stakeholders"
               name="stakeholders"
               required
-              value={newDocument.stakeholders || []} // Ensure it's an array
+              value={props.newDocument.stakeholders || []} // Ensure it's an array
               onChange={(e) => {
                 console.log(e.target.value);
-                setNewDocument({ ...newDocument, stakeholders: e.target.value });
+                props.setNewDocument({ ...props.newDocument, stakeholders: e.target.value });
               }}
               SelectProps={{
                 multiple: true, // Enable multiple selection
@@ -976,7 +942,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               label="Document Type"
               name="type"
               required
-              value={newDocument.type}
+              value={props.newDocument.type}
               onChange={handleChange}
             >
               {doctypeOptions.map((type) => (
@@ -1019,7 +985,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
               label="Scale (required)"
               name="scale"
               required
-              value={newDocument.scale}
+              value={props.newDocument.scale}
               onChange={handleChange}
             >
               {scaleOptions.map((scale) => (
@@ -1188,13 +1154,13 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
           <TextField
             select name="language"
             label="Select an option"
-            value={newDocument.language}
+            value={props.newDocument.language}
             onChange={handleChange}
             fullWidth style={{ backgroundColor: 'white' }}>
             <MenuItem value="English">English</MenuItem>
             <MenuItem value="Swedish">Swedish</MenuItem>
           </TextField>
-          <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={newDocument.pages} disabled={props.updating ? true : false} onChange={handleChange} />
+          <TextField className="white-input" margin="dense" label="Pages" name="pages" type="number" fullWidth value={props.newDocument.pages} disabled={props.updating ? true : false} onChange={handleChange} />
           <label><input type="checkbox" checked={coordinates_type == CoordinatesType.MUNICIPALITY} onClick={() => setCoordinatesType(CoordinatesType.MUNICIPALITY)} name="type_of_coordinates" /><Button color="primary" >All municipality</Button></label>
           <Button color="primary" onClick={() => setCoordinatesType(CoordinatesType.POINT)}>Coordinates</Button>
           <Button color="primary" onClick={()=>{
@@ -1203,8 +1169,8 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             setOpen(false);
             props
           }} >Draw a polygon</Button>
-          {coordinates_type == CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={newDocument.coordinates?.coords?.lat/* || ""*/} onChange={handleChange} />
-            <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={newDocument.coordinates?.coords?.lng /*|| ""*/} onChange={handleChange} />
+          {coordinates_type == CoordinatesType.POINT && <><TextField className="white-input" margin="dense" label="Latitude" type="text"/*"number"*/ name="lat" fullWidth value={props.newDocument.coordinates?.coords?.lat/* || ""*/} onChange={handleChange} />
+            <TextField className="white-input" margin="dense" label="Longitude" type="text"/*"number"*/ name="lng" fullWidth value={props.newDocument.coordinates?.coords?.lng /*|| ""*/} onChange={handleChange} />
             <Button color="primary" onClick={handleMapCoord}>Choose on map</Button></>}
           <TextField
             margin="dense"
@@ -1214,7 +1180,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
             multiline
             required
             rows={4}
-            value={newDocument.description}
+            value={props.newDocument.description}
             onChange={handleChange}
           />
         </DialogContent>
@@ -1242,7 +1208,7 @@ const DocumentList: React.FC<DocumentListProps> = (props) => {
 
 
       {/* Linking Dialog */}
-      <Dialog open={openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
+      <Dialog open={props.openLinkDialog} onClose={closeLinkingDialog} className="custom-dialog">
         <DialogTitle>New Connection</DialogTitle>
         <DialogContent>
           {/* Search Input */}

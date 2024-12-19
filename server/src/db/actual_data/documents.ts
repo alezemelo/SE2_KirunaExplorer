@@ -198,7 +198,7 @@ const doc_45 = new Document(
   DocumentType.technical_doc,
   "user1",
   "2014-12-17",
-  "swedish",
+  "Swedish",
   1,
   ["LKAB"],
   "1:12000",
@@ -351,6 +351,300 @@ const doc_69 = new Document(
   new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.848567, 20.300333)) // 11: Coordinates
 );
 
+const doc_102 = new Document(
+  102, // 1: ID
+  "Kiruna Church closes (102)", // 2: Title
+  DocumentType.material_effect, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2024-06-02", // 5: Issuance date
+  "-", // 6: Language
+  undefined, // 7: Pages
+  ["LKAB"], // 8: Stakeholders
+  "blueprints/effects", // 9: Scale
+  `On June 2, the Kiruna Church was closed to begin the necessary preparations for its relocation, ` +
+    `following a solemn ceremony. The relocation is scheduled for the summer of 2025 and will take two` +
+    `days. Both the new site and the route for the move have already been determined. A significant period` +
+    `will pass between the relocation and the reopening of the church, voted "Sweden's most beautiful` +
+    `building constructed before 1950."`, // 10: Description
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.8519511599584, 20.233138061669795)) // 11: Coordinates
+);
+
+const doc_42 = new Document(
+  42, // 1: ID
+  "Detailed plan for LINBANAN 1. (42)", // 2: Title
+  DocumentType.prescriptive_doc, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2024-03", // 5: Issuance date
+  "Swedish", // 6: Language
+  15, // 7: Pages
+  ["Kiruna kommun"], // 8: Stakeholders
+  "1:500", // 9: Scale
+  `This is the first Detailed Plan for the new city center, covering a very small area. It regulates the use of a, ` +
+    `portion of land that will host a single building. Its boundaries coincide with the outer footprint of the` +
+    `new Town Hall, "Kristallen," the first building to be constructed in the new Kiruna.`, // 10: Description
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.84898662346073, 20.302749006735986)) // 11: Coordinates
+);
+
+const doc_4 = new Document(
+  4, // 1: ID
+  "Vision 2099 (4)", // 2: Title
+  DocumentType.design_doc, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2004", // 5: Issuance date
+  "Swedish", // 6: Language
+  2, // 7: Pages
+  ["Kiruna kommun"], // 8: Stakeholders
+  "Text", // 9: Scale
+  `Vision 2099 is to be considered the first project for the new city of Kiruna. It was created by the municipality ` +
+    `in response to the letter from LKAB. In these few lines, all the main aspects and expectations of ` +
+    `the municipality for the new city are condensed. The document, which despite being a project document `+
+    `is presented anonymously, had the strength to influence the design process. The principles it ` +
+    `contains proved to be fundamental in subsequent planning documents.` , // 10: Description
+    undefined // 11: Coordinates
+);
+
+const doc_58 = new Document(
+  58,
+  "Detailed plan for Gruvstaspark 2, etapp 3, del av SJ-området m m. (58)",
+  DocumentType.prescriptive_doc,
+  "user1",
+  "2018-10",
+  "Swedish",
+  46,
+  ["Kiruna kommun"],
+  "1:1500",
+  `The third Detailed Plan of the second demolition phase covers a narrow, elongated area straddling `+
+  `the old railway. Like all areas within the "Gruvstadpark 2" zone, its sole designated land use is for ` +
+  `mining activities, although it will temporarily be used as a park during an interim phase. `,
+  
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.85991359273675, 20.206185351872165),  // Top-left
+    new CoordinatesAsPoint(67.86059888803035, 20.204449604945268),  // Top-right
+    new CoordinatesAsPoint(67.86143990472112, 20.20482155071619),  // Bottom-right
+    new CoordinatesAsPoint(67.8618915493098, 20.207466498412145),  // Middle-right
+    new CoordinatesAsPoint(67.86059888803035, 20.209078263416018),  // Bottom-center
+    new CoordinatesAsPoint(67.86081693230818, 20.21052471918796),  // Bottom-left
+    new CoordinatesAsPoint(67.85986686732397, 20.211640556497628),  // Center-left
+    new CoordinatesAsPoint(67.86008491844879, 20.212880375730464),  // Closing the loop
+    new CoordinatesAsPoint(67.85866754967995, 20.214574795348682),  // Closing the loop
+    new CoordinatesAsPoint(67.85865197372019, 20.21610390573653),  // Closing the loop
+    new CoordinatesAsPoint(67.85731240225812, 20.22098052805353),  // Closing the loop
+    new CoordinatesAsPoint(67.85615968613553, 20.22160043767076),  // Closing the loop
+    new CoordinatesAsPoint(67.85581697575765, 20.21879018074128),  // Closing the loop
+    new CoordinatesAsPoint(67.85648681406997, 20.21763301612438),  // Closing the loop
+    new CoordinatesAsPoint(67.856253151728, 20.215607978044034),  // Closing the loop
+    new CoordinatesAsPoint(67.85798219761011, 20.212012502267072),  // Closing the loop
+    new CoordinatesAsPoint(67.85768624389715, 20.209946136879466),  // Closing the loop
+    new CoordinatesAsPoint(67.85866754967995, 20.20783844418321),  // Closing the loop
+    new CoordinatesAsPoint(67.85989801760951, 20.20783844418321),  // Closing the loop
+    new CoordinatesAsPoint(67.85991359273675, 20.206185351872165),  // Closing the loop
+    
+  ]))
+);
+
+const doc_49 = new Document(
+  49,
+  "Detail plan for square and commercial street (49)",
+  DocumentType.prescriptive_doc,
+  "user1",
+  "2016-06-22",
+  "Swedish",
+  43,
+  ["Kiruna kommun"],
+  "1:1000",
+  `This plan, approved in July 2016, is the first detailed plan to be implemented from the new masterplan `+
+  `(Adjusted development plan). The document defines the entire area near the town hall, comprising ` +
+  `a total of 9 blocks known for their density. Among these are the 6 buildings that will face the `+
+  `main square. The functions are mixed, both public and private, with residential being prominent, as ` +
+  `well as the possibility of incorporating accommodation facilities such as hotels. For all buildings in this ` +
+  `plan, the only height limit is imposed by air traffic.`,
+  
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.84848059471247, 20.297430391863372),  // Top-left
+    new CoordinatesAsPoint(67.8496675186748, 20.297576807755206),  // Top-right
+    new CoordinatesAsPoint(67.84980552916937, 20.300651541468227),  // Bottom-right
+    new CoordinatesAsPoint(67.85008154770827, 20.30057833352228),  // Middle-right
+    new CoordinatesAsPoint(67.85097858540081, 20.305153830120332),  // Bottom-center
+    new CoordinatesAsPoint(67.84950190500388, 20.307642900268803),  // Bottom-left
+    new CoordinatesAsPoint(67.84998494159126, 20.311120277682306),  // Center-left
+    new CoordinatesAsPoint(67.84820455722777, 20.310607822063673),  // Closing the loop
+    new CoordinatesAsPoint(67.84848059471247, 20.297430391863372),  // Closing the loop
+
+    
+  ]))
+);
+
+const doc_48 = new Document(
+  48,
+  "Construction of new city hall begins (48)",
+  DocumentType.material_effect,
+  "user1",
+  "2015",
+  "-", // 6: Language
+  undefined, // 7: Pages
+  ["LKAB"],
+  "blueprints/effects",
+  `The Kiruna Town Hall was the first building to be rebuild in the new town center in 2015. It remained `+
+  `isolated for quite some time due to a slowdown in mining activities.`,
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.84891875325867, 20.30288318460373)) // 11: Coordinates
+);
+
+const doc_81 = new Document(
+  81,
+  "Gruvstadspark 2, etapp 5, Kyrkan (81)",
+  DocumentType.prescriptive_doc,
+  "user1",
+  "2021-09-04",
+  "Swedish", // 6: Language
+  56, // 7: Pages
+  ["Kiruna kommun"],
+  "1:2000",
+  `The last detailed plan of the second planning phase concerns the area surrounding the Kiruna Church. `+
+  `Situated within a park, the area includes only six buildings, half of which serve religious functions.`+
+  `The plan also specifies that the church will be dismantled between 2025 and 2026 and reassembled at its new site by 2029. `,
+
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.85133800337334, 20.229942404870997),  // Top-left
+    new CoordinatesAsPoint(67.85243703165469, 20.229879031442266),  // Top-right
+    new CoordinatesAsPoint(67.85277150824277, 20.231146500010993),  // Bottom-right
+    new CoordinatesAsPoint(67.85269983509207, 20.23304770286353),  // Middle-right
+    new CoordinatesAsPoint(67.85291485388348, 20.233111076292232),  // Bottom-center
+    new CoordinatesAsPoint(67.85289096300465, 20.234695412002253),  // Bottom-left
+    new CoordinatesAsPoint(67.85358378855665, 20.237230349139736),  // Center-left
+    new CoordinatesAsPoint(67.85210255026914, 20.23894143170719),  // Closing the loop
+    new CoordinatesAsPoint(67.84985662243699, 20.234822158859743),  // Closing the loop
+    new CoordinatesAsPoint(67.85071679056503, 20.23399830428974),  // Closing the loop
+    new CoordinatesAsPoint(67.85133800337334, 20.229942404870997),  // Top-left
+
+  ]))
+);
+
+const doc_2 = new Document(
+  2, // 1: ID
+  "Mail to Kiruna kommun (2)", // 2: Title
+  DocumentType.prescriptive_doc, // 3: Type
+  "user1", // 4: Last modified by
+
+  "2004-03-19", // 5: Issuance date
+  "Swedish", // 6: Language
+  1, // 7: Pages
+  ["LKAB"], // 8: Stakeholders
+  "Text", // 9: Scale
+  `This document is considered the act that initiates the process of relocating Kiruna. The company communicates ` +
+    `its intention to construct a new mining level at a depth of 1,365 meters. Along with this, ` +
+    `LKAB urges the municipality to begin the necessary planning to relocate the city, referring to a series of `+
+    `meetings held in previous months between the two stakeholders. ` , // 10: Description
+    undefined // 11: Coordinates
+);
+
+const doc_62 = new Document(
+  62,
+  "Deformation forecast (62)",
+  DocumentType.technical_doc,
+  "user1",
+  "2019-04",
+  "Swedish",
+  1,
+  ["LKAB"],
+  "1:12000",
+  `The third deformation forecast was published in 2019, five years after the second. The line has not `+
+  `moved; what changes, as in the previous version, are the timing of the interventions and the shape ` +
+  `of the areas underlying the deformation zone. `, // 10: Description
+  
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.86481748171062, 20.21157934104096),  // Point 1
+    new CoordinatesAsPoint(67.86294133526926, 20.213877363026285),  // Point 2
+    new CoordinatesAsPoint(67.85774506458873, 20.229069841705126),  // Point 3
+    new CoordinatesAsPoint(67.85336582618746, 20.236985250764462),  // Point 4
+    new CoordinatesAsPoint(67.85172941615906, 20.239027936973628),  // Point 5
+    new CoordinatesAsPoint(67.84850438970608, 20.242091966287376),  // Point 6
+    new CoordinatesAsPoint(67.847782307763, 20.235325568220134),  // Point 7
+    new CoordinatesAsPoint(67.84619364880334, 20.23672991498833),  // Point 8
+    new CoordinatesAsPoint(67.84585664663007, 20.233793553563288),  // Point 9
+    new CoordinatesAsPoint(67.84229375444724, 20.239410940637242),  // Point 10
+    new CoordinatesAsPoint(67.84128256430657, 20.238006593869073),  // Point 11
+    new CoordinatesAsPoint(67.83881073303482, 20.239452092194767),  // Point 12
+    new CoordinatesAsPoint(67.84221366512125, 20.21878774420327),  // Point 13
+    new CoordinatesAsPoint(67.84592936582999, 20.22458570224515),  // Point 14
+    new CoordinatesAsPoint(67.84651428765551, 20.218726075896654),  // Point 15
+    new CoordinatesAsPoint(67.84840960073646, 20.219736808312717),  // Point 16
+    new CoordinatesAsPoint(67.84830692808515, 20.2221644040078),  // Point 17
+    new CoordinatesAsPoint(67.84987859915779, 20.222855428274528),  // Point 18
+    new CoordinatesAsPoint(67.85218347437348, 20.21616674697546),  // Point 19
+    new CoordinatesAsPoint(67.85438310202014, 20.2179385685767),  // Point 20
+    new CoordinatesAsPoint(67.85785128329064, 20.21360741805529),  // Point 21
+    new CoordinatesAsPoint(67.85837138834154, 20.20728165626184),  // Point 22
+    new CoordinatesAsPoint(67.8604165855302, 20.200739402257426),  // Point 23
+    new CoordinatesAsPoint(67.86344088317497, 20.1949355821819),  // Point 24
+    new CoordinatesAsPoint(67.86495003453044, 20.21102753303188),  // Point 25
+    new CoordinatesAsPoint(67.86481748171062, 20.21157934104096)  // Point 1
+
+  ]))
+);
+
+const doc_76 = new Document(
+  76,
+  "Demolition documentation, Kiruna City Hall (76)",
+  DocumentType.informative_doc,
+  "user1",
+  "2020-11-26",
+  "Swedish", // 6: Language
+  162, // 7: Pages
+  ["Norrbotten Museum"],
+  "Text",
+  `This document was created to preserve the memory of the symbolic building before its demolition `+
+  `in April 2019. Conducted by the Norrbotten Museum, the detailed 162-page study analyzed the `+
+  `building's materials, both physically and chemically, taking advantage of the demolition to explore `+
+  `aspects that couldn't be examined while it was in use. This meticulous effort reflects a commitment `+
+  `to preserving knowledge of every detail of the structure. `,
+
+
+  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.849167, 20.304389)) // 11: Coordinates
+);
+
+const doc_44 = new Document(
+  44,
+  "Detailed Overview Plan for the Central Area of Kiruna 2014. (44)",
+  DocumentType.prescriptive_doc,
+  "user1",
+  "2014-06",
+  "Swedish",
+  136,
+  ["Kiruna kommun"],
+  "1:30000",
+  `The Detailed Overview Plan is one of the three planning instruments available to Swedish administrations `+
+  `and represents an intermediate scale. Like the Overview Plan, compliance with it is not mandatory, ` +
+  `but it serves as a supporting plan for Detailed Plans, sharing the characteristic of regulating a specific `+ 
+  `area of the Kiruna municipality rather than its entire extent, as the Overview Plan does. This specific plan `+
+  `focuses on the central area of Kiruna and its surroundings, incorporating all the projections of `+ 
+  `the Development Plan into a prescriptive tool. `,  // 10: Description
+
+
+  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.88245271245663, 20.14372851615488),  // Point 1
+    new CoordinatesAsPoint(67.86487414338634, 20.33658882105169),  // Point 2
+    new CoordinatesAsPoint(67.85543311600742, 20.389779830408656),  // Point 3
+    new CoordinatesAsPoint(67.82346045024462, 20.384975481177435),  // Point 4
+    new CoordinatesAsPoint(67.81905592372652, 20.374680447107067),  // Point 5
+    new CoordinatesAsPoint(67.81646463776843, 20.388407159199318),  // Point 6
+    new CoordinatesAsPoint(67.7847445746593, 20.32808933123883),  // Point 7
+    new CoordinatesAsPoint(67.78777499738956, 20.317783188208296),  // Point 8
+    new CoordinatesAsPoint(67.78978077021958, 20.295968140782065),  // Point 9
+    new CoordinatesAsPoint(67.78781399355941, 20.250791545031944),  // Point 10
+    new CoordinatesAsPoint(67.80079336171673, 20.168089117837667),  // Point 11
+    new CoordinatesAsPoint(67.81301093468244, 20.155634789836768),  // Point 12
+    new CoordinatesAsPoint(67.83600418628083, 20.140697870573575),  // Point 13
+    new CoordinatesAsPoint(67.86280336134885, 20.151844123885155),  // Point 14
+    new CoordinatesAsPoint(67.87277064145493, 20.160949199693533),  // Point 15
+    new CoordinatesAsPoint(67.88245271245663, 20.14372851615488),  // Point 1
+
+
+  ]))
+);
+
 const ds1 = {
   doc_id: 15,
   stakeholder_id: "Kiruna kommun",
@@ -416,9 +710,63 @@ const ds13 = {
   stakeholder_id: "LKAB",
 }
 
+const ds14 = {
+  doc_id: 102,
+  stakeholder_id: "LKAB",
+}
 
-const actualDocuments = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
+const ds15 = {
+  doc_id: 42,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds16 = {
+  doc_id: 4,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds17 = {
+  doc_id: 58,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds18 = {
+  doc_id: 49,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds19 = {
+  doc_id: 48,
+  stakeholder_id: "LKAB",
+}
+
+const ds20 = {
+  doc_id: 81,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const ds21 = {
+  doc_id: 2,
+  stakeholder_id: "LKAB",
+}
+
+const ds22 = {
+  doc_id: 62,
+  stakeholder_id: "LKAB",
+}
+
+const ds23 = {
+  doc_id: 76,
+  stakeholder_id: "Norrbotten Museum",
+}
+
+const ds24 = {
+  doc_id: 44,
+  stakeholder_id: "Kiruna kommun",
+}
+
+const actualDocuments = [doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69, doc_102, doc_42, doc_4, doc_58, doc_49, doc_48, doc_81, doc_2, doc_62, doc_76, doc_44]
 //const actualDocuments = [doc11, doc_15, doc_18, doc_41,doc_45, doc_50,doc_47,doc_63,doc_64,doc_65,doc_69]
-const docs_stakeholders = [ds1,ds2,ds3,ds4,ds5,ds6,ds7,ds8,ds9,ds10,ds11,ds12,ds13]
+const docs_stakeholders = [ds1,ds2,ds3,ds4,ds5,ds6,ds7,ds8,ds9,ds10,ds11,ds12,ds13,ds14, ds15, ds16, ds17, ds18, ds19, ds20, ds21, ds22, ds23,ds24]
 
 export { actualDocuments, docs_stakeholders }
