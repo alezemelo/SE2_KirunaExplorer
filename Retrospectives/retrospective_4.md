@@ -1,32 +1,3 @@
-About Stories And Tasks
-> we did a lot of stories because they were smaller + we didn't have as many uncategorized as last time (in proportion to total tasks), although there were still a lot
-> a lot more story points than previous sprints because 
-	- story 9 (draw area - with 21 points) when we estimated it we though we wouldn't have many features yet
-	- story 10 (diagram - with 34 points) was easier than expected (on par with the 21 point stories of sprints 2 and 3)
-	- story 20 [idk if to say it but we forgot to estimate story 20, which was one of the later added stories]
-	- most of the relative error came from story 10 (diagram), which is the 34 points task (max points ever)
-	- other cause may be things like story 11 having only 30m but having 5 points
-	
-About Estimation Error
-> the total is low as last time, but we finally managed to lower the relaitve one by
-	- assigning less 10m tasks
-	- increasing the estimation by some factor after deciding on it
-	- reduced allocated meeting time by a lot
-
-About TD
-> We assigned some time early this time, and decided to work on fixing on the main branch mostly the code that we would not work on during this sprint
-> We brought the total amount of issues down by 36 issues, mostly not severe ones, to then create 28 new ones, and have an overall decrease of only 8 issues
-> The gate is failed, but only because the automatic gate is strict on duplicated code, and on reliability, which we decided to keep on C as threshold, just like it is (security and mantainability are both A)
-
-About Quality Measures
-> we didn't add new integration tests because we didn't work on the backend, but we added e2e automated ones
-> we didn't really plan on code review this time, as this was usually done in meetings, and we decided to cut them down. What we did was we tried to do good reviews directly after finishing the code.
-> tasks like testing and TD almost never have error as you can just stop after the time
-> [idk if we should say this but: running tests with --coverage fails half of them for some reason, so the coverage could be more than 70%]
-
-
-
-
 TEMPLATE FOR RETROSPECTIVE (Team 7)
 =====================================
 
