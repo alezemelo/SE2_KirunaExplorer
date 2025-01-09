@@ -73,7 +73,31 @@ const doc_18 = new Document(
     `The plan consists, like all detailed plans, of two documents: the area map that regulates it, and a ` +
     `text explaining the reasons that led to the drafting of the plan with these characteristics. The plan ` +
     `gained legal validity in 2012.`, // 10: Description
-  new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.8526128037612, 20.24253383065055)) // 11: Coordinates
+  //new Coordinates(CoordinatesType.POINT, new CoordinatesAsPoint(67.8526128037612, 20.24253383065055)) // 11: Coordinates
+    new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+    new CoordinatesAsPoint(67.84328093631012, 20.22910414264149),
+    new CoordinatesAsPoint(67.84004850710195, 20.227879817331058),
+    new CoordinatesAsPoint(67.83974063334625, 20.21839129617254),
+    new CoordinatesAsPoint(67.84220350966217, 20.217881160626405),
+    new CoordinatesAsPoint(67.84243439098952, 20.220635892575245),
+    new CoordinatesAsPoint(67.84393506393013, 20.21818724195279),
+    new CoordinatesAsPoint(67.8496290472581, 20.21798318773466),
+    new CoordinatesAsPoint(67.85305246268504, 20.212167642508945),
+    new CoordinatesAsPoint(67.8564369187201, 20.21073926297882),
+    new CoordinatesAsPoint(67.85697530961721, 20.212269669617285),
+    new CoordinatesAsPoint(67.8553985583101, 20.217677106406683),
+    new CoordinatesAsPoint(67.85351400834318, 20.22288048897795),
+    new CoordinatesAsPoint(67.85359093173145, 20.223798732961967),
+    new CoordinatesAsPoint(67.85305246268504, 20.224308868508075),
+    new CoordinatesAsPoint(67.85289861210245, 20.22349265163396),
+    new CoordinatesAsPoint(67.85120618870124, 20.223696705852092),
+    new CoordinatesAsPoint(67.84720542694834, 20.228798061313512),
+    new CoordinatesAsPoint(67.84720542694834, 20.230634549279955),
+    new CoordinatesAsPoint(67.84643597101254, 20.231348739045842),
+    new CoordinatesAsPoint(67.84578191351133, 20.23012441373379),
+    new CoordinatesAsPoint(67.84431983631634, 20.230838603499677),
+    new CoordinatesAsPoint(67.84328093631012, 20.22910414264149)
+  ])) 
 )
 
 const doc_41 = new Document(
