@@ -127,15 +127,29 @@ const doc_41 = new Document(
     `diagrams, and texts. The document also includes ` +
     `numerous studies aimed at demonstrating the ` +
     `future success of the project`, // 10: Description
-  new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
-    new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
-    new CoordinatesAsPoint(67.86760158832168, 20.164591698595675),
-    new CoordinatesAsPoint(67.85351844008717, 20.18194183073118),
-    new CoordinatesAsPoint(67.86227111154075, 20.20676586594044),
-    new CoordinatesAsPoint(67.8750204078963, 20.189086203319476),
-    new CoordinatesAsPoint(67.87795733042363, 20.164324773485898),
-
-  ])) // 11: Coordinates
+    new Coordinates(CoordinatesType.POLYGON, new CoordinatesAsPolygon([
+      new CoordinatesAsPoint(67.85468232660816, 20.273379599956996),
+      new CoordinatesAsPoint(67.85677766588856, 20.273132541590826),
+      new CoordinatesAsPoint(67.85649829819701, 20.279432529921166),
+      new CoordinatesAsPoint(67.85328532914397, 20.282026642763697),
+      new CoordinatesAsPoint(67.85305248809641, 20.285114872337573),
+      new CoordinatesAsPoint(67.85556704838271, 20.286473693350104),
+      new CoordinatesAsPoint(67.85533423011773, 20.289932510472795),
+      new CoordinatesAsPoint(67.84988561903253, 20.301050136939352),
+      new CoordinatesAsPoint(67.85053765664074, 20.304261895696783),
+      new CoordinatesAsPoint(67.8535647353321, 20.29895014082922),
+      new CoordinatesAsPoint(67.85505484513098, 20.300679549390537),
+      new CoordinatesAsPoint(67.84816228903168, 20.317479518273444),
+      new CoordinatesAsPoint(67.8476499231258, 20.316120697260942),
+      new CoordinatesAsPoint(67.84844175660055, 20.305620716709313),
+      new CoordinatesAsPoint(67.84830202323454, 20.297961907365448),
+      new CoordinatesAsPoint(67.84476183207457, 20.27683841707966),
+      new CoordinatesAsPoint(67.84527426141702, 20.273997245870987),
+      new CoordinatesAsPoint(67.84820886719234, 20.28635016416746),
+      new CoordinatesAsPoint(67.85081709574996, 20.286720751716274),
+      new CoordinatesAsPoint(67.85044450952714, 20.278567825641005),
+      new CoordinatesAsPoint(67.85468232660816, 20.273379599956996)
+  ]))
 )
   
 

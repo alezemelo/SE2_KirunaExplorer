@@ -174,10 +174,13 @@ export async function dbPopulateActualData() {
         const collateral_18_to_41 = new DocumentLink(1, 18, 41, LinkType.collateral, dayjs()).toObjectWithoutId(); // The id field can be whatever cause we take it out anyway using toObjectWithoutId()
         const projection_41_to_47 = new DocumentLink(1, 41, 47, LinkType.projection, dayjs()).toObjectWithoutId();
         const update_47_to_64 = new DocumentLink(1, 47, 64, LinkType.update, dayjs()).toObjectWithoutId();
+        const direct_41_to_42 = new DocumentLink(1, 41, 42, LinkType.direct, dayjs()).toObjectWithoutId();
+
         await knex('document_links').insert(direct_15_to_18);
         await knex('document_links').insert(collateral_18_to_41);
         await knex('document_links').insert(projection_41_to_47);
         await knex('document_links').insert(update_47_to_64);
+        await knex('document_links').insert(direct_41_to_42);
         // also add some double connections
         const direct_15_to_50 = new DocumentLink(1, 15, 50, LinkType.direct, dayjs()).toObjectWithoutId();
         const collateral_15_to_50 = new DocumentLink(1, 15, 50, LinkType.collateral, dayjs()).toObjectWithoutId();
